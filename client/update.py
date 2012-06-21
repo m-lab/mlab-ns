@@ -26,8 +26,8 @@ class UpdateClient(client.BasicClient):
         # PlanetLab available API.
         
         Returns:
-          A string describing the status of the tool: 'online' and 'offline' are
-          currently supported.
+            A string describing the status of the tool: 'online' and 'offline'
+            are currently supported.
         """
         return 'online'
   
@@ -35,9 +35,9 @@ class UpdateClient(client.BasicClient):
         """Custom configuration specific for the UpdateClient.
         
         Args:
-            request: A dict containing the data to be sent to the server. The 
-            UpdateClient makes sure the 'status' field is updated before sending
-            the data to the server.
+            request: A dict containing the data to be sent to the server.
+            The UpdateClient makes sure the 'status' field is updated before
+            sending the data to the server.
         """
         if not request.has_key('sliver_tool_id'):
             logging.error('Unknown request: "sliver_tool_id" key not found.')
@@ -51,7 +51,8 @@ class UpdateClient(client.BasicClient):
     def handle_error(self, error):
         """Custom error handling.
         
-        TODO(claudiu) Trigger events/notifications based on the type of the error.
+        TODO(claudiu) Trigger events/notifications based on the type of
+        the error.
         
         Args:
             error: urllib2.URLError raised if the send fails.
