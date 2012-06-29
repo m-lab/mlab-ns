@@ -2,6 +2,7 @@ import base64
 import hmac
 import hashlib
 import time
+import string
 
 def validate(data, key, expected_signature):
     """Checks the signature of a request.
@@ -19,10 +20,11 @@ def validate(data, key, expected_signature):
         True if the computed signature matches the expected one and False
         otherwise.
     """
+    str_list = []
     for argument in sorted(data.iterkeys()):
-        # TODO(claudiu) Use a list and join, instead of +=
-        message += data[argument]
-  
+        str_list.append(data[argument])  
+
+    message = string.join(str_list, '')
     key = key.encode('ascii')
     digest = hmac.new(key, message, hashlib.sha1).digest()
     signature = base64.encodestring(digest).strip() 
@@ -32,9 +34,9 @@ def validate(data, key, expected_signature):
 def sign(data, key):
     """Computes a signature over the data in input.
 
-    It first sort the keys of the dictionary and than concatenates the content
-    of the data. Then computes a hmac digest over the resulting string, using
-    the 'key' in input.
+    It first sort the keys of the dictionary and than concatenates the
+    content of the data. Then computes a hmac digest over the resulting
+    string, using the 'key' in input.
 
     Args:
         key: The key that must be used to compute the signature.
@@ -42,11 +44,11 @@ def sign(data, key):
     Return:
         A string representing the signature.
     """
-    message = ''
+    str_list = []
     for argument in sorted(data.iterkeys()):
-        # TODO(claudiu) Use a list and join instead of +=
-        message = message + data[argument]  
+        str_list.append(data[argument])
   
+    message = string.join(str_list, '')
     digest = hmac.new(key, message, hashlib.sha1).digest()
     signature = base64.encodestring(digest).strip()
     key = key.encode('ascii')
@@ -59,17 +61,3 @@ def generate_timestamp():
         A string containing the timestamp in seconds since epoch(UTC).
     """
     return str(int(time.time()))
-
-def fake_headers():
-    """For debug purposes, add fake geolocation data and user_gent.
-    
-    Return:
-        A dict containing the headers.
-    """
-    headers = {}
-    headers['user_agent'] = "Mozilla/5.0"
-    headers['X-AppEngine-City'] = "City"
-    headers['X-AppEngine-Region'] = "Region"
-    headers['X-AppEngine-Country'] = "Country"
-    headers['X-AppEngine-CityLatLong'] = "0,0"
-    return headers
