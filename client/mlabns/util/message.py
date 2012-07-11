@@ -1,6 +1,7 @@
-NODE_CITY       = 'node_coty'
+NODE_CITY       = 'node_city'
 NODE_COUNTRY    = 'node_country'
 NODE_ID         = 'node_id'
+SITE_ID         = 'node_id'
 NODE_LAT_LONG   = 'node_lat_long'
 POLICY          = 'policy'
 POLICY_GEO      = 'geo'

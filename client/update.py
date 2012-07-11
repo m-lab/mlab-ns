@@ -2,33 +2,40 @@
 
 # The design documentation can be found at http://goo.gl/48S22.
 
-import ConfigParser
-import logging
-import urllib
-import urllib2
 from optparse import OptionParser
 from os import R_OK
 from os import access
 from os import path
 
-from mlabns import flags
-from mlabns import message
-from mlabns import util
+import ConfigParser
+import logging
+import time
+import urllib
+import urllib2
+
+from mlabns.util import message
+from mlabns.util import sign
 
 class UpdateClient:
     """Sends SliverTool status updates to the GAE server."""
     
     def __init__(self):
-        # String representing the key used to sign the updates.
-        self.sliver_tool_key = None
-
-        # String that represents the URL where the updates are sent.
+        
+        # String that represents the URL on the server where the updates
+        # are sent.
         self.server_url = None
-
+        
         # List of the updates to be sent to the server.
         self.updates = []
         
-    def read_configuration(self, config_file):
+    def read_configuration(
+        self,
+        config_file,
+        section_key, 
+        option_key,
+        section_url,
+        option_url):
+        
         """Reads SliverTool configuration from file.
         
         The config parameters are specified in the ConfigParser format
@@ -36,31 +43,18 @@ class UpdateClient:
         'config_file' usually contains the configuration of a single 
         SliverTool. However, it's possible to have the configurations of
         more that one SliverTool in the same file. See example of 
-        configuration below.
-        
-        [server_url]
-        server_url: http://localhost:8080/update
-        
-        [npad.iupui.mlab1.ath01.measurement-lab.org]
-        tool_id: npad
-        node_id: mlab1.ath01.measurement-lab.org
-        sliver_tool_id:	npad.iupui.mlab1.ath01.measurement-lab.org
-        sliver_tool_key: npad.iupui.key
-        sliver_ipv4: 83.212.4.12
-        sliver_ipv6: off 
-        url: http://npad.iupui.mlab1.ath01.measurement-lab.org:8000
-        ...
-        [npad.iupui.mlab1.atl01.measurement-lab.org]
-        tool_id: npad
-        node_id: mlab1.atl01.measurement-lab.org
-        sliver_tool_id:	npad.iupui.mlab1.atl01.measurement-lab.org
-        sliver_tool_key: npad.iupui.key
-        sliver_ipv4: 4.71.254.138
-        sliver_ipv6: off 
-        url: http://npad.iupui.mlab1.atl01.measurement-lab.org:8000
+        configuration file in the mlabns/test/update.conf.
         
         Args:
-          config_file: A string that represents the name of a file.
+            config_file: A string that represents the name of a file.
+            section_key: A string describing the name of the 'key'
+                section in the configuration file.
+            option_key: A string describing the name of the option
+                in the 'key' section.
+            section_url: A string describing the name of the 'url'
+                section in the configuration file.
+            option_url: A string describing the name of the option in
+                the 'url' section.
         
         Return:
             True if no error is encountered, False otherwise.
@@ -68,40 +62,40 @@ class UpdateClient:
         config = ConfigParser.ConfigParser()
         try:
             config.read(config_file)
-            # TODO(claudiu): If the configuration file is not passed 
-            # as an argument use a default location e.g.'/etc/mlab-ns.conf'.
         except ConfigParser.Error, e:
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Cannot read the configuration file: %s.', e)
             return False
             
+        sliver_tool_key = None
         for section in config.sections():
-            if section == flags.SECTION_KEY:
-                self.sliver_tool_key = config.get(section, flags.OPTION_KEY)
-            elif section == flags.SECTION_URL:
-                self.server_url = config.get(section, flags.OPTION_URL)
-            else:
-                if self.sliver_tool_key is None:
-                    logging.error('Missing key (section: %s)', section)
-                    return False
-                if self.server_url is None:
-                    logging.error(
-                        'Missing server url (section: %s).',
-                         section)
-                    return False
-                
-                logging.info('BEGIN %s', section)
-                update = {}
-                for option in config.options(section):
-                    update[option] = config.get(section, option)
-                    logging.info('%s = "%s"', option, update[option])
-                logging.info('END %s\n.', section)
-                
-                self.update_status(update)
-                update[message.TIMESTAMP] = util.generate_timestamp()
-                signature = util.sign(update, self.sliver_tool_key)
-                update[message.SIGNATURE] = signature
-                self.updates.append(update)
+            if section == section_key:
+                sliver_tool_key = config.get(section, option_key)
+                continue
+            if section == section_url:
+                self.server_url = config.get(section, option_url)
+                continue
+            if sliver_tool_key is None:
+                logging.error('Missing key (section: %s)', section)
+                return False
+            if self.server_url is None:
+                logging.error(
+                    'Missing server url (section: %s).',
+                    section)
+                return False
+            
+            logging.info('BEGIN %s', section)
+            update = {}
+            for option in config.options(section):
+                update[option] = config.get(section, option)
+                logging.info('%s = "%s"', option, update[option])
+            logging.info('END %s\n.', section)
+            
+            update[message.TIMESTAMP] = str(int(time.time()))
+            update[message.SIGNATURE] = sign.sign_message(
+                update,
+                sliver_tool_key)
+            self.updates.append(update)
         
         return True
     
@@ -120,22 +114,6 @@ class UpdateClient:
             except urllib2.URLError, e:
                 # TODO(claudiu) Trigger an event/notification.
                 logging.error('Cannot send request: %s.\n', e)
-    
-    def update_status(self, update):
-        """Updates the status of a given tool running on the sliver.
-        
-        Args:
-            update: A dict containing the data to be sent to the server.
-        """
-        
-        if not update.has_key('sliver_tool_id'):
-            logging.error('Bad upate: "sliver_tool_id" not found.')
-        elif not update.has_key('status'):
-            logging.error('Bad update: "status" not found.')
-        else:
-            # TODO(claudiu) Add a tool-specific implementation based
-            # on the PlanetLab API.
-            update[message.STATUS] = message.STATUS_ONLINE
 
 def main():
     logging.basicConfig(
@@ -176,6 +154,9 @@ def main():
     (options, args) = parser.parse_args()
     if options.filename is None:
         # TODO(claudiu) Trigger an event/notification.
+        # TODO(claudiu): If the configuration file is not passed 
+        # as an argument use a default location
+        # e.g.'/etc/mlab-ns.conf'.
         logging.error('Missing configuration file.')
         parser.print_help()
         exit(-1)
@@ -196,13 +177,14 @@ def main():
         logging.error('Cannot read file %s.', config_file)
         exit(-1)
     
-    flags.SECTION_KEY = options.section_key
-    flags.OPTION_KEY = options.option_key
-    flags.SECTION_URL = options.section_url
-    flags.OPTION_URL = options.option_url
-    
     client = UpdateClient()
-    if not client.read_configuration(config_file):
+    if not client.read_configuration( 
+        config_file,
+        options.section_key,
+        options.option_key, 
+        options.section_url, 
+        options.option_url):
+
         logging.error('Cannot read file %s.', config_file)
         exit(-1)
     
