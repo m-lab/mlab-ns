@@ -1,0 +1,32 @@
+<html>
+
+<head>
+  <link type="text/css"
+        rel="stylesheet" 
+        href="/stylesheets/main.css" />
+</head>
+
+<body>
+    <table id="box-table-blue">
+    <tr>
+      <th>Site ID</th>
+      <th>City</th>
+      <th>Country</th>
+      <th>Lat/Long</th>
+      <th>Metro</th>
+      <th>When</th>
+    </tr>
+    {% for record in records %}
+        <tr>
+        <td>{{ record.site_id }}</td>
+        <td>{{ record.city }}</td>
+        <td>{{ record.country }}</td>
+        <td>{{ record.lat_long }}</td>
+        <td>{{ record.metro }}</td>
+        <td>{{ record.when }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</body>
+</html>
+

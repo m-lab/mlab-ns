@@ -1,0 +1,40 @@
+<html>
+<head>
+  <link type="text/css"
+        rel="stylesheet" 
+        href="/stylesheets/main.css" />
+</head>
+<body>
+    <table id="box-table-blue">
+    <tr>
+      <th>Tool</th>
+      <!--th>Policy</th-->
+      <th>User IP</th>
+      <th>City</th>
+      <th>Country</th>
+      <th>Lat/Long</th>
+      <th>Node</th> 
+      <th>Node City</th>
+      <th>Node Country</th>
+      <th>Node Lat/Long</th>
+
+      <th>Date</th>
+    </tr>
+    {% for record in records %}
+        <tr>
+        <td>{{ record.tool_id }}</td>
+        <!--td>{{ record.policy }}</td-->
+        <td>{{ record.user_ip }}</td>
+        <td>{{ record.user_city }}</td>
+        <td>{{ record.user_country }}</td>
+        <td>{{ record.user_lat_long }}</td>
+        <td>{{ record.node_id }}</td>
+        <td>{{ record.node_city }}</td>
+        <td>{{ record.node_country }}</td>
+        <td>{{ record.node_lat_long }}</td>
+        <td>{{ record.when }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</body>
+

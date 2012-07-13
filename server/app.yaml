@@ -1,0 +1,29 @@
+application: mlab-ns
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+
+- url: /stylesheets
+  static_dir: mlabns/stylesheets
+
+- url: /favicon.ico
+  static_files: mlabns/images/favicon.ico
+  upload: mlabns/images/favicon.ico
+
+- url: /(update|register|view).*
+  script: main.app
+
+- url: /admin.*
+  script: main.app
+  login: admin
+
+- url: /tools/.*
+  script: main.app
+
+- url: /.*
+  script: main.app
+
+
