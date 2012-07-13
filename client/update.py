@@ -105,15 +105,15 @@ class UpdateClient:
         for update in self.updates:
             data = urllib.urlencode(update)
             request = urllib2.Request(self.server_url, data)
-            logging.info('Sending request:')
+            logging.info('sending request:')
             for key in update.keys():
                 logging.info('data[%s] = "%s"', key, update[key])
             try:
                 response = urllib2.urlopen(request)
-                logging.info('Response: %s\n', response.read())
+                logging.info('response: %s\n', response.read())
             except urllib2.URLError, e:
-                # TODO(claudiu) Trigger an event/notification.
-                logging.error('Cannot send request: %s.\n', e)
+                # todo(claudiu) trigger an event/notification.
+                logging.error('cannot send request: %s.\n', e)
 
 def main():
     logging.basicConfig(
