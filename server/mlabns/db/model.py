@@ -21,7 +21,7 @@ class Site(db.Model):
     country = db.StringProperty()
     lat_long = db.StringProperty()
     metro = db.StringListProperty(default=None)
-    timestamp = db.IntegerProperty(default=0) 
+    timestamp = db.IntegerProperty(default=0)
     when = db.DateTimeProperty(auto_now=True)
 
 class Lookup(db.Model):
@@ -31,10 +31,12 @@ class Lookup(db.Model):
     user_city = db.StringProperty()
     user_country = db.StringProperty()
     user_lat_long = db.StringProperty()
+    slice_id=db.StringProperty()
     server_id = db.StringProperty()
-    server_city = db.StringProperty()
-    server_country = db.StringProperty()
-    server_lat_long = db.StringProperty() 
+    site_id=db.StringProperty()
+    site_city = db.StringProperty()
+    site_country = db.StringProperty()
+    site_lat_long = db.StringProperty()
     when = db.DateTimeProperty(auto_now=True)
 
 
