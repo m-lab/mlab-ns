@@ -13,7 +13,7 @@ handlers:
   static_files: mlabns/images/favicon.ico
   upload: mlabns/images/favicon.ico
 
-- url: /(update|register|view).*
+- url: /(update|register|view|debug).*
   script: main.app
 
 - url: /admin.*
