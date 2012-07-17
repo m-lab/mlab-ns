@@ -3,12 +3,12 @@ from . import message
 class SiteRegistrationMessage(message.Message):
     def __init__(self):
         message.Message.__init__(self)
-        self.entity = ''
-        self.site_id = ''
-        self.city = ''
-        self.country = ''
-        self.lat_long = ''
-        self.metro = ''
+        self.entity = None
+        self.site_id = None
+        self.city = None
+        self.country = None
+        self.lat_long = None
+        self.metro = None
 
         self.required_fields = set([
             message.ENTITY,
@@ -36,38 +36,6 @@ class SiteRegistrationMessage(message.Message):
         if message.SIGNATURE in dictionary:
             self.signature = dictionary[message.SIGNATURE]
 
-
-    def compute_signature(self, key):
-        dictionary = self.to_dictionary()
-        dictionary[message.SIGNATURE] = ''
-
-        return message.Message.compute_signature(self, key, dictionary)
-
-
-    def sign(self, key):
-        """Adds a signature to the message.
-
-        Args:
-            key: A string representing the key that is used to compute
-                the signature.
-        """
-        self.signature = self.compute_signature(key);
-
-
-    def verify_signature(self, key):
-        """Verifies the signature of the message.
-
-        Args:
-            key: A string representing the key that is used to compute
-                the signature.
-
-        Return:
-            True if the signature is correct, False otherwise.
-        """
-
-        signature = self.compute_signature(key)
-        return (signature == self.signature)
-
     def to_dictionary(self):
 
         dictionary = {}
@@ -86,15 +54,15 @@ class SliverToolRegistrationMessage(message.Message):
 
     def __init__(self):
         message.Message.__init__(self)
-        self.entity = ''
-        self.tool_id = ''
-        self.slice_id = ''
-        self.server_id = ''
-        self.sliver_ipv4 = ''
-        self.sliver_ipv6 = ''
-        self.sliver_tool_key = ''
-        self.status = ''
-        self.url = ''
+        self.entity = None
+        self.tool_id = None
+        self.slice_id = None
+        self.server_id = None
+        self.sliver_ipv4 = None
+        self.sliver_ipv6 = None
+        self.sliver_tool_key = None
+        self.status = None
+        self.url = None
 
         self.required_fields = set([
             message.ENTITY,
@@ -129,36 +97,6 @@ class SliverToolRegistrationMessage(message.Message):
 
         if message.SIGNATURE in dictionary:
             self.signature = dictionary[message.SIGNATURE]
-
-
-    def compute_signature(self, key):
-        dictionary = self.to_dictionary()
-        dictionary[message.SIGNATURE] = ''
-        return message.Message.compute_signature(self, key, dictionary)
-
-    def sign(self, key):
-        """Adds a signature to the message.
-
-        Args:
-            key: A string representing the key that is used to compute
-                the signature.
-        """
-        self.signature = self.compute_signature(key);
-
-    def verify_signature(self, key):
-        """Verifies the signature of the message.
-
-        Args:
-            key: A string representing the key that is used to compute
-                the signature.
-
-        Return:
-            True if the signature is correct, False otherwise.
-        """
-
-        signature = self.compute_signature(key)
-        return (signature == self.signature)
-
 
     def to_dictionary(self):
 

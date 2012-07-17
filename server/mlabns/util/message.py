@@ -3,7 +3,6 @@ import hashlib
 import hmac
 import string
 import time
-import logging
 
 CITY            = 'city'
 COUNTRY         = 'country'
@@ -42,10 +41,14 @@ class FormatError(Error): pass
 
 class Message():
     def __init__(self):
-        self.timestamp = ''
-        self.signature = ''
+        self.timestamp = None
+        self.signature = None
 
-    def compute_signature(self, key, dictionary):
+    def compute_signature(self, key):
+
+        dictionary = self.to_dictionary()
+        dictionary[SIGNATURE] = ''
+
         value_list = []
         for item in sorted(dictionary.iterkeys()):
             value_list.append(dictionary[item])
@@ -54,15 +57,37 @@ class Message():
         values_str = string.join(value_list, '')
         digest = hmac.new(key, values_str, hashlib.sha1).digest()
         signature = base64.encodestring(digest).strip()
-        logging.debug(signature)
 
         return signature
 
     def add_timestamp(self):
         self.timestamp = str(int(time.time()))
 
-    def to_dictionary(self):
-        pass
+    def sign(self, key):
+        """Adds a signature to the message.
+
+        Args:
+            key: A string representing the key that is used to compute
+                the signature.
+        """
+        self.signature = self.compute_signature(key);
 
     def verify_signature(self, key):
+        """Verifies the signature of the message.
+
+        Args:
+            key: A string representing the key that is used to compute
+                the signature.
+
+        Return:
+            True if the signature is correct, False otherwise.
+        """
+
+        signature = self.compute_signature(key)
+        return (signature == self.signature)
+
+    def initialize_from_dictionary(self):
+        pass
+
+    def to_dictionary(self):
         pass

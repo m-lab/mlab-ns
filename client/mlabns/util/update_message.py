@@ -6,13 +6,13 @@ class UpdateMessage(message.Message):
 
     def __init__(self):
         message.Message.__init__(self)
-        self.tool_id = ''
-        self.slice_id = ''
-        self.server_id = ''
-        self.sliver_ipv4 = ''
-        self.sliver_ipv6 = ''
-        self.status = ''
-        self.url = ''
+        self.tool_id = None
+        self.slice_id = None
+        self.server_id = None
+        self.sliver_ipv4 = None
+        self.sliver_ipv6 = None
+        self.status = None
+        self.url = None
 
         self.required_fields = set([
             message.SERVER_ID,
@@ -43,38 +43,6 @@ class UpdateMessage(message.Message):
 
         if message.SIGNATURE in dictionary:
             self.signature = dictionary[message.SIGNATURE]
-
-
-    def compute_signature(self, key):
-        dictionary = self.to_dictionary()
-        dictionary[message.SIGNATURE] = ''
-
-        return message.Message.compute_signature(self, key, dictionary)
-
-
-    def sign(self, key):
-        """Adds a signature to the message.
-
-        Args:
-            key: A string representing the key that is used to compute
-                the signature.
-        """
-        self.signature = self.compute_signature(key);
-
-
-    def verify_signature(self, key):
-        """Verifies the signature of the message.
-
-        Args:
-            key: A string representing the key that is used to compute
-                the signature.
-
-        Return:
-            True if the signature is correct, False otherwise.
-        """
-
-        signature = self.compute_signature(key)
-        return (signature == self.signature)
 
     def to_dictionary(self):
 
