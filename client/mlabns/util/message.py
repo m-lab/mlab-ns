@@ -45,10 +45,11 @@ class Message():
         self.signature = None
 
     def compute_signature(self, key):
-        """Computes the signature of the message.
+        """Computes the signature of this Message.
 
         Args:
-            key: A string representing the key.
+            key: A string representing the cryptographic key used
+                compute the signature.
 
         Returns
             A string representing the signature.
@@ -70,12 +71,12 @@ class Message():
         return signature
 
     def add_timestamp(self):
-        """Adds a timestamp to the message."""
+        """Updates the 'timestamp' field with the current time."""
 
         self.timestamp = str(int(time.time()))
 
     def sign(self, key):
-        """Adds a signature to the message.
+        """Updates the 'signature' field of this Message.
 
         Args:
             key: A string representing the key that is used to compute
@@ -98,14 +99,15 @@ class Message():
         return (signature == self.signature)
 
     def initialize_from_dictionary(self, dictionary):
-        """Reads the Message from a dict.
+        """Initializes the fields of this Message from the input dict.
 
         Args:
-            dictionary: The dict containing the data.
+            dictionary: A dict containing the fields and values to
+                initialize this Message.
 
         Raises:
-            FormatError: An error occured if some required field is
-                missing.
+            FormatError: An error occured if the input dictionary does
+                not contain one or more required fields.
         """
         pass
 
@@ -113,6 +115,6 @@ class Message():
         """Convert the Message into a dict.
 
         Returns:
-            A dict containing the data.
+            A dict containing the fields of this Message.
         """
         pass

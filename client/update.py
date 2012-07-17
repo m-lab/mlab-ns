@@ -61,28 +61,41 @@ class UpdateClient:
         """
         config = ConfigParser.ConfigParser()
         try:
-            config.read(config_file)
-        except ConfigParser.Error, e:
+            fp = open(config_file)
+        except IOError:
+            logging.error(
+                'Cannot open the configuration file: %s.',
+                config_file)
+            return False
+        try:
+            config.readfp(fp)
+        except ConfigParser.Error:
             # TODO(claudiu) Trigger an event/notification.
-            logging.error('Cannot read the configuration file: %s.', e)
+            logging.error(
+                'Cannot read the configuration file: %s.',
+                config_file)
+            return False
+        fp.close()
+
+        if (not config.has_section(section_key) or
+            not config.has_option(section_key, option_key)):
+
+            logging.error('Missing key section')
             return False
 
-        sliver_tool_key = None
+        sliver_tool_key = config.get(section_key, option_key)
+
+        if (not config.has_section(section_url) or
+            not config.has_option(section_url, option_url)):
+
+            logging.error('Missing server url section')
+            return False
+
+        self.server_url = config.get(section_url, option_url)
+
         for section in config.sections():
-            if section == section_key:
-                sliver_tool_key = config.get(section, option_key)
+            if section == section_key or section == section_url:
                 continue
-            if section == section_url:
-                self.server_url = config.get(section, option_url)
-                continue
-            if sliver_tool_key is None:
-                logging.error('Missing key (section: %s)', section)
-                return False
-            if self.server_url is None:
-                logging.error(
-                    'Missing server url (section: %s).',
-                    section)
-                return False
 
             logging.info('BEGIN %s', section)
             update = {}
