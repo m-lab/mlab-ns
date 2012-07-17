@@ -19,6 +19,13 @@ indexes:
 
 - kind: SliverTool
   properties:
+  - name: site_id
+  - name: status
+  - name: tool_id
+  - name: timestamp
+
+- kind: SliverTool
+  properties:
   - name: status
   - name: tool_id
   - name: timestamp

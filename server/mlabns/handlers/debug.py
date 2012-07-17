@@ -23,7 +23,7 @@ POLICY_GEO  = 'geo'
 class LookupQuery:
     def __init__(self):
         self.tool_id = ''
-        self.policy = ''
+        self.policy = 'geo'
         self.metro = ''
         self.user_ip = ''
         self.user_ipv4 = ''

@@ -5,26 +5,18 @@ from google.appengine.ext import db
 from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import distance
+from mlabns.util import message
 
 import logging
 import random
 import time
 
-"""
-class LookupQuery:
-    def __init__(self):
-        self.tool_id = ''
-        self.policy = ''
-        self.metro = ''
-        self.user_ip = ''
-        self.user_city = ''
-        self.user_country = ''
-        self.user_lat_long = ''
-"""
+
 class LookupQuery:
     def __init__(self, request):
         self.tool_id = ''
         self.policy = ''
+        self.response_type = ''
         self.metro = ''
         self.user_ip = ''
         self.user_city = ''
@@ -35,7 +27,12 @@ class LookupQuery:
         self.tool_id = parts[0]
         self.user_ip = request.remote_addr
         self.policy = request.get(message.POLICY)
-        self.metro = request.get(messge.METRO)
+        self.metro = request.get(message.METRO)
+        self.response_type = request.get(message.RESPONSE_TYPE)
+
+        # Default to geo policy.
+        if not self.policy:
+            self.policy = message.POLICY_GEO
 
         if message.HEADER_CITY in request.headers:
             self.user_city = request.headers[message.HEADER_CITY]
@@ -44,15 +41,19 @@ class LookupQuery:
         if message.HEADER_LAT_LONG in request.headers:
             self.user_lat_long = request.headers[message.HEADER_LAT_LONG]
 
-        logging.error('Policy is "%s".', query.policy)
-        if not query.policy:
-            if query.metro:
-                logging.error('Policy metro %s.', query.metro)
-                query.policy = message.POLICY_METRO
-            else:
-                logging.error('Policy geo %s.', query.metro)
-                query.policy = message.POLICY_GEO
+        logging.info('Policy is "%s".', self.policy)
 
+    def is_policy_geo(self):
+        return self.policy == message.POLICY_GEO
+
+    def is_policy_rtt(self):
+        return False
+
+    def is_format_json(self):
+        return (self.response_type == message.FORMAT_JSON)
+
+    def is_format_protobuf(self):
+        return (self.response_type == message.FORMAT_PROTOBUF)
 
 class GeoResolver:
     """Implements the closest-node policy."""
@@ -150,27 +151,27 @@ class MetroResolver:
             A SliverTool entity if available, or None.
         """
 
-        nodes = model.Node.all().filter("metro =", query.metro).fetch(
+        sites = model.Site.all().filter("metro =", query.metro).fetch(
             constants.MAX_FETCHED_RESULTS)
 
-        logging.info('No result found for metro %s.', len(nodes))
-        if len(nodes) == 0:
+        logging.info('No result found for metro %s.', len(sites))
+        if len(sites) == 0:
             logging.info('No result found for metro %s.', query.metro)
             return None
 
-        node_id_list = []
-        for node in nodes:
-            node_id_list.append(node.node_id)
+        site_id_list = []
+        for site in sites:
+            site_id_list.append(site.site_id)
 
         oldest_timestamp = long(time.time()) - constants.UPDATE_INTERVAL
         candidates = model.SliverTool.gql(
             "WHERE tool_id = :tool_id "
             "AND status = 'online' "
             "AND timestamp > :timestamp "
-            "AND node_id in :node_id_list ",
+            "AND site_id in :site_id_list ",
             tool_id=query.tool_id,
             timestamp=oldest_timestamp,
-            node_id_list=node_id_list).fetch(constants.MAX_FETCHED_RESULTS)
+            site_id_list=site_id_list).fetch(constants.MAX_FETCHED_RESULTS)
             # TODO (claudiu) Check ipv6/ipv4.
 
         if not candidates:

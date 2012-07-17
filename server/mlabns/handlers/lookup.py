@@ -2,11 +2,11 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 
-from mlabns.util import distance
 from mlabns.db import model
-from mlabns.util import message
+from mlabns.util import distance
 from mlabns.util import resolver
 
+import json
 import logging
 import time
 
@@ -20,14 +20,18 @@ class LookupHandler(webapp.RequestHandler):
     def get(self):
         """Handles an HTTP GET request."""
 
-        query = message.LookupQuery(self.request)
+        query = resolver.LookupQuery(self.request)
         sliver_tool = None
         if query.metro:
-            metro_resolver = resolver.MetroResolver()
-            sliver_tool = metro_resolver.answer_query(query)
-        elif query.policy_geo():
-            geo_resolver = resolver.GeoResolver()
-            sliver_tool = geo_resolver.answer_query(query)
+            sliver_tool = resolver.MetroResolver().answer_query(query)
+        elif query.is_policy_geo():
+            sliver_tool = resolver.GeoResolver().answer_query(query)
+
+        if query.is_format_json():
+            return self.send_json(sliver_tool)
+
+        if query.is_format_protobuf():
+            return self.send_protobuf(sliver_tool)
 
         if sliver_tool is None:
             logging.error('No results found for %s.', self.request.path)
@@ -44,6 +48,22 @@ class LookupHandler(webapp.RequestHandler):
         values = {'records' : records}
         self.response.out.write(
             template.render('mlabns/templates/sliver_tool.html', values))
+
+    def send_json(self, sliver_tool):
+        data = {}
+        if sliver_tool is not None:
+            data['slice_id'] = sliver_tool.slice_id
+            data['server_id'] = sliver_tool.server_id
+            data['site'] = sliver_tool.site_id
+            data['sliver_ipv4'] = sliver_tool.sliver_ipv4
+            data['sliver_ipv6'] = sliver_tool.sliver_ipv6
+            data['url'] = sliver_tool.url
+        json_data = json.dumps(data)
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(json_data)
+
+    def send_protobuf(self, sliver_tool):
+        pass
 
     def not_found(self):
         self.error(404)

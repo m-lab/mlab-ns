@@ -3,6 +3,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 
 from mlabns.util import message
+from mlabns.util import registration_message
 from mlabns.db import model
 
 import logging
@@ -27,9 +28,48 @@ class RegistrationHandler(webapp.RequestHandler):
         for argument in self.request.arguments():
             dictionary[argument] = self.request.get(argument)
 
-        registration = message.RegistrationMessage()
+        entity = self.request.get(message.ENTITY)
+        if entity == message.ENTITY_SITE:
+            return self.register_site(dictionary)
+        if entity == message.ENTITY_SLIVER_TOOL:
+            return self.register_sliver_tool(dictionary)
+
+        logging.error('Unknow entity %s', entity)
+        for item in dictionary:
+            logging.info('data[%s] = %s', item, dictionary[item])
+
+        return self.send_not_found()
+
+    def register_site(self, dictionary):
+        registration = registration_message.SiteRegistrationMessage()
         try:
-            registration.read_from_dictionary(dictionary)
+            registration.initialize_from_dictionary(dictionary)
+        except message.FormatError, e:
+            logging.error('Format error: %s', e)
+            return self.send_not_found()
+
+        # TODO (claudiu) Change with login.
+        key = 'mlab-ns@admin'
+        if not registration.verify_signature(key):
+            logging.error('Bad signature')
+            for item in dictionary:
+                logging.info('data[%s] = %s', item, dictionary[item])
+            return self.send_not_found()
+        site = model.Site(
+            site_id=registration.site_id,
+            city=registration.city,
+            country=registration.country,
+            lat_long=registration.lat_long,
+            metro=registration.metro.split(','),
+            key_name=registration.site_id)
+
+        site.put()
+        return self.send_success()
+
+    def register_sliver_tool(self, dictionary):
+        registration = registration_message.SliverToolRegistrationMessage()
+        try:
+            registration.initialize_from_dictionary(dictionary)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
             return self.send_not_found()
@@ -40,51 +80,33 @@ class RegistrationHandler(webapp.RequestHandler):
             logging.error('Bad signature')
             return self.send_not_found()
 
-        for argument in self.request.arguments():
-            logging.info(
-                'data[%s] = %s',
-                argument,
-                self.request.get(argument))
-
-        if registration.is_sliver_tool():
-            sliver_tool_id = '-' . join(
-                [registration.get_tool_id(),
-                registration.get_slice_id(),
-                registration.get_server_id(),
-                registration.get_site_id()])
+        sliver_tool_id = '-' . join(
+            [registration.tool_id,
+            registration.slice_id,
+            registration.server_id,
+            registration.site_id])
 
             # Add lat/long info from the site db.
-            site = model.Site.get_by_key_name(registration.get_site_id())
-            if not site:
-                logging.error('No site found for this sliver tool.')
-                return self.send_not_found()
+        site = model.Site.get_by_key_name(registration.site_id)
+        if not site:
+            logging.error('No site found for this sliver tool.')
+            return self.send_not_found()
 
-            sliver_tool = model.SliverTool(
-                tool_id=registration.get_tool_id(),
-                slice_id=registration.get_slice_id(),
-                site_id=registration.get_site_id(),
-                server_id=registration.get_server_id(),
-                sliver_tool_key=registration.get_sliver_tool_key(),
-                sliver_ipv4=registration.get_sliver_ipv4(),
-                sliver_ipv6=registration.get_sliver_ipv6(),
-                url=registration.get_url(),
-                status=registration.get_status(),
-                lat_long=site.lat_long,
-                key_name=sliver_tool_id)
-            sliver_tool.put()
-            self.send_success()
-        elif registration.is_site():
-            site = model.Site(
-                site_id=registration.get_site_id(),
-                city=registration.get_city(),
-                country=registration.get_country(),
-                lat_long=registration.get_lat_long(),
-                metro=registration.get_metro().split(','),
-                key_name=registration.get_site_id())
-            site.put()
-            self.send_success()
-        else:
-            self.send_not_found()
+        sliver_tool = model.SliverTool(
+            tool_id=registration.tool_id,
+            slice_id=registration.slice_id,
+            site_id=registration.site_id,
+            server_id=registration.server_id,
+            sliver_tool_key=registration.sliver_tool_key,
+            sliver_ipv4=registration.sliver_ipv4,
+            sliver_ipv6=registration.sliver_ipv6,
+            url=registration.url,
+            status=registration.status,
+            lat_long=site.lat_long,
+            key_name=sliver_tool_id)
+
+        sliver_tool.put()
+        return self.send_success()
 
     def send_success(self, message='200 OK'):
         self.response.out.write(message)

@@ -7,6 +7,7 @@ import time
 
 from mlabns.db import model
 from mlabns.util import message
+from mlabns.util import update_message
 
 class UpdateHandler(webapp.RequestHandler):
     """Handles SliverTools updates."""
@@ -16,41 +17,40 @@ class UpdateHandler(webapp.RequestHandler):
         self.send_not_found()
 
     def post(self):
-
         dictionary = {}
         for argument in self.request.arguments():
             dictionary[argument] = self.request.get(argument)
 
-        update = message.UpdateMessage()
+        update = update_message.UpdateMessage()
         try:
-            update.read_from_dictionary(dictionary)
+            update.initialize_from_dictionary(dictionary)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
             return self.send_not_found()
 
         sliver_tool_id = '-'. join(
-            [update.get_tool_id(),
-            update.get_slice_id(),
-            update.get_server_id(),
-            update.get_site_id()])
+            [update.tool_id,
+            update.slice_id,
+            update.server_id,
+            update.site_id])
         sliver_tool = model.SliverTool.get_by_key_name(sliver_tool_id)
 
         if sliver_tool is None:
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Bad sliver_tool_id %s.', sliver_tool_id)
-            return self.send_error(401)
+            return self.send_not_found()
 
         if not update.verify_signature(sliver_tool.sliver_tool_key):
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Bad signature from %s.', sliver_tool_id)
-            return self.send_error(401)
+            return self.send_not_found()
 
         # TODO(claudiu) Monitor and log changes in the parameters.
         # TODO(claudiu) Trigger an event/notification.
-        sliver_tool.status = update.get_status()
-        sliver_tool.sliver_ipv4 = update.get_sliver_ipv4()
-        sliver_tool.sliver_ipv6 = update.get_sliver_ipv6()
-        sliver_tool.url = update.get_url()
+        sliver_tool.status = update.status
+        sliver_tool.sliver_ipv4 = update.sliver_ipv4
+        sliver_tool.sliver_ipv6 = update.sliver_ipv6
+        sliver_tool.url = update.url
         sliver_tool.timestamp = long(time.time())
 
         # Write changes to db.

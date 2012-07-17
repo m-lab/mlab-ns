@@ -1,5 +1,3 @@
-import logging
-
 from . import message
 
 class UpdateMessage(message.Message):
