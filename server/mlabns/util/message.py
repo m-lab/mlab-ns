@@ -45,6 +45,14 @@ class Message():
         self.signature = None
 
     def compute_signature(self, key):
+        """Computes the signature of the message.
+
+        Args:
+            key: A string representing the key.
+
+        Returns
+            A string representing the signature.
+        """
 
         dictionary = self.to_dictionary()
         dictionary[SIGNATURE] = ''
@@ -53,7 +61,8 @@ class Message():
         for item in sorted(dictionary.iterkeys()):
             value_list.append(dictionary[item])
 
-        key = key.encode('ascii')
+        # Encode the key as ASCII and ignore non ASCII characters.
+        key = key.encode('ascii', 'ignore')
         values_str = string.join(value_list, '')
         digest = hmac.new(key, values_str, hashlib.sha1).digest()
         signature = base64.encodestring(digest).strip()
@@ -61,6 +70,8 @@ class Message():
         return signature
 
     def add_timestamp(self):
+        """Adds a timestamp to the message."""
+
         self.timestamp = str(int(time.time()))
 
     def sign(self, key):
@@ -79,15 +90,29 @@ class Message():
             key: A string representing the key that is used to compute
                 the signature.
 
-        Return:
+        Returns:
             True if the signature is correct, False otherwise.
         """
 
         signature = self.compute_signature(key)
         return (signature == self.signature)
 
-    def initialize_from_dictionary(self):
+    def initialize_from_dictionary(self, dictionary):
+        """Reads the Message from a dict.
+
+        Args:
+            dictionary: The dict containing the data.
+
+        Raises:
+            FormatError: An error occured if some required field is
+                missing.
+        """
         pass
 
     def to_dictionary(self):
+        """Convert the Message into a dict.
+
+        Returns:
+            A dict containing the data.
+        """
         pass
