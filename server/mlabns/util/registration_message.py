@@ -37,7 +37,6 @@ class SiteRegistrationMessage(message.Message):
             self.signature = dictionary[message.SIGNATURE]
 
     def to_dictionary(self):
-
         dictionary = {}
         dictionary[message.ENTITY] = self.entity
         dictionary[message.SITE_ID] = self.site_id
@@ -51,7 +50,6 @@ class SiteRegistrationMessage(message.Message):
         return dictionary
 
 class SliverToolRegistrationMessage(message.Message):
-
     def __init__(self):
         message.Message.__init__(self)
         self.entity = None
@@ -99,7 +97,6 @@ class SliverToolRegistrationMessage(message.Message):
             self.signature = dictionary[message.SIGNATURE]
 
     def to_dictionary(self):
-
         dictionary = {}
         dictionary[message.ENTITY] = self.entity
         dictionary[message.SITE_ID] = self.site_id

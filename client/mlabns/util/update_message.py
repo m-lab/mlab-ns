@@ -45,7 +45,6 @@ class UpdateMessage(message.Message):
             self.signature = dictionary[message.SIGNATURE]
 
     def to_dictionary(self):
-
         dictionary = {}
         dictionary[message.SITE_ID] = self.site_id
         dictionary[message.SERVER_ID] = self.server_id
