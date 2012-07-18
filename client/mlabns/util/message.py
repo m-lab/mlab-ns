@@ -48,7 +48,7 @@ class Message():
         """Computes the signature of this Message.
 
         Args:
-            key: A string representing the cryptographic key used
+            key: A string representing the cryptographic key used to
                 compute the signature.
 
         Returns
@@ -85,7 +85,7 @@ class Message():
         self.signature = self.compute_signature(key);
 
     def verify_signature(self, key):
-        """Verifies the signature of the message.
+        """Verifies the signature of this Message.
 
         Args:
             key: A string representing the key that is used to compute
@@ -112,7 +112,7 @@ class Message():
         pass
 
     def to_dictionary(self):
-        """Convert the Message into a dict.
+        """Creates a dict containing the fields of this Message.
 
         Returns:
             A dict containing the fields of this Message.

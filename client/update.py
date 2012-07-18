@@ -35,7 +35,6 @@ class UpdateClient:
         option_key,
         section_url,
         option_url):
-
         """Reads SliverTool configuration from file.
 
         The config parameters are specified in the ConfigParser format
@@ -64,25 +63,23 @@ class UpdateClient:
             fp = open(config_file)
         except IOError:
             logging.error(
-                'Cannot open the configuration file: %s.',
-                config_file)
+                'Cannot open the configuration file: %s.', config_file)
             return False
         try:
             config.readfp(fp)
         except ConfigParser.Error:
             # TODO(claudiu) Trigger an event/notification.
             logging.error(
-                'Cannot read the configuration file: %s.',
-                config_file)
+                'Cannot read the configuration file: %s.', config_file)
             return False
-        fp.close()
+        finally:
+            fp.close()
 
         if (not config.has_section(section_key) or
             not config.has_option(section_key, option_key)):
 
             logging.error('Missing key section')
             return False
-
         sliver_tool_key = config.get(section_key, option_key)
 
         if (not config.has_section(section_url) or
@@ -90,7 +87,6 @@ class UpdateClient:
 
             logging.error('Missing server url section')
             return False
-
         self.server_url = config.get(section_url, option_url)
 
         for section in config.sections():
@@ -131,7 +127,7 @@ class UpdateClient:
                 response = urllib2.urlopen(request)
                 logging.info('response: %s\n', response.read())
             except urllib2.URLError, e:
-                # todo(claudiu) trigger an event/notification.
+                # Todo (claudiu) trigger an event/notification.
                 logging.error('cannot send request: %s.\n', e)
 
 def main():
@@ -139,6 +135,7 @@ def main():
         format='[%(asctime)s] %(levelname)s: %(message)s',
         level=logging.DEBUG)
 
+    # TODO(claudiu) Use argpars instead.
     parser = OptionParser()
     parser.add_option(
         '-f',
