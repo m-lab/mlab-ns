@@ -41,10 +41,8 @@ class LookupQuery:
         if message.HEADER_LAT_LONG in request.headers:
             self.user_lat_long = request.headers[message.HEADER_LAT_LONG]
 
-        logging.info('Policy is "%s".', self.policy)
-
     def is_policy_geo(self):
-        return self.policy == message.POLICY_GEO
+        return (self.policy == message.POLICY_GEO)
 
     def is_policy_rtt(self):
         return False
@@ -75,9 +73,10 @@ class GeoResolver:
         oldest_timestamp = long(time.time()) - constants.UPDATE_INTERVAL
         candidates = model.SliverTool.gql(
             "WHERE tool_id = :tool_id "
-            "AND status = 'online' "
-            "AND timestamp > :timestamp ",
+            "AND status = :status "
+            "AND update_request_timestamp > :timestamp ",
             tool_id=lookup_query.tool_id,
+            status=message.STATUS_ONLINE,
             timestamp=oldest_timestamp)
             # TODO (claudiu) Check ipv6/ipv4.
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
@@ -166,10 +165,11 @@ class MetroResolver:
         oldest_timestamp = long(time.time()) - constants.UPDATE_INTERVAL
         candidates = model.SliverTool.gql(
             "WHERE tool_id = :tool_id "
-            "AND status = 'online' "
-            "AND timestamp > :timestamp "
+            "AND status = :status "
+            "AND update_request_timestamp > :timestamp "
             "AND site_id in :site_id_list ",
             tool_id=query.tool_id,
+            status=message.STATUS_ONLINE,
             timestamp=oldest_timestamp,
             site_id_list=site_id_list).fetch(constants.MAX_FETCHED_RESULTS)
             # TODO (claudiu) Check ipv6/ipv4.

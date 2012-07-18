@@ -1,6 +1,6 @@
+from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from google.appengine.ext import db
 
 import logging
 import time
@@ -28,21 +28,23 @@ class UpdateHandler(webapp.RequestHandler):
             logging.error('Format error: %s', e)
             return self.send_not_found()
 
-        sliver_tool_id = '-'. join(
-            [update.tool_id,
-            update.slice_id,
-            update.server_id,
-            update.site_id])
+        # Move this in db.model.py.
+        sliver_tool_id = model.get_sliver_tool_id(update)
         sliver_tool = model.SliverTool.get_by_key_name(sliver_tool_id)
 
         if sliver_tool is None:
             # TODO(claudiu) Trigger an event/notification.
-            logging.error('Bad sliver_tool_id %s.', sliver_tool_id)
+            logging.error('Unknown sliver_tool_id %s.', sliver_tool_id)
             return self.send_not_found()
 
         if not update.verify_signature(sliver_tool.sliver_tool_key):
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Bad signature from %s.', sliver_tool_id)
+            return self.send_not_found()
+
+        # Prevent reply attacks.
+        if (update.timestamp <= sliver_tool.update_request_timestamp):
+            logging.error('Old timestamp from %s.', sliver_tool_id)
             return self.send_not_found()
 
         # TODO(claudiu) Monitor and log changes in the parameters.
@@ -51,7 +53,7 @@ class UpdateHandler(webapp.RequestHandler):
         sliver_tool.sliver_ipv4 = update.sliver_ipv4
         sliver_tool.sliver_ipv6 = update.sliver_ipv6
         sliver_tool.url = update.url
-        sliver_tool.timestamp = long(time.time())
+        sliver_tool.update_request_timestamp = long(time.time())
 
         # Write changes to db.
         sliver_tool.put()

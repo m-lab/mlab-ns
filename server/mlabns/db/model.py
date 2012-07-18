@@ -1,6 +1,14 @@
 from google.appengine.ext import db
 
+# The design documentation can be found at http://goo.gl/48S22.
+
 class SliverTool(db.Model):
+    """SliverTool entity.
+
+    Note that 'lat_long' information is redundant since is already
+    included in the 'Site' db. However, this information is replicated
+    here to avoid an additional lookup.
+    """
     tool_id = db.StringProperty()
     slice_id = db.StringProperty()
     site_id = db.StringProperty()
@@ -10,11 +18,28 @@ class SliverTool(db.Model):
     sliver_ipv6 = db.StringProperty()
     url = db.StringProperty()
     status = db.StringProperty()
-    timestamp = db.IntegerProperty(default=0)
+    update_request_timestamp = db.IntegerProperty(default=0)
     lat_long = db.StringProperty()
     when = db.DateTimeProperty(auto_now=True)
 
+def get_sliver_tool_id(update_request):
+    """Creates the SliverTool's key from an UpdateMessage.
+
+    Args:
+        update_request: An UpdateMessage instance.
+
+    Returns:
+        A string representing the key that uniquely identifies a
+        SliverTool.
+    """
+    return '-'. join([
+            update_request.tool_id,
+            update_request.slice_id,
+            update_request.server_id,
+            update_request.site_id])
+
 class Site(db.Model):
+    """ Site entity."""
     site_id = db.StringProperty()
     city = db.StringProperty()
     region = db.StringProperty()
@@ -25,6 +50,7 @@ class Site(db.Model):
     when = db.DateTimeProperty(auto_now=True)
 
 class Lookup(db.Model):
+    """ Lookup entity."""
     tool_id = db.StringProperty()
     policy = db.StringProperty()
     user_ip = db.StringProperty()
@@ -38,5 +64,4 @@ class Lookup(db.Model):
     site_country = db.StringProperty()
     site_lat_long = db.StringProperty()
     when = db.DateTimeProperty(auto_now=True)
-
 
