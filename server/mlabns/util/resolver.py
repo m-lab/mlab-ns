@@ -14,15 +14,19 @@ import time
 
 class LookupQuery:
     def __init__(self, request):
-        self.tool_id = ''
-        self.policy = ''
-        self.response_type = ''
-        self.metro = ''
-        self.user_ip = ''
-        self.user_city = ''
-        self.user_country = ''
-        self.user_lat_long = ''
+        """Extracts the lookup parameters from the HTTP GET request."""
+        self.tool_id = None
+        self.policy = None
+        self.response_type = None
+        self.metro = None
+        self.user_ip = None
+        self.user_city = None
+        self.user_country = None
+        self.latitude = 0.0
+        self.longitude = 0.0
 
+        # TODO(claudiu) Add support for URLs of the type:
+        # http://mlab-ns.appspot.com/tool-name/ipv6
         parts = request.path.strip('/').split('/')
         self.tool_id = parts[0]
         self.user_ip = request.remote_addr
@@ -39,7 +43,14 @@ class LookupQuery:
         if message.HEADER_COUNTRY in request.headers:
             self.user_country = request.headers[message.HEADER_COUNTRY]
         if message.HEADER_LAT_LONG in request.headers:
-            self.user_lat_long = request.headers[message.HEADER_LAT_LONG]
+            lat_long = request.headers[message.HEADER_LAT_LONG]
+            try:
+                self.latitude, self.longitude = [
+                    float(x) for x in lat_long.split(',')]
+            except ValueError:
+                # TODO(claudiu) Use geolocation data from Maxmind.
+                logging.error('Bad geo coordinates %s', lat_long)
+
 
     def is_policy_geo(self):
         return (self.policy == message.POLICY_GEO)
@@ -82,59 +93,59 @@ class GeoResolver:
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
 
     def answer_query(self, query):
-        """Select the geographically closest sliver tool.
+        """Selects the geographically closest SliverTool.
 
         Args:
-            sliver_tools: A list of SliverTool entities that match the
-                requirements of the request.
+            query: A LookupQuery instance.
 
         Return:
-            A SliverTool entity that best matches the request.
+            A SliverTool entity in case of success, or None if there is no
+            SliverTool available that matches the query.
         """
         sliver_tools = self.get_sliver_tool_candidates(query)
-
-        logging.info('Found %s results.', len(sliver_tools))
         if not sliver_tools:
             logging.error('No results found for %s.', query.tool_id)
             return None
 
-        if not query.user_lat_long:
-            logging.error('No results found for %s.', query.tool_id)
-            return sliver_tools[0]
-
         min_distance = float('+inf')
-        nodes = []
+        closest_sliver_tools = []
         distances = {}
 
-        # Compute for each sliver_tool the distance and update the
-        # best match if the distance is less that the current minimum.
+        # Compute for each SliverTool the distance and add the SliverTool
+        # to the 'closest_sliver_tools' list if the computed  distance is
+        # less(or equal) then the current minimum.
         # To avoid computing the distances twice, cache the results in
         # a dict.
         for sliver_tool in sliver_tools:
             # Check if we already computed this distance.
-            if (distances.has_key(sliver_tool.lat_long)):
-                current_distance = distances[sliver_tool.lat_long]
+            if (distances.has_key(sliver_tool.site_id)):
+                current_distance = distances[sliver_tool.site_id]
             else:
-                # Compute the distance.
+                # Compute the distance and add it to the dict.
                 current_distance = distance.distance(
-                    query.user_lat_long,
-                    sliver_tool.lat_long)
+                    query.latitude,
+                    query.longitude,
+                    sliver_tool.latitude,
+                    sliver_tool.longitude)
+                distances[sliver_tool.site_id] = current_distance
 
-                # Add the distance to the dict.
-                distances[sliver_tool.lat_long] = current_distance
-
+            # Update the min distance and add the SliverTool to the list.
             if (current_distance <= min_distance):
                 min_distance = current_distance
-                nodes.insert(0, sliver_tool)
+                closest_sliver_tools.insert(0, sliver_tool)
 
-        closest_nodes = []
-        for node in nodes:
-            if distances[node.lat_long] <= min_distance * constants.EPSILON:
-                closest_nodes.append(node)
+        # Sort the 'closest_sliver_tools' list by distance and select only
+        # those within an acceptable range. Then return one of these,
+        # chosen randomly.
+        best_sliver_tools = []
+        distance_range = min_distance * constants.EPSILON
+        for sliver_tool in closest_sliver_tools:
+            if  distances[sliver_tool.site_id] <= distance_range:
+                best_sliver_tools.append(sliver_tool)
             else:
                 break
 
-        return random.choice(closest_nodes)
+        return random.choice(best_sliver_tools)
 
 class MetroResolver:
     """Implements the metro policy."""

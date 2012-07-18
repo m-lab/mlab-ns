@@ -38,9 +38,11 @@ class LookupHandler(webapp.RequestHandler):
             # TODO(claudiu) Use a default url if something goes wrong.
             return self.not_found()
 
-        # TODO(claudiu) Remove this, is only for debugging.
+        # TODO(claudiu) Remove this comment.
+        # Default to HTTP redirect.
         # self.redirect(sliver_tool.url)
 
+        # TODO(claudiu) Remove this, is only for debugging.
         self.log_request(query, sliver_tool)
 
         records = []
@@ -88,31 +90,18 @@ class LookupHandler(webapp.RequestHandler):
         if site is not None:
             # Log the request to file.
             logging.info(
-                '[LOOKUP] \
-                Tool Id:%s \
-                Policy:%s \
-                User IP:%s \
-                User City:%s \
-                User Country:%s \
-                User Lat/Long:%s \
-                Slice Id:%s \
-                Server Id:%s \
-                Site Id:%s \
-                Site City:%s \
-                Site Country:%s \
-                Site Lat/Long:%s',
-                query.tool_id,
-                query.policy,
-                query.user_ip,
-                query.user_city,
-                query.user_country,
-                query.user_lat_long,
-                sliver_tool.slice_id,
-                sliver_tool.server_id,
-                site.site_id,
-                site.city,
-                site.country,
-                site.lat_long)
+                '[LOOKUP] Tool Id:%s Policy:%s \
+                User IP:%s User City:%s User Country:%s \
+                User Latitude: %s User Longitude: %s \
+                Slice Id:%s Server Id:%s Site Id:%s \
+                Site City:%s Site Country:%s \
+                Site Latitude: %s Site Longitude: %s',
+                query.tool_id, query.policy,
+                query.user_ip, query.user_city, query.user_country,
+                query.latitude, query.longitude,
+                sliver_tool.slice_id, sliver_tool.server_id,site.site_id,
+                site.city, site.country,
+                site.latitude, site.longitude)
 
             # Log the request to db.
             # TOD(claudiu) Add a counter for IPv4 and IPv6.
@@ -122,12 +111,14 @@ class LookupHandler(webapp.RequestHandler):
                 user_ip=query.user_ip,
                 user_city=query.user_city,
                 user_country=query.user_country,
-                user_lat_long=query.user_lat_long,
+                user_latitude=query.latitude,
+                user_longitude=query.longitude,
                 slice_id=sliver_tool.slice_id,
                 server_id=sliver_tool.server_id,
                 site_id=site.site_id,
                 site_city=site.city,
                 site_country=site.country,
-                site_lat_long=site.lat_long,
-                key_name=query.user_ip)
+                site_latitude=site.latitude,
+                site_longitude=site.longitude)
+                #key_name=query.user_ip)
             lookup_entry.put()

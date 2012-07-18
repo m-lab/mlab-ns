@@ -55,11 +55,20 @@ class RegistrationHandler(webapp.RequestHandler):
             for item in dictionary:
                 logging.info('data[%s] = %s', item, dictionary[item])
             return self.send_not_found()
+
+        try:
+            lat, lon = [float(x) for x in registration.lat_long.split(',')]
+        except ValueError:
+            logging.error('Bad geo coordinates %s', registration.lat_long)
+            return self.send_not_found()
+
         site = model.Site(
             site_id=registration.site_id,
             city=registration.city,
             country=registration.country,
             lat_long=registration.lat_long,
+            latitude=lat,
+            longitude=lon,
             metro=registration.metro.split(','),
             key_name=registration.site_id)
 
@@ -80,13 +89,9 @@ class RegistrationHandler(webapp.RequestHandler):
             logging.error('Bad signature')
             return self.send_not_found()
 
-        sliver_tool_id = '-' . join(
-            [registration.tool_id,
-            registration.slice_id,
-            registration.server_id,
-            registration.site_id])
+        sliver_tool_id = model.get_sliver_tool_id(registration)
 
-            # Add lat/long info from the site db.
+        # Add lat/long info from the site db.
         site = model.Site.get_by_key_name(registration.site_id)
         if not site:
             logging.error('No site found for this sliver tool.')
@@ -103,6 +108,8 @@ class RegistrationHandler(webapp.RequestHandler):
             url=registration.url,
             status=registration.status,
             lat_long=site.lat_long,
+            latitude=site.latitude,
+            longitude=site.longitude,
             key_name=sliver_tool_id)
 
         sliver_tool.put()

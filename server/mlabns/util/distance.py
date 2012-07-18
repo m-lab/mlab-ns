@@ -1,19 +1,17 @@
 import math
 
-def distance(origin, destination):
+def distance(lat1, lon1, lat2, lon2):
     """Computes the distance between two points.
-    
-    Args:
-        origin: A string of the form 'lat,long' representing the
-            geographical location of the origin point.
-        destination: A string of the form 'lat,long' representing
-            the geographical location of the destination point. 
 
-    Return:
+    Args:
+        lat1: A float representing the latitude of the origin point.
+        lon1: A float representing the longitude of the origin point.
+        lat2: A float representing the latitude of the destination point.
+        lon2: A float representing the longitude of the destination point.
+
+    Returns:
         A float representing distance in km from origin to destination.
-    """ 
-    lat1, lon1 = [float(x) for x in origin.split(',')]
-    lat2, lon2 = [float(x) for x in destination.split(',')]
+    """
     radius = 6371
 
     dlat = math.radians(lat2-lat1)
