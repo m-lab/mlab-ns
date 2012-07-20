@@ -11,33 +11,6 @@ from mlabns.geo.maxmind import geoip
 import logging
 import time
 
-TOOL_ID     = 'tool'
-POLICY      = 'policy'
-METRO       = 'metro'
-USER_CITY   = 'city'
-USER_COUNTRY = 'country'
-USER_IPv4   = 'addr_ipv4'
-USER_IPv6   = 'addr_ipv6'
-POLICY_GEO  = 'geo'
-
-class LookupQuery:
-    def __init__(self):
-        self.tool_id = ''
-        self.policy = 'geo'
-        self.metro = ''
-        self.user_ip = ''
-        self.user_ipv4 = ''
-        self.user_ipv6 = ''
-        self.user_city = ''
-        self.user_country = ''
-        self.user_lat_long = ''
-
-    def policy_geo(self):
-        return self.policy == POLICY_GEO
-
-    def policy_rtt(self):
-        return False
-
 class DebugHandler(webapp.RequestHandler):
     """Routes GET requests to the appropriate SliverTools."""
 
