@@ -1,7 +1,7 @@
 from google.appengine.ext import db
 
-# The classes defined in this file are described in detail in the
-# design doc at http://goo.gl/48S22.
+# The classes defined in this file are described in detail in
+# the design doc at http://goo.gl/48S22.
 
 class SliverTool(db.Model):
     tool_id = db.StringProperty()
@@ -45,6 +45,30 @@ class Lookup(db.Model):
     site_latitude = db.FloatProperty()
     site_longitude = db.FloatProperty()
     when = db.DateTimeProperty(auto_now=True)
+
+
+class GeoLiteCityLocation(db.Model):
+    location_id = db.StringProperty()
+    country = db.StringProperty()
+    region = db.StringProperty()
+    city = db.StringProperty()
+    latitude = db.FloatProperty()
+    longitude = db.FloatProperty()
+    postal_code = db.StringProperty()
+    metro_code = db.StringProperty()
+    area_code = db.StringProperty()
+
+class GeoLiteCityBlock:
+    start_ip_num = db.IntegerProperty()
+    end_ip_num = db.IntegerProperty()
+    location_id = db.StringProperty()
+
+class GeoLiteCityv6:
+    start_ip_num = db.IntegerProperty()
+    end_ip_num = db.IntegerProperty()
+    country = db.StringProperty()
+    latitude = db.FloatProperty()
+    longitude = db.FloatProperty()
 
 def get_sliver_tool_id(update_request):
     """Creates the SliverTool id from an UpdateMessage.

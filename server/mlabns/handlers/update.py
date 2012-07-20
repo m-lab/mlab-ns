@@ -48,7 +48,7 @@ class UpdateHandler(webapp.RequestHandler):
             return self.send_not_found()
 
         # TODO(claudiu) Monitor and log changes in the parameters.
-        # TODO(claudiu) Trigger an event/notification.
+        # TODO(claudiu) Trigger an event or notification.
         sliver_tool.status = update.status
         sliver_tool.sliver_ipv4 = update.sliver_ipv4
         sliver_tool.sliver_ipv6 = update.sliver_ipv6

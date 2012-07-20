@@ -13,8 +13,7 @@ import time
 
 
 class LookupQuery:
-    def __init__(self, request):
-        """Extracts the lookup parameters from the HTTP GET request."""
+    def __init__(self):
         self.tool_id = None
         self.policy = None
         self.response_type = None
@@ -25,6 +24,8 @@ class LookupQuery:
         self.latitude = 0.0
         self.longitude = 0.0
 
+    def initalize_from_webapp_request(self, request):
+        """Initializes the lookup parameters from the HTTP request."""
         # TODO(claudiu) Add support for URLs of the type:
         # http://mlab-ns.appspot.com/tool-name/ipv6
         parts = request.path.strip('/').split('/')
@@ -50,7 +51,6 @@ class LookupQuery:
             except ValueError:
                 # TODO(claudiu) Use geolocation data from Maxmind.
                 logging.error('Bad geo coordinates %s', lat_long)
-
 
     def is_policy_geo(self):
         return (self.policy == message.POLICY_GEO)
