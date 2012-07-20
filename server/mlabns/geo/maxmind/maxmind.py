@@ -1,6 +1,15 @@
+from google.appengine.ext import db
+
 # For more details about the decimal representation of the IP addresses
 # used in the CVS files and the conversion algorithm see
 # http://www.maxmind.com/app/csv.
+
+class GeoRecord:
+    self.city = None
+    self.country = None
+    self.latitude = 0.0
+    self.longitude = 0.0
+
 
 def ipv6_to_long(ipv6_address):
     """Converts an IPv6 address to a long.
@@ -9,8 +18,8 @@ def ipv6_to_long(ipv6_address):
         ipv6_address: A string representing an IPv6 address.
 
     Returns:
-        A long obtained by converting the IPv6 address in input to a decimal
-        representation, according to Maxmind's specifications.
+        A long obtained by converting the IPv6 address in input to a
+        decimal representation, according to Maxmind's specifications.
 
     """
     try:
@@ -33,8 +42,8 @@ def ipv4_to_long(ipv4_address):
         ipv6_address: A string representing an IPv4 address.
 
     Returns:
-        A long obtained by converting the IPv4 address in input to a decimal
-        representation, according to Maxmind's specifications.
+        A long obtained by converting the IPv4 address in input to a
+        decimal representation, according to Maxmind's specifications.
 
     """
     try:
