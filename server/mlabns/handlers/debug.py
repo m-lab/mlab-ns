@@ -38,7 +38,6 @@ class LookupQuery:
     def policy_rtt(self):
         return False
 
-
 class DebugHandler(webapp.RequestHandler):
     """Routes GET requests to the appropriate SliverTools."""
 
@@ -60,7 +59,7 @@ class DebugHandler(webapp.RequestHandler):
 
         if user_ipv6:
             lat_long = geoip.lat_long_by_ipv6(user_ipv6)
-            record = geoip.record_by_ipv6(user_ipv4)
+            record = geoip.record_by_ipv6(user_ipv6)
 
         for key in record:
             logging.info('record[%s] = %s', key, record[key])
