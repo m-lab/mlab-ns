@@ -42,7 +42,7 @@ class UpdateClient:
         'config_file' usually contains the configuration of a single
         SliverTool. However, it's possible to have the configurations of
         more that one SliverTool in the same file. See example of
-        configuration file in the mlabns/test/update.conf.
+        configuration file in mlabns/test/update.conf.
 
         Args:
             config_file: A string that represents the name of a file.
@@ -127,7 +127,7 @@ class UpdateClient:
                 response = urllib2.urlopen(request)
                 logging.info('response: %s\n', response.read())
             except urllib2.URLError, e:
-                # Todo (claudiu) trigger an event/notification.
+                # TODO(claudiu) Trigger an event/notification.
                 logging.error('cannot send request: %s.\n', e)
 
 def main():
@@ -135,7 +135,7 @@ def main():
         format='[%(asctime)s] %(levelname)s: %(message)s',
         level=logging.DEBUG)
 
-    # TODO(claudiu) Use argpars instead.
+    # TODO(claudiu) Use argpars instead, because OptionParser is deprecated.
     parser = OptionParser()
     parser.add_option(
         '-f',
