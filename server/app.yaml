@@ -6,6 +6,9 @@ threadsafe: true
 
 handlers:
 
+- url: /images
+  static_dir: mlabns/images
+
 - url: /stylesheets
   static_dir: mlabns/stylesheets
 
@@ -26,4 +29,5 @@ handlers:
 - url: /.*
   script: main.app
 
-
+builtins:
+- remote_api: on

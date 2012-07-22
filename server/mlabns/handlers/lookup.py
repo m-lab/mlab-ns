@@ -4,6 +4,8 @@ from google.appengine.ext import db
 
 from mlabns.db import model
 from mlabns.util import distance
+from mlabns.util import error
+from mlabns.util import message
 from mlabns.util import resolver
 
 import json
@@ -15,67 +17,60 @@ class LookupHandler(webapp.RequestHandler):
 
     def post(self):
         """Not implemented."""
-        return self.not_found()
+        return error.html.not_found(self)
 
     def get(self):
         """Handles an HTTP GET request."""
 
-        query = resolver.LookupQuery(self.request)
+        query = resolver.LookupQuery()
+        query.initialize_from_http_request(self.request)
         sliver_tool = None
         if query.metro:
             sliver_tool = resolver.MetroResolver().answer_query(query)
-        elif query.is_policy_geo():
+        elif query.policy == message.POLICY_GEO:
             sliver_tool = resolver.GeoResolver().answer_query(query)
 
-        if query.is_format_json():
-            return self.send_json(sliver_tool)
-
-        if query.is_format_protobuf():
-            return self.send_protobuf(sliver_tool)
-
-        if sliver_tool is None:
-            logging.error('No results found for %s.', self.request.path)
-            # TODO(claudiu) Use a default url if something goes wrong.
-            return self.not_found()
-
-        # TODO(claudiu) Remove this comment.
-        # Default to HTTP redirect.
-        # self.redirect(sliver_tool.url)
-
-        # TODO(claudiu) Remove this, is only for debugging.
+        logging.info('Format: %s', query.response_format)
         self.log_request(query, sliver_tool)
 
+        if query.response_format == message.FORMAT_JSON:
+            self.send_json_response(sliver_tool)
+        elif query.response_format == message.FORMAT_PROTOBUF:
+            self.send_protobuf_response(sliver_tool)
+        elif query.response_format == message.FORMAT_HTML:
+            self.send_html_response(sliver_tool)
+        else:
+            self.send_redirect_response(sliver_tool)
+
+    def send_json_response(self, sliver_tool):
+        if sliver_tool is None:
+            return error.not_found(self, 'json')
+        data = {}
+        data['slice_id'] = sliver_tool.slice_id
+        data['server_id'] = sliver_tool.server_id
+        data['site_id'] = sliver_tool.site_id
+        data['sliver_ipv4'] = sliver_tool.sliver_ipv4
+        data['sliver_ipv6'] = sliver_tool.sliver_ipv6
+        data['url'] = sliver_tool.url
+        json_data = json.dumps(data)
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(json_data)
+
+    def send_protobuf_response(self, sliver_tool):
+        pass
+
+    def send_html_response(self, sliver_tool):
+        if sliver_tool is None:
+            return error.not_found(self)
         records = []
         records.append(sliver_tool)
         values = {'records' : records}
         self.response.out.write(
             template.render('mlabns/templates/sliver_tool.html', values))
 
-    def send_json(self, sliver_tool):
-        data = {}
-        if sliver_tool is not None:
-            data['slice_id'] = sliver_tool.slice_id
-            data['server_id'] = sliver_tool.server_id
-            data['site'] = sliver_tool.site_id
-            data['sliver_ipv4'] = sliver_tool.sliver_ipv4
-            data['sliver_ipv6'] = sliver_tool.sliver_ipv6
-            data['url'] = sliver_tool.url
-        json_data = json.dumps(data)
-        self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(json_data)
-
-    def send_protobuf(self, sliver_tool):
-        pass
-
-    def not_found(self):
-        self.error(404)
-        self.response.out.write(
-            template.render('mlabns/templates/not_found.html', {}))
-
-    def send_not_found(self):
-        self.error(404)
-        self.response.out.write(
-            template.render('mlabns/templates/not_found.html', {}))
+    def send_redirect_response(self, sliver_tool):
+        if sliver_tool is None:
+            return error.not_found(self)
 
     def log_request(self,  query, sliver_tool):
         """Logs the request.
@@ -97,7 +92,7 @@ class LookupHandler(webapp.RequestHandler):
                 Site City:%s Site Country:%s \
                 Site Latitude: %s Site Longitude: %s',
                 query.tool_id, query.policy,
-                query.user_ip, query.user_city, query.user_country,
+                query.ip_address, query.city, query.country,
                 query.latitude, query.longitude,
                 sliver_tool.slice_id, sliver_tool.server_id,site.site_id,
                 site.city, site.country,
@@ -108,9 +103,9 @@ class LookupHandler(webapp.RequestHandler):
             lookup_entry = model.Lookup(
                 tool_id=query.tool_id,
                 policy=query.policy,
-                user_ip=query.user_ip,
-                user_city=query.user_city,
-                user_country=query.user_country,
+                user_ip=query.ip_address,
+                user_city=query.city,
+                user_country=query.country,
                 user_latitude=query.latitude,
                 user_longitude=query.longitude,
                 slice_id=sliver_tool.slice_id,
@@ -119,6 +114,6 @@ class LookupHandler(webapp.RequestHandler):
                 site_city=site.city,
                 site_country=site.country,
                 site_latitude=site.latitude,
-                site_longitude=site.longitude)
-                #key_name=query.user_ip)
+                site_longitude=site.longitude,
+                key_name=query.ip_address)
             lookup_entry.put()

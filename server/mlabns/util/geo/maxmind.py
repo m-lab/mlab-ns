@@ -5,11 +5,11 @@ from google.appengine.ext import db
 # http://www.maxmind.com/app/csv.
 
 class GeoRecord:
-    self.city = None
-    self.country = None
-    self.latitude = 0.0
-    self.longitude = 0.0
-
+    def __init__(self):
+        self.city = None
+        self.country = None
+        self.latitude = 0.0
+        self.longitude = 0.0
 
 def ipv6_to_long(ipv6_address):
     """Converts an IPv6 address to a long.

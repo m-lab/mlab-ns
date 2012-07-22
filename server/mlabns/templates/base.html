@@ -1,0 +1,79 @@
+<head>
+     <link  type="text/css"
+            rel="stylesheet" 
+            href="/stylesheets/main.css" />
+
+    <title>{% block title %}mlab-ns (MLab Naming Service){% endblock %}
+    </title>
+</head>
+
+<body>
+    <div id="container"> 
+        {% block header %}
+        <div id="header">      
+            <ul>
+                <img src="/images/mlab-logo.png" align=left hspace="4"/>
+                {%block MenuSites %}
+                <li>
+                    <a  href="/view/sites"
+                        class="header">Sites</a>
+                </li>
+                {% endblock %}
+
+                {%block MenuSliverTools %}
+                <li>
+                    <a  href="/view/sliver_tools"
+                        class ="header">Sliver Tools</a>
+                </li>
+                {% endblock %}
+
+                {%block MenuLookup %}
+                <li>
+                    <a  href="/view/lookup"
+                        class="header">Lookup</a>
+                </li>
+                {% endblock %}
+
+                {%block MenuHome %}
+                <li>
+                    <a  href="/view/home"
+                        class="header">Home</a>
+                </li>
+                {% endblock %}
+            </ul>
+        </div>
+        {% endblock %}
+        
+        <div id="content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <div id="footer">
+        <a href="http://measurementlab.net"
+            class="footer">MLab</a>
+        
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        <a href="http://www.measurementlab.net/content/about-measurement-lab" 
+            class="footer">About</a>
+        
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        <a href="http://www.measurementlab.net/usage" 
+            class="footer">Usage</a>
+        
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        <a href="http://www.measurementlab.net/contact"
+            class="footer">Contact</a>
+        
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        <a href="http://www.measurementlab.net/content/faq"
+            class="footer">FAQ</a> 
+        
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        </div>
+    <div>
+</body>

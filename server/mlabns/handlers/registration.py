@@ -5,6 +5,7 @@ from google.appengine.ext import db
 from mlabns.util import message
 from mlabns.util import registration_message
 from mlabns.db import model
+from mlabns.util import error
 
 import logging
 
@@ -16,7 +17,7 @@ class RegistrationHandler(webapp.RequestHandler):
 
     def get(self):
         """Not implemented."""
-        return self.send_not_found()
+        return error.not_found(self)
 
     def post(self):
         """Handles registrations through HTTP POST requests.
@@ -38,7 +39,7 @@ class RegistrationHandler(webapp.RequestHandler):
         for item in dictionary:
             logging.info('data[%s] = %s', item, dictionary[item])
 
-        return self.send_not_found()
+        return error.not_found(self)
 
     def register_site(self, dictionary):
         registration = registration_message.SiteRegistrationMessage()
@@ -46,7 +47,7 @@ class RegistrationHandler(webapp.RequestHandler):
             registration.initialize_from_dictionary(dictionary)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
-            return self.send_not_found()
+            return error.not_found(self)
 
         # TODO (claudiu) Change with login.
         key = 'mlab-ns@admin'
@@ -54,26 +55,25 @@ class RegistrationHandler(webapp.RequestHandler):
             logging.error('Bad signature')
             for item in dictionary:
                 logging.info('data[%s] = %s', item, dictionary[item])
-            return self.send_not_found()
+            return error.not_found(self)
 
         try:
             lat, lon = [float(x) for x in registration.lat_long.split(',')]
         except ValueError:
             logging.error('Bad geo coordinates %s', registration.lat_long)
-            return self.send_not_found()
+            return error.not_found(self)
 
         site = model.Site(
             site_id=registration.site_id,
             city=registration.city,
             country=registration.country,
-            lat_long=registration.lat_long,
             latitude=lat,
             longitude=lon,
             metro=registration.metro.split(','),
             key_name=registration.site_id)
 
         site.put()
-        return self.send_success()
+        return self.success()
 
     def register_sliver_tool(self, dictionary):
         registration = registration_message.SliverToolRegistrationMessage()
@@ -81,13 +81,13 @@ class RegistrationHandler(webapp.RequestHandler):
             registration.initialize_from_dictionary(dictionary)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
-            return self.send_not_found()
+            return error.not_found(self)
 
         # TODO (claudiu) Change with login.
         key = 'mlab-ns@admin'
         if not registration.verify_signature(key):
             logging.error('Bad signature')
-            return self.send_not_found()
+            return error.not_found(self)
 
         sliver_tool_id = model.get_sliver_tool_id(registration)
 
@@ -95,7 +95,7 @@ class RegistrationHandler(webapp.RequestHandler):
         site = model.Site.get_by_key_name(registration.site_id)
         if not site:
             logging.error('No site found for this sliver tool.')
-            return self.send_not_found()
+            return error.not_found(self)
 
         sliver_tool = model.SliverTool(
             tool_id=registration.tool_id,
@@ -107,23 +107,12 @@ class RegistrationHandler(webapp.RequestHandler):
             sliver_ipv6=registration.sliver_ipv6,
             url=registration.url,
             status=registration.status,
-            lat_long=site.lat_long,
             latitude=site.latitude,
             longitude=site.longitude,
             key_name=sliver_tool_id)
 
         sliver_tool.put()
-        return self.send_success()
+        return self.success()
 
-    def send_success(self, message='200 OK'):
+    def success(self, message='200 OK'):
         self.response.out.write(message)
-
-    def send_error(self, error_code=404, message='Not found'):
-        # 404: Not found.
-        self.error(error_code)
-        self.response.out.write(message)
-
-    def send_not_found(self):
-        self.error(404)
-        self.response.out.write(
-        template.render('mlabns/templates/not_found.html', {}))

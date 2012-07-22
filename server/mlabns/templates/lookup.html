@@ -1,48 +1,58 @@
-<html>
-<head>
-  <link type="text/css"
-        rel="stylesheet" 
-        href="/stylesheets/main.css" />
-</head>
-<body>
-    <table id="box-table-blue">
-    <tr>
-      <th>Tool</th>
-      <th>Policy</th>
-      <th>IP</th>
-      <th>City</th>
-      <th>Country</th>
-      <th>Lat/Long</th>
-      <th>Slice</th> 
-      <th>Server</th>
-      <th>Site</th>
-      <th>City</th>
-      <th>Country</th>
-      <th>Lat/Long</th>
+{% extends "base.html" %}
 
-      <th>Date</th>
+{% block title %}Lookup{% endblock %}
+
+{% block MenuLookup%}
+<li>
+    <a  href="/view/lookup"
+        id="menuLookup"
+        class="header">Lookup</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<table id="box-table-blue">
+    <tr>
+        <th>Tool</th>
+        <th>Policy</th>
+        <th>User IP</th>
+        <th>User City</th>
+        <th>User Country</th>
+        <!--th>Lat/Long</th-->
+        <th>Slice</th> 
+        <th>Server</th>
+        <th>Site</th>
+        <th>City</th>
+        <th>Country</th>
+        <!--th>Lat/Long</th-->
+        <th>Date</th>
     </tr>
     {% for record in records %}
         <tr>
-        <td>{{ record.tool_id }}</td>
-        <td>{{ record.policy }}</td>
-        <td>{{ record.user_ip }}</td>
-        <td>{{ record.user_city }}</td>
-        <td>{{ record.user_country }}</td>
-        <td>{{ record.user_latitude }}(lat) 
-            {{ record.user_longitude }}(lon)
-        </td>
-        <td>{{ record.slice_id }}</td>
-        <td>{{ record.server_id }}</td>
-        <td>{{ record.site_id }}</td>
-        <td>{{ record.site_city }}</td>
-        <td>{{ record.site_country }}</td>
-        <td>{{ record.site_latitude }}(lat) 
-            {{ record.site_longitude }}(lon)
-        </td>
-        <td>{{ record.when }}</td>
+            <td>{{ record.tool_id }}</td>
+            <td>{{ record.policy }}</td>
+            <td>{{ record.user_ip }}</td>
+            <td>{{ record.user_city }}</td>
+            <td>{{ record.user_country }}</td>
+            <!--
+            <td>
+                <ul>{{ record.user_latitude }}(lat) </ul>
+                <ul>{{ record.user_longitude }}(lon) </ul>
+            </td>
+            -->
+            <td>{{ record.slice_id }}</td>
+            <td>{{ record.server_id }}</td>
+            <td>{{ record.site_id }}</td>
+            <td>{{ record.site_city }}</td>
+            <td>{{ record.site_country }}</td>
+            <!--
+            <td>
+                <ul>{{ record.site_latitude }}(lat) </ul>
+                <ul>{{ record.site_longitude }}(lon) </ul>
+            </td>
+            -->
+            <td>{{ record.when }}</td>
         </tr>
     {% endfor %}
-    </table>
-</body>
-
+</table>
+{% endblock %}

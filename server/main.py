@@ -7,10 +7,10 @@ from mlabns.handlers import registration
 from mlabns.handlers import debug
 
 app = webapp.WSGIApplication(
-    [(r'/view.*', debug.ViewHandler),
-    (r'/debug.*', debug.DebugHandler),
-    (r'/update.*', update.UpdateHandler),
+    [(r'/debug.*', debug.DebugHandler),
     (r'/register.*', registration.RegistrationHandler),
+    (r'/update.*', update.UpdateHandler),
+    (r'/view.*', debug.ViewHandler),
     (r'/.*', lookup.LookupHandler)],
     debug=True )
 

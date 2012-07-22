@@ -6,7 +6,7 @@ from mlabns.util import distance
 from mlabns.db import model
 from mlabns.util import message
 from mlabns.util import resolver
-from mlabns.geo.maxmind import geoip
+from mlabns.util.geo import maxmind
 
 import logging
 import time
@@ -20,9 +20,9 @@ class DebugHandler(webapp.RequestHandler):
 
     def get(self):
         """Handles an HTTP GET request."""
-
-        user_ipv4 = self.request.get(USER_IPv4)
-        user_ipv6 = self.request.get(USER_IPv6)
+        """
+        user_ipv4 = self.request.get(message.USER_IPv4)
+        user_ipv6 = self.request.get(message.USER_IPv6)
 
         lat_long = ''
         record = {}
@@ -39,7 +39,7 @@ class DebugHandler(webapp.RequestHandler):
 
         logging.info('lat_long = %s', lat_long)
 
-        query = LookupQuery()
+        lookup_query = query.LookupQuery()
 
         query.tool_id = self.request.get(TOOL_ID)
         query.policy = self.request.get(POLICY)
@@ -75,6 +75,8 @@ class DebugHandler(webapp.RequestHandler):
         values = {'records' : records}
         self.response.out.write(
             template.render('mlabns/templates/sliver_tool.html', values))
+        """
+        self.not_found()
 
     def not_found(self):
         self.error(404)
@@ -147,12 +149,16 @@ class DebugHandler(webapp.RequestHandler):
 class ViewHandler(webapp.RequestHandler):
     def get(self):
         view = self.request.get('db')
-        if (view == 'sliver_tool'):
-            return self.sliver_tool_view()
-        if (view == 'site' ):
+        if self.request.path == '/view/sites':
             return self.site_view()
-        if (view == 'lookup'):
+        if self.request.path == '/view/sliver_tools':
+            return self.sliver_tool_view()
+        if self.request.path == '/view/lookup':
             return self.lookup_view()
+        if self.request.path == '/view/home':
+            return self.home_view()
+
+
         return self.send_error()
 
     def sliver_tool_view(self):
@@ -162,10 +168,34 @@ class ViewHandler(webapp.RequestHandler):
             template.render('mlabns/templates/sliver_tool.html', values))
 
     def site_view(self):
-        records = model.Site.gql('ORDER BY when DESC')
-        values = {'records' : records}
+        headers = [
+            'Site ID',
+            'City',
+            'Country',
+            'Latitude',
+            'Longitude',
+            'Metro',
+            'When']
+
+        records = model.Site.gql('ORDER BY site_id DESC')
+        values = {'records' : records, 'headers': headers}
         self.response.out.write(
             template.render('mlabns/templates/site.html', values))
+
+    def home_view(self):
+        headers = [
+            'Site ID',
+            'City',
+            'Country',
+            'Latitude',
+            'Longitude',
+            'Metro',
+            'When']
+
+        records = model.Site.gql('ORDER BY site_id DESC')
+        values = {'records' : records, 'headers': headers}
+        self.response.out.write(
+            template.render('mlabns/templates/home.html', values))
 
     def lookup_view(self):
         records = model.Lookup.gql('ORDER BY when DESC')
@@ -177,6 +207,4 @@ class ViewHandler(webapp.RequestHandler):
         # 404: Not found.
         self.error(error_code)
         self.response.out.write(message)
-
-
 

@@ -8,13 +8,14 @@ import time
 from mlabns.db import model
 from mlabns.util import message
 from mlabns.util import update_message
+from mlabns.util import error
 
 class UpdateHandler(webapp.RequestHandler):
     """Handles SliverTools updates."""
 
     def get(self):
         # Not implemented.
-        self.send_not_found()
+        return error.not_found(self)
 
     def post(self):
         dictionary = {}
@@ -26,7 +27,7 @@ class UpdateHandler(webapp.RequestHandler):
             update.initialize_from_dictionary(dictionary)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
-            return self.send_not_found()
+            return error.not_found(self)
 
         # Move this in db.model.py.
         sliver_tool_id = model.get_sliver_tool_id(update)
@@ -35,17 +36,17 @@ class UpdateHandler(webapp.RequestHandler):
         if sliver_tool is None:
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Unknown sliver_tool_id %s.', sliver_tool_id)
-            return self.send_not_found()
+            return error.not_found(self)
 
         if not update.verify_signature(sliver_tool.sliver_tool_key):
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Bad signature from %s.', sliver_tool_id)
-            return self.send_not_found()
+            return error.not_found(self)
 
         # Prevent reply attacks.
         if (update.timestamp <= sliver_tool.update_request_timestamp):
             logging.error('Old timestamp from %s.', sliver_tool_id)
-            return self.send_not_found()
+            return error.not_found(self)
 
         # TODO(claudiu) Monitor and log changes in the parameters.
         # TODO(claudiu) Trigger an event or notification.
@@ -57,17 +58,7 @@ class UpdateHandler(webapp.RequestHandler):
 
         # Write changes to db.
         sliver_tool.put()
-        self.send_success()
+        return self.success()
 
-    def send_error(self, error_code=404):
-        # 404: Not found.
-        self.error(error_code)
-        self.response.out.write('Not found')
-
-    def send_not_found(self):
-        self.error(404)
-        self.response.out.write(
-            template.render('mlabns/templates/not_found.html', {}))
-
-    def send_success(self):
+    def success(self):
         self.response.out.write('200 OK')

@@ -10,39 +10,47 @@ from mlabns.util import message
 import logging
 import random
 import time
-
+import socket
 
 class LookupQuery:
     def __init__(self):
         self.tool_id = None
         self.policy = None
-        self.response_type = None
         self.metro = None
-        self.user_ip = None
-        self.user_city = None
-        self.user_country = None
+        self.ip_address = None
+        self.ipv6_flag = None
+        self.city = None
+        self.country = None
         self.latitude = 0.0
         self.longitude = 0.0
+        self.response_format = None
 
-    def initalize_from_webapp_request(self, request):
-        """Initializes the lookup parameters from the HTTP request."""
+    def initialize_from_http_request(self, request):
+        """Inizializes the lookup parameters from the HTTP request."""
         # TODO(claudiu) Add support for URLs of the type:
-        # http://mlab-ns.appspot.com/tool-name/ipv6
+        # http://mlab-ns.appspot.com/tool-name/ipv6.
         parts = request.path.strip('/').split('/')
         self.tool_id = parts[0]
-        self.user_ip = request.remote_addr
+
+        try:
+            socket.inet_pton(socket.AF_INET6, request.remote_addr)
+            self.ipv6_flag = True
+        except socket.error:
+            self.ipv6_flag = False
+
+        self.ip_address = request.remote_addr
         self.policy = request.get(message.POLICY)
         self.metro = request.get(message.METRO)
-        self.response_type = request.get(message.RESPONSE_TYPE)
+        self.response_format = request.get(message.RESPONSE_FORMAT)
 
         # Default to geo policy.
         if not self.policy:
             self.policy = message.POLICY_GEO
 
         if message.HEADER_CITY in request.headers:
-            self.user_city = request.headers[message.HEADER_CITY]
+            self.city = request.headers[message.HEADER_CITY]
         if message.HEADER_COUNTRY in request.headers:
-            self.user_country = request.headers[message.HEADER_COUNTRY]
+            self.country = request.headers[message.HEADER_COUNTRY]
         if message.HEADER_LAT_LONG in request.headers:
             lat_long = request.headers[message.HEADER_LAT_LONG]
             try:
@@ -50,19 +58,8 @@ class LookupQuery:
                     float(x) for x in lat_long.split(',')]
             except ValueError:
                 # TODO(claudiu) Use geolocation data from Maxmind.
+                # Log all these cases without geolocation info.
                 logging.error('Bad geo coordinates %s', lat_long)
-
-    def is_policy_geo(self):
-        return (self.policy == message.POLICY_GEO)
-
-    def is_policy_rtt(self):
-        return False
-
-    def is_format_json(self):
-        return (self.response_type == message.FORMAT_JSON)
-
-    def is_format_protobuf(self):
-        return (self.response_type == message.FORMAT_PROTOBUF)
 
 class GeoResolver:
     """Implements the closest-node policy."""
