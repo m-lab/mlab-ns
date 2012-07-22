@@ -66,11 +66,12 @@ div#content {
 	padding:2em 0 4em 0;
 	/*border-top:3px solid black;*/
 }
+/*
 	div#content p {
 		text-align:justify;
 		padding:0 1em;
 	}
-
+*/
 div#footer {
 	position:absolute;
 	padding:3px 0 0 0;

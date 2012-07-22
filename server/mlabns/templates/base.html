@@ -12,7 +12,10 @@
         {% block header %}
         <div id="header">      
             <ul>
+                {% block logo %}
                 <img src="/images/mlab-logo.png" align=left hspace="4"/>
+                {% endblock %}
+
                 {%block MenuSites %}
                 <li>
                     <a  href="/view/sites"

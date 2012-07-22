@@ -2,8 +2,9 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 
-from mlabns.util import distance
 from mlabns.db import model
+from mlabns.util import distance
+from mlabns.util import error
 from mlabns.util import message
 from mlabns.util import resolver
 from mlabns.util.geo import maxmind
@@ -16,7 +17,7 @@ class DebugHandler(webapp.RequestHandler):
 
     def post(self):
         """Not implemented."""
-        return self.not_found()
+        return error.not_found(self)
 
     def get(self):
         """Handles an HTTP GET request."""
@@ -76,17 +77,7 @@ class DebugHandler(webapp.RequestHandler):
         self.response.out.write(
             template.render('mlabns/templates/sliver_tool.html', values))
         """
-        self.not_found()
-
-    def not_found(self):
-        self.error(404)
-        self.response.out.write(
-            template.render('mlabns/templates/not_found.html', {}))
-
-    def send_not_found(self):
-        self.error(404)
-        self.response.out.write(
-            template.render('mlabns/templates/not_found.html', {}))
+        return error.not_found(self)
 
     def log_request(self,  query, sliver_tool):
         """Logs the request.
@@ -158,8 +149,7 @@ class ViewHandler(webapp.RequestHandler):
         if self.request.path == '/view/home':
             return self.home_view()
 
-
-        return self.send_error()
+        return error.not_found(self)
 
     def sliver_tool_view(self):
         records = model.SliverTool.gql("ORDER BY when DESC")
@@ -202,9 +192,3 @@ class ViewHandler(webapp.RequestHandler):
         values = {'records' : records}
         self.response.out.write(
             template.render('mlabns/templates/lookup.html', values))
-
-    def send_error(self, error_code=404, message='Error'):
-        # 404: Not found.
-        self.error(error_code)
-        self.response.out.write(message)
-

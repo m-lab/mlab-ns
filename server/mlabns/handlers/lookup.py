@@ -80,6 +80,9 @@ class LookupHandler(webapp.RequestHandler):
             sliver_tool: SliverTool entity chosen in the server
                 selection phase.
         """
+        if sliver_tool is None:
+            return
+
         site = model.Site.get_by_key_name(sliver_tool.site_id)
 
         if site is not None:
