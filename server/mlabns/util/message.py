@@ -4,6 +4,8 @@ import hmac
 import string
 import time
 
+# These constants are all possible fields in a
+# message.
 CITY            = 'city'
 COUNTRY         = 'country'
 ENTITY          = 'entity'

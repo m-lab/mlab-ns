@@ -1,6 +1,6 @@
+from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from google.appengine.ext import db
 
 from mlabns.db import model
 from mlabns.util import distance
@@ -102,7 +102,7 @@ class LookupHandler(webapp.RequestHandler):
                 site.latitude, site.longitude)
 
             # Log the request to db.
-            # TOD(claudiu) Add a counter for IPv4 and IPv6.
+            # TODO(claudiu) Add a counter for IPv4 and IPv6.
             lookup_entry = model.Lookup(
                 tool_id=query.tool_id,
                 policy=query.policy,

@@ -29,8 +29,11 @@ class UpdateHandler(webapp.RequestHandler):
             logging.error('Format error: %s', e)
             return error.not_found(self)
 
-        # Move this in db.model.py.
-        sliver_tool_id = model.get_sliver_tool_id(update)
+        sliver_tool_id = model.get_sliver_tool_id(
+            update.tool_id,
+            update.slice_id,
+            update.server_id,
+            update.site_id)
         sliver_tool = model.SliverTool.get_by_key_name(sliver_tool_id)
 
         if sliver_tool is None:
@@ -45,7 +48,9 @@ class UpdateHandler(webapp.RequestHandler):
 
         # Prevent reply attacks.
         if (update.timestamp <= sliver_tool.update_request_timestamp):
-            logging.error('Old timestamp from %s.', sliver_tool_id)
+            logging.error(
+                'Timestamp in update %s is older than value in db (%s)',
+                sliver_tool_id, sliver_tool.update_request_timestamp)
             return error.not_found(self)
 
         # TODO(claudiu) Monitor and log changes in the parameters.
@@ -57,7 +62,12 @@ class UpdateHandler(webapp.RequestHandler):
         sliver_tool.update_request_timestamp = long(time.time())
 
         # Write changes to db.
-        sliver_tool.put()
+        try:
+            sliver_tool.put()
+        except TransactionFailedError:
+            # TODO(claudiu) Trigger an event/notification.
+            logging.error('Failed to write changes to db.')
+
         return self.success()
 
     def success(self):

@@ -70,19 +70,17 @@ class GeoLiteCityv6(db.Model):
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
 
-def get_sliver_tool_id(update_request):
+def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
     """Creates the SliverTool id from an UpdateMessage.
 
     Args:
-        update_request: An UpdateMessage instance.
+        tool_id: String representing the tool id.
+        slice_id: String representing the slice id.
+        server_id: String representing the server id.
+        site_id: String representing the site id.
 
     Returns:
         A string representing the key that uniquely identifies a
         SliverTool.
     """
-    return '-'. join([
-            update_request.tool_id,
-            update_request.slice_id,
-            update_request.server_id,
-            update_request.site_id])
-
+    return '-'.join([tool_id, slice_id, server_id, site_id])
