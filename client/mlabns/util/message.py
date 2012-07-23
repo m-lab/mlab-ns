@@ -4,6 +4,8 @@ import hmac
 import string
 import time
 
+# These constants are all possible fields in a
+# message.
 CITY            = 'city'
 COUNTRY         = 'country'
 ENTITY          = 'entity'
@@ -11,6 +13,7 @@ ENTITY_SITE     = 'site'
 ENTITY_SLIVER_TOOL = 'sliver_tool'
 FORMAT          = 'format'
 FORMAT_JSON     = 'json'
+FORMAT_HTML     = 'html'
 FORMAT_PROTOBUF = 'protobuf'
 HEADER_CITY     = 'X-AppEngine-City'
 HEADER_COUNTRY  = 'X-AppEngine-Country'
@@ -20,6 +23,7 @@ METRO           = 'metro'
 POLICY          = 'policy'
 POLICY_GEO      = 'geo'
 RESPONSE_TYPE   = 'format'
+RESPONSE_FORMAT = 'format'
 SERVER_ID       = 'server_id'
 SIGNATURE       = 'sign'
 SITE_ID         = 'site_id'
@@ -34,7 +38,12 @@ STATUS_ONLINE   = 'online'
 STATUS_REGISTERED = 'init'
 TIMESTAMP       = 'timestamp'
 TOOL_ID         = 'tool_id'
+TOOL_NAME       = 'tool'
 URL             = 'url'
+USER_CITY       = 'city'
+USER_COUNTRY    = 'country'
+USER_IPv4       = 'addr_ipv4'
+USER_IPv6       = 'addr_ipv6'
 
 class Error(Exception): pass
 class FormatError(Error): pass
