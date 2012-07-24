@@ -19,9 +19,8 @@ handlers:
 - url: /(update|register|view|debug).*
   script: main.app
 
-- url: /admin.*
+- url: /admin/.*
   script: main.app
-  login: admin
 
 - url: /tools/.*
   script: main.app
