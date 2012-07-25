@@ -9,6 +9,7 @@ import time
 import urllib
 import urllib2
 
+from Crypto.Cipher import DES3
 from optparse import OptionParser
 from os import R_OK
 from os import access
@@ -103,7 +104,7 @@ class RegistrationClient:
                 return False
 
             registration.add_timestamp()
-            registration.sign(admin_key)
+            registration.encrypt_message(admin_key)
             self.registrations.append(registration)
 
         return True
@@ -130,7 +131,11 @@ class RegistrationClient:
         """Sends the registration requests to the server."""
 
         for registration in self.registrations:
-            data = registration.to_dictionary()
+            data = {}
+            data[message.ENTITY] = registration.entity
+            data[message.SIGNATURE] = registration.signature
+            data[message.CIPHERTEXT] = registration.ciphertext
+
             encoded_data = urllib.urlencode(data)
             request = urllib2.Request(self.server_url, encoded_data)
             logging.info('Sending request:')
