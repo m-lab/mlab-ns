@@ -2,10 +2,11 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 
+from Crypto.Cipher import DES
+from mlabns.db import model
 from mlabns.util import message
 from mlabns.util import registration_message
-from mlabns.db import model
-from mlabns.util import error
+from mlabns.util import util
 
 import logging
 
@@ -17,12 +18,12 @@ class RegistrationHandler(webapp.RequestHandler):
 
     def get(self):
         """Not implemented."""
-        return error.not_found(self)
+        return util.send_not_found(self)
 
     def post(self):
         """Handles registrations through HTTP POST requests.
 
-        Verify the request and if valid, add a new record to the
+        Decrypt the request and if valid, add a new record to the
         corresponding db.
         """
         dictionary = {}
@@ -39,29 +40,25 @@ class RegistrationHandler(webapp.RequestHandler):
         for item in dictionary:
             logging.info('data[%s] = %s', item, dictionary[item])
 
-        return error.not_found(self)
+        return util.send_not_found(self)
 
     def register_site(self, dictionary):
         registration = registration_message.SiteRegistrationMessage()
         try:
-            registration.initialize_from_dictionary(dictionary)
+            registration.decrypt_message(
+                dictionary, '1234567812345678')
+        except message.DecryptionError, e:
+            logging.error('Encryption error: %s', e)
+            return util.send_not_found(self)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
-            return error.not_found(self)
-
-        # TODO (claudiu) Change with login.
-        key = 'mlab-ns@admin'
-        if not registration.verify_signature(key):
-            logging.error('Bad signature')
-            for item in dictionary:
-                logging.info('data[%s] = %s', item, dictionary[item])
-            return error.not_found(self)
+            return util.send_not_found(self)
 
         try:
             lat, lon = [float(x) for x in registration.lat_long.split(',')]
         except ValueError:
             logging.error('Bad geo coordinates %s', registration.lat_long)
-            return error.not_found(self)
+            return util.send_not_found(self)
 
         site = model.Site(
             site_id=registration.site_id,
@@ -72,30 +69,39 @@ class RegistrationHandler(webapp.RequestHandler):
             metro=registration.metro.split(','),
             key_name=registration.site_id)
 
-        site.put()
-        return self.success()
+        try:
+            site.put()
+        except TransactionFailedError:
+            # TODO(claudiu) Trigger an event/notification.
+            logging.error('Failed to write changes to db.')
+            return util.send_server_error(self)
+
+        return util.send_success(self)
 
     def register_sliver_tool(self, dictionary):
         registration = registration_message.SliverToolRegistrationMessage()
         try:
-            registration.initialize_from_dictionary(dictionary)
+            registration.decrypt_message(
+                dictionary, '1234567812345678')
+        except message.DecryptionError, e:
+            logging.error('Encryption error: %s', e)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
-            return error.not_found(self)
+            return util.send_not_found(self)
 
-        # TODO (claudiu) Change with login.
-        key = 'mlab-ns@admin'
-        if not registration.verify_signature(key):
-            logging.error('Bad signature')
-            return error.not_found(self)
-
-        sliver_tool_id = model.get_sliver_tool_id(registration)
+        sliver_tool_id = model.get_sliver_tool_id(
+            registration.tool_id,
+            registration.slice_id,
+            registration.server_id,
+            registration.site_id)
 
         # Add lat/long info from the site db.
         site = model.Site.get_by_key_name(registration.site_id)
         if not site:
-            logging.error('No site found for this sliver tool.')
-            return error.not_found(self)
+            logging.error(
+                'SliverTool site %s was not found in the db.',
+                registration.site_id)
+            return util.send_not_found(self)
 
         sliver_tool = model.SliverTool(
             tool_id=registration.tool_id,
@@ -111,8 +117,11 @@ class RegistrationHandler(webapp.RequestHandler):
             longitude=site.longitude,
             key_name=sliver_tool_id)
 
-        sliver_tool.put()
-        return self.success()
+        try:
+            sliver_tool.put()
+        except TransactionFailedError:
+            # TODO(claudiu) Trigger an event/notification.
+            logging.error('Failed to write changes to db.')
+            return util.send_server_error(self)
 
-    def success(self, message='200 OK'):
-        self.response.out.write(message)
+        return util.send_success(self)
