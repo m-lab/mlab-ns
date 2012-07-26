@@ -14,6 +14,7 @@ from os import R_OK
 from os import access
 from os import path
 
+from mlabns.util import message
 from mlabns.util import update_message
 
 class UpdateClient:
@@ -24,6 +25,7 @@ class UpdateClient:
         # String that represents the URL on the server where the updates
         # are sent.
         self.server_url = None
+        self.sliver_tool_key = None
 
         # List of the updates to be sent to the server.
         self.updates = []
@@ -80,7 +82,8 @@ class UpdateClient:
 
             logging.error('Missing key section')
             return False
-        sliver_tool_key = config.get(section_key, option_key)
+
+        self.sliver_tool_key = config.get(section_key, option_key)
 
         if (not config.has_section(section_url) or
             not config.has_option(section_url, option_url)):
@@ -106,9 +109,6 @@ class UpdateClient:
             except update_message.FormatError, e:
                 logging.error('Format error: %s', e)
                 return False
-
-            message.add_timestamp()
-            message.sign(sliver_tool_key)
             self.updates.append(message)
 
         return True
@@ -116,8 +116,12 @@ class UpdateClient:
     def send_updates(self):
         """Sends the updates to the server."""
 
-        for message in self.updates:
-            data = message.to_dictionary()
+        for update in self.updates:
+            update.add_timestamp()
+            data = update.to_dictionary()
+            data[message.SIGNATURE] = update.compute_signature(
+                self.sliver_tool_key)
+
             encoded_data = urllib.urlencode(data)
             request = urllib2.Request(self.server_url, encoded_data)
             logging.info('sending request:')

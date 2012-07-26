@@ -41,14 +41,10 @@ class UpdateMessage(message.Message):
         if message.TIMESTAMP in dictionary:
             self.timestamp = dictionary[message.TIMESTAMP]
 
-        if message.SIGNATURE in dictionary:
-            self.signature = dictionary[message.SIGNATURE]
-
     def to_dictionary(self):
         dictionary = {}
         dictionary[message.SITE_ID] = self.site_id
         dictionary[message.SERVER_ID] = self.server_id
-        dictionary[message.SIGNATURE] = self.signature
         dictionary[message.SLICE_ID] = self.slice_id
         dictionary[message.SLIVER_IPv4] = self.sliver_ipv4
         dictionary[message.SLIVER_IPv6] = self.sliver_ipv6

@@ -80,6 +80,33 @@ class Message():
         """
         pass
 
+    def compute_signature(self, secret_key):
+        """Computes the signature of this Message.
+
+        Args:
+            key: A string representing the cryptographic key used to
+                compute the signature.
+
+        Returns
+            A string representing the signature.
+        """
+
+        dictionary = self.to_dictionary()
+
+        value_list = []
+        for item in sorted(dictionary.iterkeys()):
+            logging.debug(
+                'data[%s] = %s', item, dictionary[item])
+            value_list.append(dictionary[item])
+
+        # Encode the key as ASCII and ignore non ASCII characters.
+        key = bytes(secret_key)
+        values_str = ''.join(value_list)
+        digest = hmac.new(key, values_str, hashlib.sha1).digest()
+        signature = base64.encodestring(digest).strip()
+
+        return signature
+
     def encrypt_message(self, secret_key):
         """Encrypts and signs this Message.
 
