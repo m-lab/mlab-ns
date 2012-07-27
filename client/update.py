@@ -64,31 +64,27 @@ class UpdateClient:
         try:
             fp = open(config_file)
         except IOError:
-            logging.error(
-                'Cannot open the configuration file: %s.', config_file)
+            logging.error('Cannot open the configuration file %s.', config_file)
             return False
         try:
             config.readfp(fp)
         except ConfigParser.Error:
             # TODO(claudiu) Trigger an event/notification.
-            logging.error(
-                'Cannot read the configuration file: %s.', config_file)
+            logging.error('Cannot read the configuration file %s.', config_file)
             return False
         finally:
             fp.close()
 
         if (not config.has_section(section_key) or
             not config.has_option(section_key, option_key)):
-
-            logging.error('Missing key section')
+            logging.error('Missing key section.')
             return False
 
         self.sliver_tool_key = config.get(section_key, option_key)
 
         if (not config.has_section(section_url) or
             not config.has_option(section_url, option_url)):
-
-            logging.error('Missing server url section')
+            logging.error('Missing server url section.')
             return False
         self.server_url = config.get(section_url, option_url)
 
@@ -107,7 +103,7 @@ class UpdateClient:
             try:
                 message.initialize_from_dictionary(update)
             except update_message.FormatError, e:
-                logging.error('Format error: %s', e)
+                logging.error('Format error: %s.', e)
                 return False
             self.updates.append(message)
 
@@ -124,15 +120,15 @@ class UpdateClient:
 
             encoded_data = urllib.urlencode(data)
             request = urllib2.Request(self.server_url, encoded_data)
-            logging.info('sending request:')
+            logging.info('Sending request:')
             for key in data.keys():
-                logging.info('data[%s] = "%s"', key, data[key])
+                logging.info('data[%s] = "%s".', key, data[key])
             try:
                 response = urllib2.urlopen(request)
-                logging.info('response: %s\n', response.read())
+                logging.info('Response: %s.\n', response.read())
             except urllib2.URLError, e:
                 # TODO(claudiu) Trigger an event/notification.
-                logging.error('cannot send request: %s.\n', e)
+                logging.error('Cannot send request: %s.\n', e)
 
 def main():
     logging.basicConfig(
@@ -145,13 +141,13 @@ def main():
         '-f',
         '--file',
         dest='filename',
-        help='configuration file')
+        help='Configuration file.')
     parser.add_option(
         '',
         '--section-key',
         dest='section_key',
         default='key',
-        help='Name of the key section in the config file')
+        help='Name of the key section in the config file.')
     parser.add_option(
         '',
         '--options-key',
