@@ -97,19 +97,19 @@ class UpdateClient:
                 continue
 
             logging.info('BEGIN %s', section)
-            update = {}
+            dictionary = {}
             for option in config.options(section):
-                update[option] = config.get(section, option)
-                logging.info('%s = "%s"', option, update[option])
+                dictionary[option] = config.get(section, option)
+                logging.info('%s = "%s"', option, dictionary[option])
             logging.info('END %s\n.', section)
 
-            message = update_message.UpdateMessage()
+            update = update_message.UpdateMessage()
             try:
-                message.initialize_from_dictionary(update)
-            except update_message.FormatError, e:
+                update.initialize_from_dictionary(dictionary)
+            except message.FormatError, e:
                 logging.error('Format error: %s', e)
                 return False
-            self.updates.append(message)
+            self.updates.append(update)
 
         return True
 
