@@ -16,17 +16,21 @@ handlers:
   static_files: mlabns/images/favicon.ico
   upload: mlabns/images/favicon.ico
 
-- url: /(update|register|view|debug).*
+- url: /(update|register|tools|geo).*
   script: main.app
 
-- url: /admin/.*
+- url: /admin.*
   script: main.app
-
-- url: /tools/.*
-  script: main.app
+  login: required
 
 - url: /.*
   script: main.app
 
 builtins:
 - remote_api: on
+
+libraries:
+- name: pycrypto
+  version: latest
+- name: django
+  version: "1.2"

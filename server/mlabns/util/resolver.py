@@ -6,6 +6,7 @@ from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import distance
 from mlabns.util import message
+from mlabns.util.geo import maxmind
 
 import logging
 import random
@@ -15,7 +16,7 @@ import socket
 class LookupQuery:
     def __init__(self):
         self.tool_id = None
-        self.policy = None
+        self.policy = message.POLICY_GEO
         self.metro = None
         self.ip_address = None
         self.ipv6_flag = None
@@ -24,6 +25,10 @@ class LookupQuery:
         self.latitude = 0.0
         self.longitude = 0.0
         self.response_format = None
+
+    @property
+    def policy_geo(self):
+        return self.policy == message.POLICY_GEO
 
     def initialize_from_http_request(self, request):
         """Inizializes the lookup parameters from the HTTP request."""
@@ -47,19 +52,31 @@ class LookupQuery:
         if not self.policy:
             self.policy = message.POLICY_GEO
 
+        if message.HEADER_LAT_LONG in request.headers:
+            self.add_appengine_geolocation(request)
+        else:
+            self.add_maxmind_geolocation(request)
+
+    def add_maxmind_geolocation(self, request):
+        geo_record = maxmind.get_ip_geolocation(self.ip_address)
+        self.city = geo_record.city
+        self.country = geo_record.country
+        self.latitude = geo_record.latitude
+        self.longitude = geo_record.longitude
+
+    def add_appengine_geolocation(self, request):
         if message.HEADER_CITY in request.headers:
             self.city = request.headers[message.HEADER_CITY]
         if message.HEADER_COUNTRY in request.headers:
             self.country = request.headers[message.HEADER_COUNTRY]
-        if message.HEADER_LAT_LONG in request.headers:
-            lat_long = request.headers[message.HEADER_LAT_LONG]
-            try:
-                self.latitude, self.longitude = [
-                    float(x) for x in lat_long.split(',')]
-            except ValueError:
-                # TODO(claudiu) Use geolocation data from Maxmind.
-                # Log all these cases without geolocation info.
-                logging.error('Bad geo coordinates %s', lat_long)
+        lat_long = request.headers[message.HEADER_LAT_LONG]
+        try:
+            self.latitude, self.longitude = [
+                float(x) for x in lat_long.split(',')]
+        except ValueError:
+            # Log the error and use maxmind.
+            logging.error('Bad geo coordinates %s', lat_long)
+            self.add_maxmind_geolocation(request)
 
 class GeoResolver:
     """Implements the closest-node policy."""
@@ -104,6 +121,7 @@ class GeoResolver:
             logging.error('No results found for %s.', query.tool_id)
             return None
 
+        logging.info('Found %s candidates.', len(sliver_tools))
         min_distance = float('+inf')
         closest_sliver_tools = []
         distances = {}

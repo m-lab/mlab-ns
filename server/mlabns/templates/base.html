@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <div id="container"> 
+    <div id="wrap"> 
         {% block header %}
         <div id="header">      
             <ul>
@@ -18,40 +18,43 @@
 
                 {%block MenuSites %}
                 <li>
-                    <a  href="/view/sites"
+                    <a  href="/admin/sites"
                         class="header">Sites</a>
                 </li>
                 {% endblock %}
 
                 {%block MenuSliverTools %}
                 <li>
-                    <a  href="/view/sliver_tools"
+                    <a  href="/admin/sliver_tools"
                         class ="header">Sliver Tools</a>
                 </li>
                 {% endblock %}
 
                 {%block MenuLookup %}
                 <li>
-                    <a  href="/view/lookup"
+                    <a  href="/admin/lookup"
                         class="header">Lookup</a>
                 </li>
                 {% endblock %}
 
                 {%block MenuHome %}
                 <li>
-                    <a  href="/view/home"
+                    <a  href="/admin/home"
                         class="header">Home</a>
                 </li>
                 {% endblock %}
             </ul>
         </div>
         {% endblock %}
-        
-        <div id="content">
+       
+        {% block div_main %}
+        <div id="main">
             {% block content %}{% endblock %}
         </div>
 
-        <div id="footer">
+        {% endblock %}
+    </div>
+    <div id="footer">
         <a href="http://measurementlab.net"
             class="footer">MLab</a>
         
@@ -75,8 +78,6 @@
         <a href="http://www.measurementlab.net/content/faq"
             class="footer">FAQ</a> 
         
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        
-        </div>
-    <div>
+        &nbsp;&nbsp;&nbsp;&nbsp;    
+    </div>
 </body>

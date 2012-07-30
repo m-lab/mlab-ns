@@ -1,12 +1,13 @@
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
+from google.appengine.api import memcache
 
 from mlabns.db import model
 from mlabns.util import distance
-from mlabns.util import error
 from mlabns.util import message
 from mlabns.util import resolver
+from mlabns.util import util
 
 import json
 import logging
@@ -17,7 +18,7 @@ class LookupHandler(webapp.RequestHandler):
 
     def post(self):
         """Not implemented."""
-        return error.html.not_found(self)
+        return util.send_not_found(self)
 
     def get(self):
         """Handles an HTTP GET request."""
@@ -44,7 +45,7 @@ class LookupHandler(webapp.RequestHandler):
 
     def send_json_response(self, sliver_tool):
         if sliver_tool is None:
-            return error.not_found(self, 'json')
+            return util.send_not_found(self)
         data = {}
         data['slice_id'] = sliver_tool.slice_id
         data['server_id'] = sliver_tool.server_id
@@ -61,7 +62,7 @@ class LookupHandler(webapp.RequestHandler):
 
     def send_html_response(self, sliver_tool):
         if sliver_tool is None:
-            return error.not_found(self)
+            return util.send_not_found(self, 'html')
         records = []
         records.append(sliver_tool)
         values = {'records' : records}
@@ -70,7 +71,8 @@ class LookupHandler(webapp.RequestHandler):
 
     def send_redirect_response(self, sliver_tool):
         if sliver_tool is None:
-            return error.not_found(self)
+            return util.send_not_found(self, 'html')
+        self.redirect(str(sliver_tool.url))
 
     def log_request(self,  query, sliver_tool):
         """Logs the request.

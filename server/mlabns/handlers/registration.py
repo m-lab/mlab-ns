@@ -9,6 +9,7 @@ from mlabns.util import registration_message
 from mlabns.util import util
 
 import logging
+import codecs
 
 class RegistrationHandler(webapp.RequestHandler):
     """Handles SliverTools registrations.
@@ -18,7 +19,51 @@ class RegistrationHandler(webapp.RequestHandler):
 
     def get(self):
         """Not implemented."""
-        return util.send_not_found(self)
+
+        if self.request.path != '/register/sites_from_file':
+            return util.send_not_found(self)
+
+        block_number = self.request.get('block_number')
+
+        prefix = 'mlabns/util/tmp/site_block'
+        filename = '.'.join([prefix, block_number])
+
+        keys = [
+            'location_id',
+            'country',
+            'region',
+            'city',
+            'postal_code',
+            'latitude',
+            'longitude',
+            'metro_code',
+            'area_code'
+        ]
+
+        # Add to db.
+        for line in open(filename, 'r').readlines():
+            values = line.split(',')
+
+            location = dict(zip(keys, values))
+            location['latitude'] = float(location['latitude'])
+            location['longitude'] = float(location['longitude'])
+            location['region'] = location['region'].decode(
+                'utf-8','ignore')
+            location['country'] = location['country'].decode(
+                'utf-8','ignore')
+            location['city'] = location['city'].decode(
+                'utf-8','ignore')
+
+            model.GeoLiteCityLocation(
+                location_id=location['location_id'],
+                country=location['country'],
+                region=location['region'],
+                city=location['city'],
+                latitude=location['latitude'],
+                longitude=location['longitude'],
+                key_name=location['location_id']).put()
+
+        util.send_success(self)
 
     def post(self):
         """Handles registrations through HTTP POST requests.
@@ -29,6 +74,8 @@ class RegistrationHandler(webapp.RequestHandler):
         dictionary = {}
         for argument in self.request.arguments():
             dictionary[argument] = self.request.get(argument)
+            logging.info('data[%s] = %s',
+                argument, dictionary[argument])
 
         entity = self.request.get(message.ENTITY)
         if entity == message.ENTITY_SITE:

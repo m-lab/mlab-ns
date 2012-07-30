@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}mlab-ns{% endblock %}
+
+{% block MenuHome%}
+{% endblock %}
+
+{% block MenuSliverTools%}
+{% endblock %}
+
+{% block MenuLookup%}
+{% endblock %}
+
+{% block MenuSites%}
+{% endblock %}
+
+
+{% block content %}
+<table id="box-table-blue">
+<tr>
+  <th>Tool ID</th>
+  <th>Site ID</th>
+  <th>Slice ID</th>
+  <th>Server ID</th>
+  <th>Status</th>
+  <th>URL</th>
+  <th>Last update</th>
+</tr>
+
+{% for record in records %}
+    <tr>
+    <td>{{ record.tool_id }}</td>
+    <td>{{ record.site_id }}</td>
+    <td>{{ record.slice_id }}</td>
+    <td>{{ record.server_id }}</td>
+    <td>{{ record.status }}</td>
+    <td> <a href="{{record.url}}"> {{ record.url }} </a></td>
+    <td>{{ record.when }}</td>
+    </tr>
+{% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        {% block title %}mlab-ns (MLab Naming Service){% endblock %}
+    </title>
+    
+    <meta 
+        name="viewport"
+        content="width=device-width initial-scale=1.0, user-scalable=no" />
+
+     <link  type="text/css"
+            rel="stylesheet" 
+            href="/stylesheets/main.css" />
+
+{% block javascript %}
+<script type="text/javascript"
+ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuvQuQGxqdohwnwDzElYPEAvESZSsK1Nc&sensor=false">
+    </script>
+
+    <script type="text/javascript">
+        
+        var map;
+        var green = "81F781";
+        var red = "FF0000";
+        var white = "FFFFFF";
+        var blue = "0000FF";
+        var black = "000000";
+
+        var markersArray = [];
+        var onlineMarkersArray = [];
+        var offlineMarkersArray = [];
+        var errorMarkersArray = [];
+
+        function initialize() {
+            var mapOptions = {
+                center: new google.maps.LatLng(41.9000, 12.500),
+                zoom: 4,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+                
+            map = new google.maps.Map(
+                document.getElementById("map_canvas"),
+                mapOptions);
+            
+            var cities = {{cities|safe}};
+            for (city in cities) {
+                var geo = {};
+                for (site in cities[city]) {
+                    geo['latitude'] = cities[city][site]['latitude'];
+                    geo['longitude'] = cities[city][site]['longitude'];
+                    geo['city'] = cities[city][site]['city'];
+                    geo['country'] = cities[city][site]['country'];
+                }
+                var marker = makeMarker(geo, "default");
+                markersArray.push(marker);
+            }
+            showMarkers();
+
+            /*var user = {{user|safe}};
+            var destination = {{destination|safe}};
+
+            for (i in sites) {
+               markersArray.push(makeMarker(sites[i], "default"));
+            }
+
+            destination_marker = makeMarker(destination, "info");
+            user_marker = makeMarker(user, "user");
+
+            showMarkers();
+
+            markersArray.push(user_marker);
+            markersArray.push(destination_marker);
+
+            var infowindow = new google.maps.InfoWindow({
+                content: destination['info']});
+
+            infowindow.open(map,destination_marker);
+            google.maps.event.addListener(
+                destination_marker, "click", function() {
+                    infowindow.open(map,destination_marker);
+                });
+            */
+        }
+
+        function makeMarker(data, iconStyle) {
+            var position = new google.maps.LatLng(
+                data["latitude"], data["longitude"] );
+            var title = data["city"] + "," + data["country"]; 
+            var icon = makeIcon(iconStyle) 
+            var marker = new google.maps.Marker({
+                position: position,
+                title: title,
+                icon: icon,
+                map: map
+            });
+            return marker;
+        }
+
+        function makeIcon(style) {
+            var size_x = 21
+            var size_y = 34
+            var apiURL = "http://chart.apis.google.com/chart?";
+            var query_string =  "chst=d_map_pin_letter&" +
+                "chld=o|" + green + "|" + green;
+
+            if (style == "error") {
+                query_string =  "chst=d_map_pin_letter&" +
+                    "chld=o|" + red + "|" + red;
+            }
+
+            if (style == "warning") {
+                query_string =  "chst=d_map_xpin_letter&" +
+                    "chld=pin_star|o|" + green + "|" + 
+                    green + "|" + red;
+            }
+            
+            if (style == "info") {
+                query_string =  "chst=d_map_pin_letter&" +
+                    "chld=x|" + green + "|" + black;
+            }
+
+            if (style == "user") {
+                query_string =  "chst=d_map_pin_icon&" +
+                    "chld=glyphish_user|" + "00BFFF"; 
+            }
+
+            var icon = new google.maps.MarkerImage(
+                apiURL + query_string,
+                new google.maps.Size(size_x, size_y),
+                new google.maps.Point(0,0),
+                null,
+                new google.maps.Size(size_x, size_y));
+            return icon;
+        }
+
+        function addMarker(location) {
+            marker = new google.maps.Marker({
+                position:location,
+                map: map
+            });
+            markersArray.push(marker);
+        } 
+        
+        function clearOverlayes() {
+            if (markersArray) {
+                for (i in markersArray) {
+                    markersArray[i].setMap(null);
+                }
+            }
+        }
+        
+        function showMarkers() {
+            if (markersArray) {
+                for (i in markersArray) {
+                    markersArray[i].setMap(map);
+                }
+                var bounds = new google.maps.LatLngBounds ();
+                for (i in markersArray) {
+                    bounds.extend(markersArray[i].position);
+                }
+                map.fitBounds(bounds)
+            }
+        }
+
+        google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+{% endblock %}
+</head>
+
+{% block tag_body %}
+<body onload="inizialize()">
+{% endblock %}
+    <div id="container"> 
+        {% block header %}
+        <div id="header">      
+            <ul>
+                {% block logo %}
+                <img src="/images/mlab-logo.png" align=left hspace="4"/>
+                {% endblock %}
+
+                {%block MenuSites %}
+                <li>
+                    <a  href="/admin/sites"
+                        class="header">Sites</a>
+                </li>
+                {% endblock %}
+
+                {%block MenuSliverTools %}
+                <li>
+                    <a  href="/admin/sliver_tools"
+                        class ="header">Sliver Tools</a>
+                </li>
+                {% endblock %}
+
+                {%block MenuLookup %}
+                <li>
+                    <a  href="/admin/lookup"
+                        class="header">Lookup</a>
+                </li>
+                {% endblock %}
+
+                {%block MenuHome %}
+                <li>
+                    <a  href="/admin/home"
+                        id="menuHome"
+                        class="header">Home</a>
+                </li>
+                {% endblock %}
+            </ul>
+        </div>
+        {% endblock %}    
+        <div id="map_canvas">
+        </div>
+    <div>
+</body>
+
+</html>

@@ -8,14 +8,14 @@ import time
 from mlabns.db import model
 from mlabns.util import message
 from mlabns.util import update_message
-from mlabns.util import error
+from mlabns.util import util
 
 class UpdateHandler(webapp.RequestHandler):
     """Handles SliverTools updates."""
 
     def get(self):
         # Not implemented.
-        return error.not_found(self)
+        return util.send_not_found(self)
 
     def post(self):
         dictionary = {}
@@ -27,7 +27,7 @@ class UpdateHandler(webapp.RequestHandler):
             update.initialize_from_dictionary(dictionary)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
-            return error.not_found(self)
+            return util.send_not_found(self)
 
         sliver_tool_id = model.get_sliver_tool_id(
             update.tool_id,
@@ -39,25 +39,35 @@ class UpdateHandler(webapp.RequestHandler):
         if sliver_tool is None:
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Unknown sliver_tool_id %s.', sliver_tool_id)
-            return error.not_found(self)
+            return util.send_not_found(self)
 
-        if not update.verify_signature(sliver_tool.sliver_tool_key):
+        signature = update.compute_signature(
+            sliver_tool.sliver_tool_key)
+        if (signature != self.request.get(message.SIGNATURE)):
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Bad signature from %s.', sliver_tool_id)
-            return error.not_found(self)
+            return util.send_not_found(self)
 
         # Prevent reply attacks.
         if (update.timestamp <= sliver_tool.update_request_timestamp):
             logging.error(
-                'Timestamp in update %s is older than value in db (%s)',
+                'Timestamp in update %s is older than value in db (%s).',
                 sliver_tool_id, sliver_tool.update_request_timestamp)
-            return error.not_found(self)
+            return util.send_not_found(self)
 
         # TODO(claudiu) Monitor and log changes in the parameters.
         # TODO(claudiu) Trigger an event or notification.
         sliver_tool.status = update.status
-        sliver_tool.sliver_ipv4 = update.sliver_ipv4
-        sliver_tool.sliver_ipv6 = update.sliver_ipv6
+        if update.sliver_ipv4:
+            logging.info(
+                "Changing IPv4 address from %s to %s.",
+                sliver_tool.sliver_ipv4, update.sliver_ipv4)
+            sliver_tool.sliver_ipv4 = update.sliver_ipv4
+        if update.sliver_ipv6:
+            logging.info(
+                "Changing IPv6 address from %s to %s.",
+                sliver_tool.sliver_ipv6, update.sliver_ipv6)
+            sliver_tool.sliver_ipv6 = update.sliver_ipv6
         sliver_tool.url = update.url
         sliver_tool.update_request_timestamp = long(time.time())
 
@@ -68,7 +78,4 @@ class UpdateHandler(webapp.RequestHandler):
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Failed to write changes to db.')
 
-        return self.success()
-
-    def success(self):
-        self.response.out.write('200 OK')
+        return util.send_success(self)

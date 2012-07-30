@@ -46,17 +46,33 @@ class Lookup(db.Model):
     site_longitude = db.FloatProperty()
     when = db.DateTimeProperty(auto_now=True)
 
+class MaxmindCityLocation(db.Model):
+    location_id = db.StringProperty()
+    country = db.StringProperty()
+    region = db.StringProperty()
+    city = db.StringProperty()
+    latitude = db.FloatProperty()
+    longitude = db.FloatProperty()
+
+class MaxmindCityBlock(db.Model):
+    start_ip_num = db.IntegerProperty()
+    end_ip_num = db.IntegerProperty()
+    location_id = db.StringProperty()
+
+class MaxmindCityv6(db.Model):
+    start_ip_num = db.IntegerProperty()
+    end_ip_num = db.IntegerProperty()
+    country = db.StringProperty()
+    latitude = db.FloatProperty()
+    longitude = db.FloatProperty()
+
 class GeoLiteCityLocation(db.Model):
     location_id = db.StringProperty()
     country = db.StringProperty()
     region = db.StringProperty()
     city = db.StringProperty()
-    postal_code = db.StringProperty()
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
-    postal_code = db.StringProperty()
-    metro_code = db.StringProperty()
-    area_code = db.StringProperty()
 
 class GeoLiteCityBlock(db.Model):
     start_ip_num = db.IntegerProperty()
