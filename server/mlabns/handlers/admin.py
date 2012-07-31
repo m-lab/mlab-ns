@@ -78,7 +78,8 @@ class AdminHandler(webapp.RequestHandler):
             sliver_tool_info['tool_id'] = sliver_tool.tool_id
             sliver_tool_info['server_id'] = sliver_tool.server_id
             sliver_tool_info['status'] = sliver_tool.status
-            sliver_tool_info['timestamp'] = str(sliver_tool.when)
+            sliver_tool_info['timestamp'] = sliver_tool.when.strftime(
+                '%Y-%m-%d %H:%M:%S')
             site_dict[sliver_tool.site_id]['sliver_tools'].append(
                 sliver_tool_info)
 
@@ -104,7 +105,7 @@ class AdminHandler(webapp.RequestHandler):
         json_data = simplejson.dumps(records)
         self.response.out.write(
             template.render(
-                'mlabns/templates/map_base.html', {'sites' : json_data}))
+                'mlabns/templates/home.html', {'sites' : json_data}))
 
     def map_view(self):
         data = self.get_sites_info()

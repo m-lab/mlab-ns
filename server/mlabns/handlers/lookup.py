@@ -67,7 +67,8 @@ class LookupHandler(webapp.RequestHandler):
         records.append(sliver_tool)
         values = {'records' : records}
         self.response.out.write(
-            template.render('mlabns/templates/sliver_tool.html', values))
+            template.render(
+                'mlabns/templates/lookup_response.html', values))
 
     def send_redirect_response(self, sliver_tool):
         if sliver_tool is None:
