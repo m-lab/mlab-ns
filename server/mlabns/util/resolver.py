@@ -1,6 +1,7 @@
+from google.appengine.api import memcache
+from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from google.appengine.ext import db
 
 from mlabns.db import model
 from mlabns.util import constants
@@ -10,8 +11,8 @@ from mlabns.util.geo import maxmind
 
 import logging
 import random
-import time
 import socket
+import time
 
 class LookupQuery:
     def __init__(self):
@@ -31,7 +32,12 @@ class LookupQuery:
         return self.policy == message.POLICY_GEO
 
     def initialize_from_http_request(self, request):
-        """Inizializes the lookup parameters from the HTTP request."""
+        """Inizializes the lookup parameters from the HTTP request.
+
+        Args:
+            request: An instance of google.appengine.webapp.Request.
+        """
+
         # TODO(claudiu) Add support for URLs of the type:
         # http://mlab-ns.appspot.com/tool-name/ipv6.
         parts = request.path.strip('/').split('/')
@@ -84,18 +90,26 @@ class GeoResolver:
     def get_sliver_tool_candidates(self, lookup_query):
         """Find candidates for server selection.
 
-        Select all the sliver tools that match the requirements
-        for the policy specified in the request.Currently only
-        the 'geo' policy is implemented, so all the sliver tools
-        available that match the 'tool_id' will be selected.
-        Looks only for SliverTool entities that are online, and who
-        recently updated their status.
+        Args:
+            lookup_query: A LookupQuery instance.
 
-        Return:
-            A list of SliverTool entities.
+        Returns:
+            A list of SliverTool entities that match the requirements
+            specified in the 'lookup_query'.
         """
 
         oldest_timestamp = long(time.time()) - constants.UPDATE_INTERVAL
+
+        # First try to get the sliver tools from the cache.
+        sliver_tools = memcache.get(lookup_query.tool_id)
+        if sliver_tools:
+            candidates = []
+            for sliver_tool in sliver_tools.values():
+                if (sliver_tool.update_request_timestamp > oldest_timestamp
+                    and sliver_tool.status == message.STATUS_ONLINE):
+                    candidates.append(sliver_tool)
+            return candidates
+
         candidates = model.SliverTool.gql(
             "WHERE tool_id = :tool_id "
             "AND status = :status "
@@ -112,7 +126,7 @@ class GeoResolver:
         Args:
             query: A LookupQuery instance.
 
-        Return:
+        Returns:
             A SliverTool entity in case of success, or None if there is no
             SliverTool available that matches the query.
         """

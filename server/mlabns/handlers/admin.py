@@ -1,11 +1,13 @@
 from django.utils import simplejson
 
+from google.appengine.api import memcache
+from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from google.appengine.ext import db
 
 from mlabns.db import model
 from mlabns.util import util
+from mlabns.util import message
 
 import logging
 
@@ -19,7 +21,7 @@ class AdminHandler(webapp.RequestHandler):
         view = self.request.get('db')
         path = self.request.path.rstrip('/')
         if path == '/admin':
-            return self.redirect('/admin/home')
+            return self.map_view()
         if path == '/admin/sites':
             return self.site_view()
         if path == '/admin/sliver_tools':
@@ -27,14 +29,24 @@ class AdminHandler(webapp.RequestHandler):
         if path == '/admin/lookup':
             return self.lookup_view()
         if path == '/admin/home':
-            return self.home_view()
+            return self.redirect('/admin')
         if path == '/admin/map':
-            return self.map_view()
+            return self.redirect('/admin')
+        if path == '/admin/cache':
+            return self.cache_view()
+
 
         return util.send_not_found(self)
 
     def sliver_tool_view(self):
         records = model.SliverTool.gql("ORDER BY tool_id DESC")
+        values = {'records' : records}
+        self.response.out.write(
+            template.render('mlabns/templates/sliver_tool.html', values))
+
+    def cache_view(self):
+        tool_id = self.request.get(message.TOOL_ID)
+        records = memcache.get(tool_id).values()
         values = {'records' : records}
         self.response.out.write(
             template.render('mlabns/templates/sliver_tool.html', values))

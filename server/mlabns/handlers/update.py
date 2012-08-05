@@ -1,3 +1,4 @@
+from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -6,9 +7,11 @@ import logging
 import time
 
 from mlabns.db import model
+from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import update_message
 from mlabns.util import util
+
 
 class UpdateHandler(webapp.RequestHandler):
     """Handles SliverTools updates."""
@@ -77,5 +80,14 @@ class UpdateHandler(webapp.RequestHandler):
         except TransactionFailedError:
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Failed to write changes to db.')
+
+        # Update the memcache.
+        sliver_tools = memcache.get(sliver_tool.tool_id)
+        if not sliver_tools:
+            sliver_tools = {}
+
+        sliver_tools[sliver_tool_id] = sliver_tool
+        if not memcache.set(sliver_tool.tool_id, sliver_tools):
+            logging.error('Memcache set failed')
 
         return util.send_success(self)

@@ -31,7 +31,7 @@ def ipv6_to_long(ipv6_address):
     try:
         int_values = [ int(x,16) for x in ipv6_address.split(':') ]
     except ValueError:
-        logging('Bad IPv6 address: %s', ipv6_address)
+        logging.error('Bad IPv6 address: %s', ipv6_address)
         return None
     exp = 7
     result = 0
@@ -55,7 +55,7 @@ def ipv4_to_long(ipv4_address):
     try:
         int_values = [ int(x) for x in ipv4_address.split('.') ]
     except ValueError:
-        logging('Bad IPv4 address: %s', ipv4_address)
+        logging.error('Bad IPv4 address: %s', ipv4_address)
         return None
     exp = 24
     result = 0

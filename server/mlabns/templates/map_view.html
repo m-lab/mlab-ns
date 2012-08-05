@@ -36,7 +36,7 @@
         function initialize() {
             var mapOptions = {
                 center: new google.maps.LatLng(41.9000, 12.500),
-                zoom: 6,
+                zoom: 8,
                 mapTypeId: google.maps.MapTypeId.ROADMAP
             };
                 
@@ -67,7 +67,7 @@
                     geo['city'] = cities[i][site]['city'];
                     geo['country'] = cities[i][site]['country'];
                     
-                    htmlSiteInfo += '<table id="marker-table">' +
+                    htmlSiteInfo += '<table>' +
                     '<tr>' +
                     '<th> </th>' +
                     '<th> </th>' +
@@ -105,7 +105,12 @@
                     '<h2>' + cityName + ',' + countryName + '</h2>' +
                     htmlSitesInfo + '</div>';
 
-                var marker = makeMarker(geo, markerStyle);
+                if (statusCount['offline'] != 0) {
+                    markerStyle = 'error';
+                }
+                
+                var markerIcon = makeIcon(markerStyle, statusCount['offline']);
+                var marker = makeMarker(geo, markerIcon);
                 marker['html'] = htmlInfo;
                 markersArray.push(marker);
 
@@ -123,6 +128,56 @@
         function addMarkerListener(marker) {    
         }
 
+        function makeMarker(data, icon) {
+            var position = new google.maps.LatLng(
+                data["latitude"], data["longitude"] );
+            var title = data["city"] + "," + data["country"]; 
+            var marker = new google.maps.Marker({
+                position: position,
+                title: title,
+                icon: icon,
+                map: map
+            });
+            return marker;
+        }
+
+        function makeIcon(style, letter) {
+            var size_x = 21
+            var size_y = 34
+            var apiURL = "http://chart.apis.google.com/chart?";
+            var query_string =  "chst=d_map_pin_letter&" +
+                "chld=" + letter + "|" + green + "|" + green;
+
+            if (style == "error") {
+                query_string =  "chst=d_map_pin_letter&" +
+                    "chld=" + letter + "|" + red + "|" + red;
+            }
+
+            if (style == "warning") {
+                query_string =  "chst=d_map_pin_letter&" +
+                    "chld=" + letter + "|" + red + "|" + red;
+            }
+            
+            if (style == "info") {
+                query_string =  "chst=d_map_pin_letter&" +
+                    "chld=x|" + green + "|" + black;
+            }
+
+            if (style == "user") {
+                query_string =  "chst=d_map_pin_icon&" +
+                    "chld=glyphish_user|" + "00BFFF"; 
+            }
+
+            var icon = new google.maps.MarkerImage(
+                apiURL + query_string,
+                new google.maps.Size(size_x, size_y),
+                new google.maps.Point(0,0),
+                null,
+                new google.maps.Size(size_x, size_y));
+            return icon;
+        }
+
+        /*
         function makeMarker(data, iconStyle) {
             var position = new google.maps.LatLng(
                 data["latitude"], data["longitude"] );
@@ -173,6 +228,7 @@
             return icon;
         }
 
+        */
         function clearOverlayes() {
             if (markersArray) {
                 for (i in markersArray) {
@@ -233,9 +289,9 @@
 
                 {%block MenuHome %}
                 <li>
-                    <a  href="/admin/home"
+                    <a  href="/admin"
                         id="menuHome"
-                        class="header">Home</a>
+                        class="header">Map</a>
                 </li>
                 {% endblock %}
             </ul>

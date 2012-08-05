@@ -28,22 +28,41 @@
         var blue = "0000FF";
         var black = "000000";
 
+        var user_marker;
+        var destination_marker;
+        var boundsMarkers = [];
         var markersArray = [];
         var onlineMarkersArray = [];
         var offlineMarkersArray = [];
         var errorMarkersArray = [];
-
+ 
         function initialize() {
             var mapOptions = {
                 center: new google.maps.LatLng(41.9000, 12.500),
-                zoom: 4,
+                zoom: 8,
                 mapTypeId: google.maps.MapTypeId.ROADMAP
             };
                 
             map = new google.maps.Map(
                 document.getElementById("map_canvas"),
                 mapOptions);
-            
+
+            var boundsListener = google.maps.event.addListenerOnce(
+                map, 'bounds_changed', function(event) {
+                    map.setZoom(3);
+                    var points = [ 
+                        user_marker.position, 
+                        destination_marker.position ];
+
+                    var line = new google.maps.Polyline({
+                        map: map,
+                        path: points,
+                        strokeColor: "#FF0000",
+                        strokeWeight: 2,
+                        strokeOpacity: 1.0
+                      });
+                });
+
             var sites = {{sites|safe}};
             var user = {{user|safe}};
             var destination = {{destination|safe}};
@@ -54,27 +73,19 @@
 
             destination_marker = makeMarker(destination, "info");
             user_marker = makeMarker(user, "user");
+            
+            boundsMarkers.push(destination_marker);
+            boundsMarkers.push(user_marker);
 
-            var points = [ 
-                user_marker.position, 
-                destination_marker.position ];
-
-            var line = new google.maps.Polyline({
-                map: map,
-                path: points,
-                strokeColor: "#FF0000",
-                strokeWeight: 2,
-                strokeOpacity: 1.0
-            });
-          
             showSites();
-
+     
             markersArray.push(user_marker);
             markersArray.push(destination_marker);
 
             var infowindow = new google.maps.InfoWindow({
                 content: destination['info']});
 
+            infowindow.setOptions({maxWidth:300});
             infowindow.open(map,destination_marker);
             google.maps.event.addListener(
                 destination_marker, "click", function() {
@@ -155,10 +166,10 @@
                     markersArray[i].setMap(map);
                 }
                 var bounds = new google.maps.LatLngBounds ();
-                for (i in markersArray) {
-                    bounds.extend(markersArray[i].position);
+                for (i in boundsMarkers) {
+                    bounds.extend(boundsMarkers[i].position);
                 }
-                map.fitBounds(bounds)
+                map.fitBounds(bounds);
             }
         }
 

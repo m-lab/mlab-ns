@@ -1,3 +1,4 @@
+from google.appengine.api import memcache
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
@@ -90,10 +91,15 @@ class RegistrationHandler(webapp.RequestHandler):
         return util.send_not_found(self)
 
     def register_site(self, dictionary):
+        admin_key = model.EncryptionKey.get_by_key_name('admin')
+        if not admin_key:
+            logging.error('Admin key not found.')
+            return util.send_not_found(self)
+        encryption_key = admin_key.encryption_key
+
         registration = registration_message.SiteRegistrationMessage()
         try:
-            registration.decrypt_message(
-                dictionary, '1234567812345678')
+            registration.decrypt_message(dictionary, encryption_key)
         except message.DecryptionError, e:
             logging.error('Encryption error: %s', e)
             return util.send_not_found(self)
@@ -123,13 +129,27 @@ class RegistrationHandler(webapp.RequestHandler):
             logging.error('Failed to write changes to db.')
             return util.send_server_error(self)
 
+        # Update the memcache.
+        sites = memcache.get('sites')
+        if not sites:
+            sites = {}
+
+        sites[site.site_id] = site
+        if not memcache.set('sites', sites):
+            logging.error('Memcache set failed')
+
         return util.send_success(self)
 
     def register_sliver_tool(self, dictionary):
+        admin_key = model.EncryptionKey.get_by_key_name('admin')
+        if not admin_key:
+            logging.error('Admin key not found.')
+            return util.send_not_found(self)
+        encryption_key = admin_key.encryption_key
+
         registration = registration_message.SliverToolRegistrationMessage()
         try:
-            registration.decrypt_message(
-                dictionary, '1234567812345678')
+            registration.decrypt_message(dictionary, encryption_key)
         except message.DecryptionError, e:
             logging.error('Encryption error: %s', e)
         except message.FormatError, e:
@@ -170,5 +190,14 @@ class RegistrationHandler(webapp.RequestHandler):
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Failed to write changes to db.')
             return util.send_server_error(self)
+
+       # Update the memcache.
+        sliver_tools = memcache.get(sliver_tool.tool_id)
+        if not sliver_tools:
+            sliver_tools = {}
+
+        sliver_tools[sliver_tool_id] = sliver_tool
+        if not memcache.set(sliver_tool.tool_id, sliver_tools):
+            logging.error('Memcache set failed')
 
         return util.send_success(self)

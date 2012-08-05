@@ -16,7 +16,10 @@ STATUS_REGISTERED = 'init'
 SUCCESS         = 'SUCCESS'
 TIMESTAMP       = 'timestamp'
 TOOL_ID         = 'tool_id'
-UPDATE_INTERVAL = 3600 * 24 * 60
+#UPDATE_INTERVAL = 3600 * 24 * 60
+
+# 10 minutes.
+UPDATE_INTERVAL = 10 * 60
 URL             = 'url'
 USER_CITY       = 'user_city'
 USER_COUNTRY    = 'user_country'

@@ -91,7 +91,6 @@ class Message():
         Returns
             A string representing the signature.
         """
-
         dictionary = self.to_dictionary()
 
         value_list = []
@@ -115,7 +114,6 @@ class Message():
             key: A string representing the key that is used to compute
                 the signature.
         """
-
         key = bytes(secret_key)
         plaintext = json.dumps(self.to_dictionary())
         self.ciphertext = self._encrypt_AES(

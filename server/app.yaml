@@ -16,7 +16,7 @@ handlers:
   static_files: mlabns/images/favicon.ico
   upload: mlabns/images/favicon.ico
 
-- url: /(update|register|tools|geo).*
+- url: /(update|register|tools|geo|search).*
   script: main.app
 
 - url: /admin.*
@@ -28,6 +28,7 @@ handlers:
 
 builtins:
 - remote_api: on
+- appstats: on
 
 libraries:
 - name: pycrypto

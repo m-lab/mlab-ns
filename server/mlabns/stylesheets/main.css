@@ -5,6 +5,7 @@ html {
  margin-left: 20px;
  height: 93%;
 }
+
 body {
  height: 95%;
  margin-top: 20px;
@@ -76,7 +77,7 @@ td {
 }
 tr:hover td {
     background: #FFFFFF;
-    color: #339;
+    color: blue;
 }
 
 td.offline { 
@@ -90,32 +91,6 @@ td.online {
 td.init { 
     background-color: #BDBDBD;
 }
-
-/*
-td.online {
-	padding:1px 1px 1px 1px;
-    background: #FE2E2E;
-    border-bottom: 1px solid #fff;
-    color: #669;
-    border-top: 1px solid transparent;
-}
-
-td.offline {
-	padding:1px 1px 1px 1px;
-    background: #A9F5A9;
-    border-bottom: 1px solid #fff;
-    color: #669;
-    border-top: 1px solid transparent;
-}
-
-td.init {
-	padding:1px 1px 1px 1px;
-    background: #e8edff;
-    border-bottom: 1px solid #fff;
-    color: #669;
-    border-top: 1px solid transparent;
-}
-*/
 
 
 div#container {
@@ -136,11 +111,12 @@ div#header {
 	border-bottom:1px solid black;
     height:20px
 }
-	div#header p {
-		font-style:italic;
-		font-size:1.1em;
-		margin:0;
-	}
+
+div#header p {
+	font-style:italic;
+	font-size:1.1em;
+	margin:0;
+}
 
 div#content {
 	position:relative;
@@ -153,13 +129,13 @@ div#content {
 }
 
 div#map_canvas {
-        margin: 0;
-	    /*border-top:10px solid white;*/
-	    border-bottom:1px solid black;
-        padding: 0;
-        height: 94%;
-        width: 100%;
-      }
+    margin: 0;
+	/*border-top:10px solid white;*/
+	border-bottom:1px solid black;
+    padding: 0;
+    height: 94%;
+    width: 100%;
+}
 
 #wrap { 
     min-height: 100%;
@@ -192,6 +168,17 @@ div#footer {
 div#siteinfo {
 	width:100%;
 	height:150px;
+    overflow:auto;
+	background:white;
+	text-align:left;
+    color:black;
+    font-size:10px ;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+}
+
+div#siteShortInfo {
+	width:100%;
+	height:60px;
     overflow:auto;
 	background:white;
 	text-align:left;
@@ -273,3 +260,11 @@ a.footer:link {color:blue;}
 a.footer:visited {color:red;}
 a.footer:hover {color:blue;}
 a.footer:active {color:blue;}
+
+div#notFound {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -140px;
+  margin-left: -150px;
+}

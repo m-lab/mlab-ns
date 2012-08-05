@@ -13,7 +13,7 @@ from mlabns.util.geo import maxmind
 import logging
 import time
 
-class InfoHandler(webapp.RequestHandler):
+class DebugHandler(webapp.RequestHandler):
     """Returns info of the server this client would be redirected to."""
 
     def post(self):
@@ -85,7 +85,7 @@ class InfoHandler(webapp.RequestHandler):
         destination_site['latitude'] = site.latitude
         destination_site['longitude'] = site.longitude
         destination_site['url'] = sliver_tool.url
-        destination_site['info'] = '<div id=siteinfo>' + \
+        destination_site['info'] = '<div id=siteShortInfo>' + \
             '<h2>' + site.city + "," + site.country + '</h2>' + \
             '<a class="footer" href=' + sliver_tool.url + '>' + \
             sliver_tool.url + '</a></div>';
@@ -159,3 +159,64 @@ class InfoHandler(webapp.RequestHandler):
                 site_longitude=site.longitude,
                 key_name=query.ip_address)
             lookup_entry.put()
+
+class SearchHandler(webapp.RequestHandler):
+    """Returns info of the server this client would be redirected to."""
+
+    def post(self):
+        """Not implemented."""
+        return util.send_not_found(self)
+
+    def get(self):
+        """Handles an HTTP GET request.
+
+        Returns the server where the user would be redirected
+        if a lookup request was made from this IP address.
+        """
+
+        logging.info('Path is %s', self.request.path)
+        logging.info('Path is %s', self.request.path.lstrip('/info'))
+        parts = self.request.path.strip('/').split('/')
+
+        city = self.request.get(message.CITY)
+
+        if not city:
+            return util.send_not_found(self)
+
+        location = model.MaxmindCityLocation.gql(
+            'WHERE city= :city', city=city).get()
+
+        city_name = 'Not found'
+        country_name = 'Not found'
+
+        if location:
+            city_name = location.city
+            country_name = location.country
+        """
+
+        country_name = 'Not found'
+        start = 1
+        end = 366000
+        num_lookups = 0
+        logging.info('searching for city %s', city)
+        count = 0
+        while (start <= end):
+            mid = (end + start)/2
+            location = model.MaxmindCityLocation.get_by_key_name(
+                str(mid))
+            count += 1
+            if (count == 8):
+                break
+            if not location:
+                break
+            num_lookups += 1
+            if (mid < city):
+                start = mid + 1
+            elif (mid > city):
+                end = mid - 1
+            else:
+                city_name = location.city
+                country_name = location.country
+                break
+        """
+        self.response.out.write(city_name +"," + country_name)

@@ -16,7 +16,7 @@ class SliverTool(db.Model):
     update_request_timestamp = db.IntegerProperty(default=0)
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
-    when = db.DateTimeProperty(auto_now=True)
+    when = db.DateTimeProperty(auto_now_add=True)
 
 class Site(db.Model):
     site_id = db.StringProperty()
@@ -66,25 +66,9 @@ class MaxmindCityv6(db.Model):
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
 
-class GeoLiteCityLocation(db.Model):
-    location_id = db.StringProperty()
-    country = db.StringProperty()
-    region = db.StringProperty()
-    city = db.StringProperty()
-    latitude = db.FloatProperty()
-    longitude = db.FloatProperty()
-
-class GeoLiteCityBlock(db.Model):
-    start_ip_num = db.IntegerProperty()
-    end_ip_num = db.IntegerProperty()
-    location_id = db.StringProperty()
-
-class GeoLiteCityv6(db.Model):
-    start_ip_num = db.IntegerProperty()
-    end_ip_num = db.IntegerProperty()
-    country = db.StringProperty()
-    latitude = db.FloatProperty()
-    longitude = db.FloatProperty()
+class EncryptionKey(db.Model):
+    key_id = db.StringProperty()
+    encryption_key = db.StringProperty()
 
 def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
     """Creates the SliverTool id from an UpdateMessage.

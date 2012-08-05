@@ -64,13 +64,15 @@ class UpdateClient:
         try:
             fp = open(config_file)
         except IOError:
-            logging.error('Cannot open the configuration file %s.', config_file)
+            logging.error(
+                'Cannot open the configuration file %s.', config_file)
             return False
         try:
             config.readfp(fp)
         except ConfigParser.Error:
             # TODO(claudiu) Trigger an event/notification.
-            logging.error('Cannot read the configuration file %s.', config_file)
+            logging.error(
+                'Cannot read the configuration file %s.', config_file)
             return False
         finally:
             fp.close()
@@ -101,15 +103,11 @@ class UpdateClient:
 
             update = update_message.UpdateMessage()
             try:
-<<<<<<< HEAD
                 update.initialize_from_dictionary(dictionary)
             except message.FormatError, e:
                 logging.error('Format error: %s', e)
-=======
-                message.initialize_from_dictionary(update)
             except update_message.FormatError, e:
                 logging.error('Format error: %s.', e)
->>>>>>> origin/register
                 return False
             self.updates.append(update)
 
