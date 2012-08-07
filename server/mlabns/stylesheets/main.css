@@ -23,19 +23,15 @@ body {
     border-collapse: collapse;
 }
 #box-table-blue th {
-	padding:12px 0px 12px 0px;
+    padding:12px 0px 12px 0px;
     font-size: 13px;
     font-weight: bold;
     background: #e8edff;
-    /*background: #b9c9fe;*/
-    /*background: #009999;*/
-    /*border-top: 4px solid #aabcfe;*/
     border-bottom: 8px solid white;
-    /*color: #039;*/
     color: #669;
 }
 #box-table-blue td {
-	padding:2px 2px 2px 2px;
+    padding:2px 2px 2px 2px;
     background: #e8edff;
     border-bottom: 2px solid #fff;
     color: #669;
@@ -60,7 +56,7 @@ table {
 }
 
 th {
-	padding:1px 0px 1px 0px;
+    padding:1px 0px 1px 0px;
     font-size: 1px;
     font-weight: bold;
     background: #e8edff;
@@ -68,7 +64,7 @@ th {
     color: black;
 }
 td {
-	padding:1px 1px 1px 1px;
+    padding:1px 1px 1px 1px;
     background: #e8edff;
     border-bottom: 1px solid #fff;
     color: black;
@@ -94,44 +90,44 @@ td.init {
 
 
 div#container {
-	position:relative; /* needed for footer positioning*/
-	margin:0 auto; /* center, not in IE5 */
-	width:100%;
-	background:white;
-	
-	/*height:auto !important;*/ /* real browsers */
-	height:100%; /* IE6: treaded as min-height*/
+    position:relative; /* needed for footer positioning*/
+    margin:0 auto; /* center, not in IE5 */
+    width:100%;
+    background:white;
 
-	/*min-height:100%;*/ /* real browsers */
+    /*height:auto !important;*/ /* real browsers */
+    height:100%; /* IE6: treaded as min-height*/
+
+    /*min-height:100%;*/ /* real browsers */
 }
 
 div#header {
-	padding:0em 0em 1.5em 0;
-	background:white;
-	border-bottom:1px solid black;
+    padding:0em 0em 1.5em 0;
+    background:white;
+    border-bottom:1px solid black;
     height:20px
 }
 
-div#header p {
-	font-style:italic;
-	font-size:1.1em;
-	margin:0;
+div#header p {  
+    font-style:italic;
+    font-size:1.1em;
+    margin:0;
 }
 
 div#content {
-	position:relative;
-	margin:0 auto; /* center, not in IE5 */
-	width:100%;
-	height:100%; /* IE6: treaded as min-height*/
-	padding:2em 0 1em 0;
-	background:white;
-	/*border-top:3px solid black;*/
+    position:relative;
+    margin:0 auto; /* center, not in IE5 */
+    width:100%;
+    height:100%; /* IE6: treaded as min-height*/
+    padding:2em 0 1em 0;
+    background:white;
+    /*border-top:3px solid black;*/
 }
 
 div#map_canvas {
     margin: 0;
-	/*border-top:10px solid white;*/
-	border-bottom:1px solid black;
+    /*border-top:10px solid white;*/
+    border-bottom:1px solid black;
     padding: 0;
     height: 94%;
     width: 100%;
@@ -144,44 +140,44 @@ div#map_canvas {
 
 #main {
     overflow: auto;
-	padding:30px 0 30px 0;
+    padding:30px 0 30px 0;
     background-color: white;
-	width:100%;
+    width:100%;
     height: 90%
 }
 
 div#footer {
-	position:relative;
-	padding:8px 0 0 0;
-	border-top:1px solid black;
-	width:100%;
+    position:relative;
+    padding:8px 0 0 0;
+    border-top:1px solid black;
+    width:100%;
     height:24px;
-	bottom:0; /* stick to bottom */
+    bottom:0; /* stick to bottom */
     /*margin-top: -54px;*/
-	background:transparent;
-	text-align:right;
+    background:transparent;
+    text-align:right;
     color:black;
     font-size:12px ;
     font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
 }
 
 div#siteinfo {
-	width:100%;
-	height:150px;
+    width:100%;
+    height:150px;
     overflow:auto;
-	background:white;
-	text-align:left;
+    background:white;
+    text-align:left;
     color:black;
     font-size:10px ;
     font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
 }
 
 div#siteShortInfo {
-	width:100%;
-	height:60px;
+    width:100%;
+    height:60px;
     overflow:auto;
-	background:white;
-	text-align:left;
+    background:white;
+    text-align:left;
     color:black;
     font-size:10px ;
     font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
@@ -212,8 +208,8 @@ a.header:link {
     text-align:center;
     color:white;
     background-color:black;
-	padding:0.5em 0 0 0;
-    border-left:4px solid white;
+    padding:0.5em 0 0 0;
+    border-left:0px solid white;
     font-size:13px;
     font-weight:bold;
     font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
@@ -227,7 +223,7 @@ a.header:visited {
     text-align:center;
     color:white;
     background-color:black;
-	padding:0.5em 0 0 0;
+    padding:0.5em 0 0 0;
     border-left:4px solid white;
     font-size:13px;
     font-weight:bold;
@@ -268,3 +264,89 @@ div#notFound {
   margin-top: -140px;
   margin-left: -150px;
 }
+
+ul.navigation, ul.navigation ul {
+    list-style:none;    
+    margin:0; padding:0;
+    position: relative;
+}
+
+ul.navigation li { 
+    position: relative; 
+    float: right; 
+    zoom: 1;
+    background: #DDDDDD;
+}
+
+ul.navigation li:hover { 
+    background: #AAAAAA; 
+}
+
+/* Hover effect for menu*/
+ul.navigation li:hover > ul { 
+    display:block;
+}
+
+ul.navigation li a {
+    /*Menu link styles*/
+    display: block; 
+    padding: 0px; 
+    color:#000000;
+    font-size:13px;
+    font-weight:bold;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+}
+        
+/* Building menu items - for 2nd and more level menu items*/
+ul.navigation ul { 
+    display:none;
+    position: absolute;
+    background-color:black;
+    text-align:center;
+    color:white;
+    top: 100%; 
+    left: 0; 
+    z-index:1;
+}
+
+ul.navigation ul li { 
+    background: #F5F5F5; 
+    color: black; 
+    border-bottom: 1px solid white; 
+    border-bottom: 1px solid white; 
+    float: none; 
+}
+        
+ul.navigation ul li a { 
+    width: 100%; 
+    display: block; 
+    color:white;
+} 
+
+ul.navigation ul ul { 
+    left: 100%; 
+    border-bottom: 1px solid white; 
+    border-bottom: 1px solid white; 
+    top: 0; 
+}
+        
+/* Hover effect for menu*/
+ul.navigation li:hover > ul { 
+    display:block;
+}
+
+ul.navigation a:link {
+    float:right;
+    height:1.8em;
+    border-bottom: 1px solid white; 
+    text-decoration:none;
+    text-align:center;
+    color:white;
+    background-color:black;
+    padding:0.5em 0 0 0;
+    font-size:13px;
+    font-weight:bold;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+}
+
+ul.navigation a:hover{background-color:#505050;}

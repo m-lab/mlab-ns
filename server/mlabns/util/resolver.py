@@ -31,13 +31,45 @@ class LookupQuery:
     def policy_geo(self):
         return self.policy == message.POLICY_GEO
 
+    def initialize_from_dictionary(self, dictionary):
+        """Inizializes the lookup parameters from a dictionary.
+
+        Args:
+            dictionary: A dict containing the query configuration.
+        """
+
+        # TODO(claudiu) Add support for URLs of the type:
+        # http://mlab-ns.appspot.com/tool-name/ipv6.
+        if message.REMOTE_ADDRESS in dictionary:
+            self.ip_address = dictionary[message.REMOTE_ADDRESS]
+
+        if message.POLICY in dictionary:
+            self.policy = dictionary[message.POLICY]
+
+        if message.RESPONSE_FORMAT in dictionary:
+            self.response_format = dictionary[message.RESPONSE_FORMAT]
+
+        if message.METRO in dictionary:
+            self.metro = dictionary[message.METRO]
+
+        # Default to geo policy.
+        if not self.policy:
+            self.policy = message.POLICY_GEO
+
+        try:
+            socket.inet_pton(socket.AF_INET6, self.ip_address)
+            self.ipv6_flag = True
+        except socket.error:
+            self.ipv6_flag = False
+
+        self.add_maxmind_geolocation()
+
     def initialize_from_http_request(self, request):
         """Inizializes the lookup parameters from the HTTP request.
 
         Args:
             request: An instance of google.appengine.webapp.Request.
         """
-
         # TODO(claudiu) Add support for URLs of the type:
         # http://mlab-ns.appspot.com/tool-name/ipv6.
         parts = request.path.strip('/').split('/')
@@ -61,9 +93,9 @@ class LookupQuery:
         if message.HEADER_LAT_LONG in request.headers:
             self.add_appengine_geolocation(request)
         else:
-            self.add_maxmind_geolocation(request)
+            self.add_maxmind_geolocation()
 
-    def add_maxmind_geolocation(self, request):
+    def add_maxmind_geolocation(self):
         geo_record = maxmind.get_ip_geolocation(self.ip_address)
         self.city = geo_record.city
         self.country = geo_record.country

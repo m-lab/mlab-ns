@@ -34,7 +34,8 @@ class AdminHandler(webapp.RequestHandler):
             return self.redirect('/admin')
         if path == '/admin/cache':
             return self.cache_view()
-
+        if path == '/admin/map/npad':
+            return self.map_view()
 
         return util.send_not_found(self)
 
@@ -132,3 +133,65 @@ class AdminHandler(webapp.RequestHandler):
         self.response.out.write(
             template.render('mlabns/templates/lookup.html', values))
 
+
+class MapViewHandler(webapp.RequestHandler):
+    def post(self):
+        return util.send_not_found(self)
+
+    def get(self):
+        tool_id = self.request.path.split('/map/')[1]
+
+        sliver_tools = None
+        cached_sliver_tools = memcache.get(tool_id)
+        if cached_sliver_tools:
+            sliver_tools = cached_sliver_tools.values()
+        else:
+            sliver_tools = model.SliverTool.gql(
+                'WHERE tool_id=:tool_id '
+                'ORDER BY tool_id DESC',
+                tool_id=tool_id)
+
+        if not sliver_tools:
+            return util.send_not_found(self)
+
+
+
+        data = self.get_sites_info(sliver_tools)
+        json_data = simplejson.dumps(data)
+        file_name = 'mlabns/templates/' + tool_id + '_map_view.html'
+        self.response.out.write(
+            template.render(file_name, {'cities' : json_data}))
+
+    def get_sites_info(self, sliver_tools):
+        sites = model.Site.gql('ORDER BY site_id DESC')
+
+        site_dict = {}
+        sites_per_city = {}
+        for site in sites:
+            site_info = {}
+            site_info['site_id'] = site.site_id
+            site_info['city'] = site.city
+            site_info['country'] = site.country
+            site_info['latitude'] = site.latitude
+            site_info['longitude'] = site.longitude
+            site_info['sliver_tools'] = []
+            site_dict[site.site_id] = site_info
+            sites_per_city[site.city] = []
+
+        # Add sliver tools info to the sites.
+        for sliver_tool in sliver_tools:
+            sliver_tool_info = {}
+            sliver_tool_info['slice_id'] = sliver_tool.slice_id
+            sliver_tool_info['tool_id'] = sliver_tool.tool_id
+            sliver_tool_info['server_id'] = sliver_tool.server_id
+            sliver_tool_info['status'] = sliver_tool.status
+            sliver_tool_info['timestamp'] = sliver_tool.when.strftime(
+                '%Y-%m-%d %H:%M:%S')
+            site_dict[sliver_tool.site_id]['sliver_tools'].append(
+                sliver_tool_info)
+
+        for item in site_dict:
+            city = site_dict[item]['city']
+            sites_per_city[city].append(site_dict[item])
+
+        return sites_per_city

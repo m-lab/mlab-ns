@@ -27,6 +27,9 @@
         var white = "FFFFFF";
         var blue = "0000FF";
         var black = "000000";
+        var warningColor = "FF8000";
+        var defaultColor = green;
+        var errorColor = red;
 
         var markersArray = [];
         var onlineMarkersArray = [];
@@ -104,11 +107,19 @@
                 var htmlInfo = '<div id="siteinfo">' +
                     '<h2>' + cityName + ',' + countryName + '</h2>' +
                     htmlSitesInfo + '</div>';
+          
+                if (statusCount['offline'] > 0) {
+                    markerStyle = 'warning';
+                }
 
-                if (statusCount['offline'] != 0) {
+                if (statusCount['offline'] > 2) {
                     markerStyle = 'error';
                 }
-                
+
+                if (statusCount['init'] > 2) {
+                    markerStyle = 'error';
+                }
+
                 var markerIcon = makeIcon(markerStyle, statusCount['offline']);
                 var marker = makeMarker(geo, markerIcon);
                 marker['html'] = htmlInfo;
@@ -155,13 +166,20 @@
 
             if (style == "warning") {
                 query_string =  "chst=d_map_pin_letter&" +
-                    "chld=" + letter + "|" + red + "|" + red;
+                    "chld=" + letter + "|" + 
+                    warningColor + "|" + warningColor;
             }
             
             if (style == "info") {
                 query_string =  "chst=d_map_pin_letter&" +
                     "chld=x|" + green + "|" + black;
             }
+
+            if (style == "init") {
+                query_string =  "chst=d_map_pin_letter&" +
+                    "chld=x|" + black + "|" + black;
+            }
+
 
             if (style == "user") {
                 query_string =  "chst=d_map_pin_icon&" +
@@ -177,58 +195,6 @@
             return icon;
         }
 
-        /*
-        function makeMarker(data, iconStyle) {
-            var position = new google.maps.LatLng(
-                data["latitude"], data["longitude"] );
-            var title = data["city"] + "," + data["country"]; 
-            var icon = makeIcon(iconStyle) 
-            var marker = new google.maps.Marker({
-                position: position,
-                title: title,
-                icon: icon,
-                map: map
-            });
-            return marker;
-        }
-
-        function makeIcon(style) {
-            var size_x = 21
-            var size_y = 34
-            var apiURL = "http://chart.apis.google.com/chart?";
-            var query_string =  "chst=d_map_pin_letter&" +
-                "chld=o|" + green + "|" + green;
-
-            if (style == "error") {
-                query_string =  "chst=d_map_pin_letter&" +
-                    "chld=o|" + red + "|" + red;
-            }
-
-            if (style == "warning") {
-                query_string =  "chst=d_map_pin_letter&" +
-                    "chld=o|" + red + "|" + red;
-            }
-            
-            if (style == "info") {
-                query_string =  "chst=d_map_pin_letter&" +
-                    "chld=x|" + green + "|" + black;
-            }
-
-            if (style == "user") {
-                query_string =  "chst=d_map_pin_icon&" +
-                    "chld=glyphish_user|" + "00BFFF"; 
-            }
-
-            var icon = new google.maps.MarkerImage(
-                apiURL + query_string,
-                new google.maps.Size(size_x, size_y),
-                new google.maps.Point(0,0),
-                null,
-                new google.maps.Size(size_x, size_y));
-            return icon;
-        }
-
-        */
         function clearOverlayes() {
             if (markersArray) {
                 for (i in markersArray) {
@@ -261,7 +227,7 @@
     <div id="container"> 
         {% block header %}
         <div id="header">      
-            <ul>
+            <ul class="navigation">
                 {% block logo %}
                 <img src="/images/mlab-logo.png" align=left hspace="4"/>
                 {% endblock %}
@@ -292,6 +258,13 @@
                     <a  href="/admin"
                         id="menuHome"
                         class="header">Map</a>
+
+                    <ul>
+                        <li><a href="/map/neubot">Neubot</a></li>
+			            <li><a href="/map/npad">Npad</a></li>
+			            <li><a href="/map/ndt">Ndt</a></li>
+                        <li><a href="/map/glasnost">Glasnost</a></li>
+		            </ul>
                 </li>
                 {% endblock %}
             </ul>

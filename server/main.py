@@ -9,10 +9,11 @@ from mlabns.handlers import debug
 
 app = webapp.WSGIApplication(
     [(r'/admin.*', admin.AdminHandler),
-    (r'/tools/.*', debug.DebugHandler),
     (r'/geo/.*', debug.DebugHandler),
+    (r'/query/.*', debug.QueryHandler),
+    (r'/map/.*', admin.MapViewHandler),
     (r'/register', registration.RegistrationHandler),
-    (r'/search', debug.SearchHandler),
+    (r'/tools/.*', debug.DebugHandler),
     (r'/update', update.UpdateHandler),
     (r'/.*', lookup.LookupHandler)],
     debug=True )

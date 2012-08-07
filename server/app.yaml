@@ -16,10 +16,14 @@ handlers:
   static_files: mlabns/images/favicon.ico
   upload: mlabns/images/favicon.ico
 
-- url: /(update|register|tools|geo|search).*
+- url: /(update|register|tools|geo|query).*
   script: main.app
 
 - url: /admin.*
+  script: main.app
+  #login: required
+
+- url: /map/.*
   script: main.app
   #login: required
 
