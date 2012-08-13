@@ -46,6 +46,7 @@ class UpdateHandler(webapp.RequestHandler):
 
         signature = update.compute_signature(
             sliver_tool.sliver_tool_key)
+        logging.info('key is %s', sliver_tool.sliver_tool_key)
         if (signature != self.request.get(message.SIGNATURE)):
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Bad signature from %s.', sliver_tool_id)
@@ -83,7 +84,7 @@ class UpdateHandler(webapp.RequestHandler):
 
         # Update the memcache.
         sliver_tools = memcache.get(sliver_tool.tool_id)
-        if not sliver_tools:
+        if sliver_tools is None:
             sliver_tools = {}
 
         sliver_tools[sliver_tool_id] = sliver_tool

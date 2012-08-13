@@ -19,6 +19,9 @@ handlers:
 - url: /(update|register|tools|geo|query).*
   script: main.app
 
+- url: /status.*
+  script: main.app
+
 - url: /admin.*
   script: main.app
   #login: required

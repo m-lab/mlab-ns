@@ -1,6 +1,6 @@
 <head>
      <link  type="text/css"
-            rel="stylesheet" 
+            rel="stylesheet"
             href="/stylesheets/main.css" />
 
     <title>{% block title %}mlab-ns (MLab Naming Service){% endblock %}
@@ -8,10 +8,10 @@
 </head>
 
 <body>
-    <div id="wrap"> 
+    <div id="wrap">
         {% block header %}
-        <div id="header">      
-            <ul>
+        <div id="header">
+            <ul class="navigation">
                 {% block logo %}
                 <img src="/images/mlab-logo.png" align=left hspace="4"/>
                 {% endblock %}
@@ -41,12 +41,19 @@
                 <li>
                     <a  href="/admin"
                         class="header">Map</a>
+
+                    <ul>
+                        <li><a href="/map/neubot">Neubot</a></li>
+			            <li><a href="/map/npad">Npad</a></li>
+			            <li><a href="/map/ndt">Ndt</a></li>
+                        <li><a href="/map/glasnost">Glasnost</a></li>
+		            </ul>
                 </li>
                 {% endblock %}
             </ul>
         </div>
         {% endblock %}
-       
+
         {% block div_main %}
         <div id="main">
             {% block content %}{% endblock %}
@@ -57,27 +64,27 @@
     <div id="footer">
         <a href="http://measurementlab.net"
             class="footer">MLab</a>
-        
+
         &nbsp;&nbsp;&nbsp;&nbsp;
-        
-        <a href="http://www.measurementlab.net/content/about-measurement-lab" 
+
+        <a href="http://www.measurementlab.net/content/about-measurement-lab"
             class="footer">About</a>
-        
+
         &nbsp;&nbsp;&nbsp;&nbsp;
-        
-        <a href="http://www.measurementlab.net/usage" 
+
+        <a href="http://www.measurementlab.net/usage"
             class="footer">Usage</a>
-        
+
         &nbsp;&nbsp;&nbsp;&nbsp;
-        
+
         <a href="http://www.measurementlab.net/contact"
             class="footer">Contact</a>
-        
+
         &nbsp;&nbsp;&nbsp;&nbsp;
-        
+
         <a href="http://www.measurementlab.net/content/faq"
-            class="footer">FAQ</a> 
-        
-        &nbsp;&nbsp;&nbsp;&nbsp;    
+            class="footer">FAQ</a>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;
     </div>
 </body>

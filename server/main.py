@@ -11,6 +11,7 @@ app = webapp.WSGIApplication(
     [(r'/admin.*', admin.AdminHandler),
     (r'/geo/.*', debug.DebugHandler),
     (r'/query/.*', debug.QueryHandler),
+    (r'/status.*', debug.StatusHandler),
     (r'/map/.*', admin.MapViewHandler),
     (r'/register', registration.RegistrationHandler),
     (r'/tools/.*', debug.DebugHandler),

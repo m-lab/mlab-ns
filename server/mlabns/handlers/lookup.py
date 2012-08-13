@@ -1,7 +1,7 @@
+from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from google.appengine.api import memcache
 
 from mlabns.db import model
 from mlabns.util import distance
@@ -26,18 +26,15 @@ class LookupHandler(webapp.RequestHandler):
         query = resolver.LookupQuery()
         query.initialize_from_http_request(self.request)
         sliver_tool = None
-        if query.metro:
+        if query.policy == message.POLICY_METRO:
             sliver_tool = resolver.MetroResolver().answer_query(query)
         elif query.policy == message.POLICY_GEO:
             sliver_tool = resolver.GeoResolver().answer_query(query)
 
-        logging.info('Format: %s', query.response_format)
         self.log_request(query, sliver_tool)
 
         if query.response_format == message.FORMAT_JSON:
             self.send_json_response(sliver_tool)
-        elif query.response_format == message.FORMAT_PROTOBUF:
-            self.send_protobuf_response(sliver_tool)
         elif query.response_format == message.FORMAT_HTML:
             self.send_html_response(sliver_tool)
         else:
@@ -47,12 +44,15 @@ class LookupHandler(webapp.RequestHandler):
         if sliver_tool is None:
             return util.send_not_found(self)
         data = {}
-        data['slice_id'] = sliver_tool.slice_id
-        data['server_id'] = sliver_tool.server_id
-        data['site_id'] = sliver_tool.site_id
-        data['sliver_ipv4'] = sliver_tool.sliver_ipv4
-        data['sliver_ipv6'] = sliver_tool.sliver_ipv6
-        data['url'] = sliver_tool.url
+
+        if sliver_tool.sliver_ipv4 != 'off':
+            data['ipv4'] = sliver_tool.sliver_ipv4
+        if sliver_tool.sliver_ipv6 != 'off':
+            data['ipv6'] = sliver_tool.sliver_ipv6
+        if sliver_tool.url != 'off':
+            data['url'] = sliver_tool.url
+        data['fqdn'] = sliver_tool.fqdn
+
         json_data = json.dumps(data)
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(json_data)
@@ -73,7 +73,11 @@ class LookupHandler(webapp.RequestHandler):
     def send_redirect_response(self, sliver_tool):
         if sliver_tool is None:
             return util.send_not_found(self, 'html')
-        self.redirect(str(sliver_tool.url))
+
+        if sliver_tool.url == 'off':
+            return self.send_json_response(sliver_tool)
+
+        return self.redirect(str(sliver_tool.url))
 
     def log_request(self,  query, sliver_tool):
         """Logs the request.

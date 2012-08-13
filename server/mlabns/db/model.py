@@ -8,6 +8,9 @@ class SliverTool(db.Model):
     slice_id = db.StringProperty()
     site_id = db.StringProperty()
     server_id = db.StringProperty()
+    server_port = db.StringProperty()
+    http_port = db.StringProperty()
+    fqdn = db.StringProperty()
     sliver_tool_key = db.StringProperty()
     sliver_ipv4 = db.StringProperty()
     sliver_ipv6 = db.StringProperty()
@@ -16,7 +19,7 @@ class SliverTool(db.Model):
     update_request_timestamp = db.IntegerProperty(default=0)
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
-    when = db.DateTimeProperty(auto_now_add=True)
+    when = db.DateTimeProperty(auto_now=True)
 
 class Site(db.Model):
     site_id = db.StringProperty()

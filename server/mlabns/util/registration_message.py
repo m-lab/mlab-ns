@@ -53,6 +53,9 @@ class SliverToolRegistrationMessage(message.Message):
         self.tool_id = None
         self.slice_id = None
         self.server_id = None
+        self.server_port = None
+        self.http_port = None
+        self.fqdn = None
         self.sliver_ipv4 = None
         self.sliver_ipv6 = None
         self.sliver_tool_key = None
@@ -62,6 +65,9 @@ class SliverToolRegistrationMessage(message.Message):
         self.required_fields = set([
             message.ENTITY,
             message.SERVER_ID,
+            message.SERVER_PORT,
+            message.HTTP_PORT,
+            message.FQDN,
             message.SITE_ID,
             message.SLICE_ID,
             message.SLIVER_IPv4,
@@ -80,6 +86,9 @@ class SliverToolRegistrationMessage(message.Message):
         self.tool_id = dictionary[message.TOOL_ID]
         self.slice_id = dictionary[message.SLICE_ID]
         self.server_id = dictionary[message.SERVER_ID]
+        self.server_port = dictionary[message.SERVER_PORT]
+        self.http_port = dictionary[message.HTTP_PORT]
+        self.fqdn = dictionary[message.FQDN]
         self.site_id = dictionary[message.SITE_ID]
         self.sliver_ipv4 = dictionary[message.SLIVER_IPv4]
         self.sliver_ipv6 = dictionary[message.SLIVER_IPv6]
@@ -95,6 +104,9 @@ class SliverToolRegistrationMessage(message.Message):
         dictionary[message.ENTITY] = self.entity
         dictionary[message.SITE_ID] = self.site_id
         dictionary[message.SERVER_ID] = self.server_id
+        dictionary[message.SERVER_PORT] = self.server_port
+        dictionary[message.HTTP_PORT] = self.http_port
+        dictionary[message.FQDN] = self.fqdn
         dictionary[message.SLICE_ID] = self.slice_id
         dictionary[message.SLIVER_IPv4] = self.sliver_ipv4
         dictionary[message.SLIVER_IPv6] = self.sliver_ipv6

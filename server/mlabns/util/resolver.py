@@ -31,6 +31,10 @@ class LookupQuery:
     def policy_geo(self):
         return self.policy == message.POLICY_GEO
 
+    @property
+    def policy_metro(self):
+        return self.policy == message.POLICY_METRO
+
     def initialize_from_dictionary(self, dictionary):
         """Inizializes the lookup parameters from a dictionary.
 
@@ -51,6 +55,7 @@ class LookupQuery:
 
         if message.METRO in dictionary:
             self.metro = dictionary[message.METRO]
+            self.policy = message.POLICY_METRO
 
         # Default to geo policy.
         if not self.policy:
@@ -85,6 +90,9 @@ class LookupQuery:
         self.policy = request.get(message.POLICY)
         self.metro = request.get(message.METRO)
         self.response_format = request.get(message.RESPONSE_FORMAT)
+
+        if self.metro:
+            self.policy = message.POLICY_METRO
 
         # Default to geo policy.
         if not self.policy:
@@ -134,7 +142,8 @@ class GeoResolver:
 
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(lookup_query.tool_id)
-        if sliver_tools:
+        if sliver_tools is not None:
+            logging.debug('Sliver tools found in memcache')
             candidates = []
             for sliver_tool in sliver_tools.values():
                 if (sliver_tool.update_request_timestamp > oldest_timestamp
@@ -142,6 +151,7 @@ class GeoResolver:
                     candidates.append(sliver_tool)
             return candidates
 
+        logging.debug('Sliver tools not found in memcache')
         candidates = model.SliverTool.gql(
             "WHERE tool_id = :tool_id "
             "AND status = :status "
@@ -182,13 +192,15 @@ class GeoResolver:
             if (distances.has_key(sliver_tool.site_id)):
                 current_distance = distances[sliver_tool.site_id]
             else:
-                # Compute the distance and add it to the dict.
                 current_distance = distance.distance(
                     query.latitude,
                     query.longitude,
                     sliver_tool.latitude,
                     sliver_tool.longitude)
-                distances[sliver_tool.site_id] = current_distance
+
+                # Update the dict.
+                if sliver_tool.site_id not in distances:
+                    distances[sliver_tool.site_id] = current_distance
 
             # Update the min distance and add the SliverTool to the list.
             if (current_distance <= min_distance):
