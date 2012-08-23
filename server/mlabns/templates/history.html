@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}History{% endblock %}
+
+{% block MenuHome%}
+{% endblock %}
+
+{% block MenuSliverTools%}
+{% endblock %}
+
+{% block MenuLookup%}
+{% endblock %}
+
+{% block MenuSites%}
+{% endblock %}
+
+{% block content %}
+<table id="box-table-blue">
+    <tr>
+        <th>User IP</th>
+        <th>Tool</th>
+        <th>Policy</th>
+        <th>Server/fqdn</th>
+        <th>Server/IP</th>
+        <th>Server/City</th>
+        <th>Server/Country</th>
+        <th>Request Time</th>
+    </tr>
+    {% for row in records %}
+        <tr>
+            {% for column in row.f %}
+                <td>{{ column.v }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

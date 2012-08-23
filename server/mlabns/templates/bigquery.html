@@ -1,0 +1,123 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/_ah/channel/jsapi"></script>
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <style>
+      .label, .btn {
+      text-transform: capitalize;
+      }
+      ul {
+      list-style-type: none;
+      margin-left: 0;
+      }
+      .badge {
+      margin-left: 5px;
+      }
+      input[type=text] {
+      width: 700px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container hero-unit">
+      <h1>mlab-ns</h1>
+      <p>debug</p>
+      <p>
+        <!--button id="start" class="btn btn-primary">ingest log</button-->
+        <div id="pipelines"></div>
+        <div id="query">
+          <ul>
+            <li>
+              <a href="#query" class="q">
+                select count(user_ip) from mlabns.lookup;
+              </a>
+            </li>
+            <li>
+              <a href="#query" class="q">
+                select count(tool_id) from mlabns.lookup;
+              </a>
+            </li>
+          </ul>
+          <ul>
+            <li><input type="text" name="query"></li>
+            <li><button id="run" class="btn btn-success">run query</button></li>
+          </ul>
+          <ul id="results"></div>
+        </div>
+      </p>
+      <script type="text/javascript">
+          var channel_token = "{{ channel_token }}";
+          var channel = new goog.appengine.Channel(channel_token);
+          var socket = channel.open();
+          var last = {
+          };
+          socket.onmessage = function(message) {
+              var data = message.data.split(",", 2);
+              var pipeline = data[0];
+              var snippet = data[1];
+              var pipeline_ul = $("#" + pipeline);
+              if (pipeline_ul.length == 0) {
+                pipeline_ul = $("<ul>").attr("id", pipeline).appendTo("#pipelines");
+                last[pipeline] = {}
+              }
+              if (snippet != last[pipeline]["snippet"]) {
+                  last[pipeline]["progress"] = 0;
+                  last[pipeline]["snippet"] = snippet;
+                  last[pipeline]["li"] = $("<li>").html(snippet).appendTo(pipeline_ul);
+              } else {
+                  last[pipeline]["progress"]++;
+                  last[pipeline]["li"].html(last[pipeline]["snippet"] + "<span class='badge'>" + last[pipeline]["progress"] + "</span>");
+              }
+          };
+          $("#start").click(function() {
+            $.post("/start", function() {
+            });
+          });
+          $("#run").click(function() {
+            var query = $("input[name=query]").val();
+            var li = $("<li>").prependTo("#results");
+            var a = $("<a class='q' href='#query'>").appendTo(li).text(query);
+            var badge = $("<span class='badge'>").appendTo(li).text(0);
+            var start_time = new Date();
+            var timer = setInterval(function() {
+              badge.text((new Date() - start_time)/1000.0);
+            }, 100);
+            $.post("/bigquery", {query: query}, function(data) {
+              clearInterval(timer);
+              var result = JSON.parse(data);
+              var table = $("<table class='table table-bordered table-striped table-condensed'>").attr("id", result.jobReference.jobId).appendTo(li);
+              var ref;
+              $.each(result.rows, function(i, row) {
+                  var tr = $("<tr>").appendTo(table);
+                  $.each(row.f, function(i, val) {
+                    $("<td>").appendTo(tr).text(val.v);
+                  });
+                  if (query.toLowerCase().indexOf("desc") != -1) {
+                    if (row.f.length == 2) {
+                        if (ref == undefined) {
+                           ref = row.f[1].v;
+                        }
+                        var p = 100 * row.f[1].v / ref;
+                        var gradient = "-webkit-linear-gradient(left , #FFA " + p + "%, transparent " + p + "%)";
+                        $("td:first", tr).css("background-image", gradient)
+                    }
+                  }
+              });
+            }).error(function(xhr) {
+             clearInterval(timer);
+             var e = JSON.parse(xhr.responseText)
+             $("<div class='alert alert-error'>").appendTo(li).text(e.error.message);
+            });
+          });
+          $("#query").delegate("a.q", "click", function() {
+            $("input[name=query]").val($(this).text());
+          });
+      </script>
+    </div>
+  </body>
+</html>
