@@ -73,6 +73,16 @@ class EncryptionKey(db.Model):
     key_id = db.StringProperty()
     encryption_key = db.StringProperty()
 
+class Slice(db.Model):
+    slice_id = db.StringProperty()
+    tool_id = db.StringProperty()
+
+class Nagios(db.Model):
+    key_id = db.StringProperty()
+    username = db.StringProperty()
+    password = db.StringProperty()
+    url = db.StringProperty()
+
 def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
     """Creates the SliverTool id from an UpdateMessage.
 

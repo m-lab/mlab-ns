@@ -2,6 +2,7 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
+from google.appengine.api import taskqueue
 
 from mlabns.db import model
 from mlabns.util import distance
@@ -52,6 +53,7 @@ class LookupHandler(webapp.RequestHandler):
         if sliver_tool.url != 'off':
             data['url'] = sliver_tool.url
         data['fqdn'] = sliver_tool.fqdn
+        data['site'] = sliver_tool.site_id
 
         json_data = json.dumps(data)
         self.response.headers['Content-Type'] = 'application/json'
@@ -94,36 +96,39 @@ class LookupHandler(webapp.RequestHandler):
 
         if site is not None:
             # Log the request to file.
-            logging.info(
-                '[LOOKUP] Tool Id:%s Policy:%s \
-                User IP:%s User City:%s User Country:%s \
-                User Latitude: %s User Longitude: %s \
-                Slice Id:%s Server Id:%s Site Id:%s \
-                Site City:%s Site Country:%s \
-                Site Latitude: %s Site Longitude: %s',
-                query.tool_id, query.policy,
-                query.ip_address, query.city, query.country,
-                query.latitude, query.longitude,
-                sliver_tool.slice_id, sliver_tool.server_id,site.site_id,
-                site.city, site.country,
-                site.latitude, site.longitude)
+            is_ipv6 = 'False'
+            sliver_ip = sliver_tool.sliver_ipv4
+            if query.ipv6_flag:
+                is_ipv6 = 'True'
+                sliver_ip = sliver_tool.sliver_ipv6
 
-            # Log the request to db.
-            # TODO(claudiu) Add a counter for IPv4 and IPv6.
-            lookup_entry = model.Lookup(
-                tool_id=query.tool_id,
-                policy=query.policy,
-                user_ip=query.ip_address,
-                user_city=query.city,
-                user_country=query.country,
-                user_latitude=query.latitude,
-                user_longitude=query.longitude,
-                slice_id=sliver_tool.slice_id,
-                server_id=sliver_tool.server_id,
-                site_id=site.site_id,
-                site_city=site.city,
-                site_country=site.country,
-                site_latitude=site.latitude,
-                site_longitude=site.longitude,
-                key_name=query.ip_address)
-            lookup_entry.put()
+            logging.debug(
+                '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
+                '[lookup]',
+                query.tool_id, query.policy, query.ip_address, is_ipv6,
+                query.city, query.country, query.latitude, query.longitude,
+                sliver_tool.slice_id, sliver_tool.server_id, sliver_ip,
+                sliver_tool.fqdn, site.site_id, site.city, site.country,
+                site.latitude, site.longitude, long(time.time()))
+
+        #record = {}
+        #record['tool_id'] = 'npad'
+        #record['policy'] = 'geo'
+        #record['user_ip'] = '92.20.246.113'
+        #record['is_ipv6'] = 'false'
+        #record['user_city'] = 'norwich'
+        #record['user_country'] = 'GB'
+        #record['user_latitude'] = '52.628101'
+        #record['user_longitude'] = '1.299349'
+        #record['slice_id'] = 'iupui_npad'
+        #record['server_id'] = 'mlab3'
+        #record['server_fqdn'] = 'npad.iupui.mlab3.lhr01.measurement-lab.org'
+        #record['site_id'] = 'lhr01'
+        #record['site_city'] = 'London'
+        #record['site_country'] = 'UK'
+        #record['site_latitude'] = '51.469722'
+        #record['site_longitude'] = '-0.451389'
+        #record['log_time'] = '1345317886'
+        #record['latency'] = '0.507412'
+        #record['user_agent'] = 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.75 Safari/537.1'
+        #taskqueue.add(url='/bigquery', params=record)

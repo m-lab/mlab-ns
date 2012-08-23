@@ -194,13 +194,4 @@ class RegistrationHandler(webapp.RequestHandler):
             logging.error('Failed to write changes to db.')
             return util.send_server_error(self)
 
-       # Update the memcache.
-        sliver_tools = memcache.get(sliver_tool.tool_id)
-        if not sliver_tools:
-            sliver_tools = {}
-
-        sliver_tools[sliver_tool_id] = sliver_tool
-        if not memcache.set(sliver_tool.tool_id, sliver_tools):
-            logging.error('Memcache set failed')
-
         return util.send_success(self)

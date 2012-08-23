@@ -114,3 +114,48 @@ def get_ipv6_geolocation(remote_addr):
         return geo_record
 
     return geo_record
+
+def get_country_geolocation(country):
+    geo_record = GeoRecord()
+
+    logging.info("Retrieving geolocation info for %s.", country)
+    location = model.MaxmindCityLocation.gql(
+        'WHERE country = :country',
+        country=country).get()
+    if not location:
+        logging.error("Location not found in the database.")
+        return geo_record
+
+    geo_record.city = location.city
+    geo_record.country = location.country
+    geo_record.latitude = location.latitude
+    geo_record.longitude = location.longitude
+
+    logging.info(
+        'City : %s, Country: %s, Latitude :%s, Longitude: %s',
+        location.city, location.country,
+        location.latitude, location.longitude)
+    return geo_record
+
+def get_city_geolocation(city, country):
+    geo_record = GeoRecord()
+
+    logging.info("Retrieving geolocation info for %s, %s.", city,country)
+    location = model.MaxmindCityLocation.gql(
+        'WHERE city = :city AND country = :country',
+        city=city,country=country).get()
+    if not location:
+        logging.error("Location not found in the database.")
+        return geo_record
+
+    geo_record.city = location.city
+    geo_record.country = location.country
+    geo_record.latitude = location.latitude
+    geo_record.longitude = location.longitude
+
+    logging.info(
+        'City : %s, Country: %s, Latitude :%s, Longitude: %s',
+        location.city, location.country,
+        location.latitude, location.longitude)
+    return geo_record
+

@@ -6,6 +6,8 @@ from mlabns.handlers import update
 from mlabns.handlers import lookup
 from mlabns.handlers import registration
 from mlabns.handlers import debug
+from mlabns.handlers import log2bq
+#from solution import level4
 
 app = webapp.WSGIApplication(
     [(r'/admin.*', admin.AdminHandler),
@@ -16,6 +18,10 @@ app = webapp.WSGIApplication(
     (r'/register', registration.RegistrationHandler),
     (r'/tools/.*', debug.DebugHandler),
     (r'/update', update.UpdateHandler),
+    (r'/cron/check_status', update.NagiosHandler),
+  #  (r'/solution/level4', level4.Level4Handler),
+    (r'/cron/process_logs', log2bq.Log2BigQueryHandler),
+    (r'/history', log2bq.UserLookupHandler),
     (r'/.*', lookup.LookupHandler)],
     debug=True )
 

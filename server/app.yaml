@@ -2,7 +2,7 @@ application: mlab-ns
 version: 1
 runtime: python27
 api_version: 1
-threadsafe: true
+threadsafe: false
 
 handlers:
 
@@ -11,6 +11,9 @@ handlers:
 
 - url: /stylesheets
   static_dir: mlabns/stylesheets
+
+- url: /bootstrap
+  static_dir: bootstrap
 
 - url: /favicon.ico
   static_files: mlabns/images/favicon.ico
@@ -30,6 +33,22 @@ handlers:
   script: main.app
   #login: required
 
+###### Start log2bq #######
+#
+- url: /solution/level4
+  script: solution.level4.app
+
+- url: /static
+  static_dir: shell/static
+
+- url: /shell.*
+  script: shell.shell.application
+  login: admin
+
+- url: /oauth2callback
+  script: oauth2client/appengine.py
+###### End log2bq #######
+
 - url: /.*
   script: main.app
 
@@ -40,5 +59,17 @@ builtins:
 libraries:
 - name: pycrypto
   version: latest
+
 - name: django
   version: "1.2"
+
+- name: webapp2
+  version: 2.5.1
+
+- name: jinja2
+  version: 2.6
+
+###### Start log2bq #######
+includes:
+- mapreduce/include.yaml
+###### End log2bq #######

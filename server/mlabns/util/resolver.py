@@ -57,6 +57,12 @@ class LookupQuery:
             self.metro = dictionary[message.METRO]
             self.policy = message.POLICY_METRO
 
+        if message.COUNTRY in dictionary:
+            self.country = dictionary[message.COUNTRY]
+
+        if message.CITY in dictionary:
+            self.city = dictionary[message.CITY]
+
         # Default to geo policy.
         if not self.policy:
             self.policy = message.POLICY_GEO
@@ -90,6 +96,8 @@ class LookupQuery:
         self.policy = request.get(message.POLICY)
         self.metro = request.get(message.METRO)
         self.response_format = request.get(message.RESPONSE_FORMAT)
+        self.city = request.get(message.CITY)
+        self.country = request.get(message.COUNTRY)
 
         if self.metro:
             self.policy = message.POLICY_METRO
@@ -98,13 +106,20 @@ class LookupQuery:
         if not self.policy:
             self.policy = message.POLICY_GEO
 
-        if message.HEADER_LAT_LONG in request.headers:
+        if self.country:
+            self.add_maxmind_geolocation()
+        elif message.HEADER_LAT_LONG in request.headers:
             self.add_appengine_geolocation(request)
         else:
             self.add_maxmind_geolocation()
 
     def add_maxmind_geolocation(self):
-        geo_record = maxmind.get_ip_geolocation(self.ip_address)
+        if self.country and self.city:
+            geo_record = maxmind.get_city_geolocation(self.city, self.country)
+        elif self.country:
+            geo_record = maxmind.get_country_geolocation(self.country)
+        else:
+            geo_record = maxmind.get_ip_geolocation(self.ip_address)
         self.city = geo_record.city
         self.country = geo_record.country
         self.latitude = geo_record.latitude
@@ -143,7 +158,7 @@ class GeoResolver:
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(lookup_query.tool_id)
         if sliver_tools is not None:
-            logging.debug('Sliver tools found in memcache')
+            logging.info('Sliver tools found in memcache')
             candidates = []
             for sliver_tool in sliver_tools.values():
                 if (sliver_tool.update_request_timestamp > oldest_timestamp
@@ -151,7 +166,7 @@ class GeoResolver:
                     candidates.append(sliver_tool)
             return candidates
 
-        logging.debug('Sliver tools not found in memcache')
+        logging.info('Sliver tools not found in memcache')
         candidates = model.SliverTool.gql(
             "WHERE tool_id = :tool_id "
             "AND status = :status "
