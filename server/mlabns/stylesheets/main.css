@@ -42,7 +42,7 @@ body {
     color: #339;
 }
 
-/* This is used in the map view, to format the 
+/* This is used in the map view, to format the
 markers InfoWindow */
 
 table {
@@ -76,15 +76,15 @@ tr:hover td {
     color: blue;
 }
 
-td.offline { 
+td.offline {
     background-color: #FE2E2E;
 }
 
-td.online { 
+td.online {
     background-color: #A9F5A9;
 }
 
-td.init { 
+td.init {
     background-color: #BDBDBD;
 }
 
@@ -108,7 +108,7 @@ div#header {
     height:20px
 }
 
-div#header p {  
+div#header p {
     font-style:italic;
     font-size:1.1em;
     margin:0;
@@ -133,7 +133,7 @@ div#map_canvas {
     width: 100%;
 }
 
-#wrap { 
+#wrap {
     min-height: 100%;
     background-color: white;
 }
@@ -252,6 +252,16 @@ a#menuHome {
     color:white;
 }
 
+a#menuMapIPv4 {
+    background-color: #888888;
+    color:white;
+}
+
+a#menuMapIPv6 {
+    background-color: #888888;
+    color:white;
+}
+
 a.footer:link {color:blue;}
 a.footer:visited {color:red;}
 a.footer:hover {color:blue;}
@@ -266,79 +276,79 @@ div#notFound {
 }
 
 ul.navigation, ul.navigation ul {
-    list-style:none;    
+    list-style:none;
     margin:0; padding:0;
     position: relative;
 }
 
-ul.navigation li { 
-    position: relative; 
-    float: right; 
+ul.navigation li {
+    position: relative;
+    float: right;
     zoom: 1;
     background: #DDDDDD;
 }
 
-ul.navigation li:hover { 
-    background: #AAAAAA; 
+ul.navigation li:hover {
+    background: #AAAAAA;
 }
 
 /* Hover effect for menu*/
-ul.navigation li:hover > ul { 
+ul.navigation li:hover > ul {
     display:block;
 }
 
 ul.navigation li a {
     /*Menu link styles*/
-    display: block; 
-    padding: 0px; 
+    display: block;
+    padding: 0px;
     color:#000000;
     font-size:13px;
     font-weight:bold;
     font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
 }
-        
+
 /* Building menu items - for 2nd and more level menu items*/
-ul.navigation ul { 
+ul.navigation ul {
     display:none;
     position: absolute;
     background-color:black;
     text-align:center;
     color:white;
-    top: 100%; 
-    left: 0; 
+    top: 100%;
+    left: 0;
     z-index:1;
 }
 
-ul.navigation ul li { 
-    background: #F5F5F5; 
-    color: black; 
-    border-bottom: 1px solid white; 
-    border-bottom: 1px solid white; 
-    float: none; 
+ul.navigation ul li {
+    background: #F5F5F5;
+    color: black;
+    border-bottom: 1px solid white;
+    border-bottom: 1px solid white;
+    float: none;
 }
-        
-ul.navigation ul li a { 
-    width: 100%; 
-    display: block; 
-    color:white;
-} 
 
-ul.navigation ul ul { 
-    left: 100%; 
-    border-bottom: 1px solid white; 
-    border-bottom: 1px solid white; 
-    top: 0; 
+ul.navigation ul li a {
+    width: 100%;
+    display: block;
+    color:white;
 }
-        
+
+ul.navigation ul ul {
+    left: 100%;
+    border-bottom: 1px solid white;
+    border-bottom: 1px solid white;
+    top: 0;
+}
+
 /* Hover effect for menu*/
-ul.navigation li:hover > ul { 
+ul.navigation li:hover > ul {
     display:block;
 }
 
 ul.navigation a:link {
     float:right;
     height:1.8em;
-    border-bottom: 1px solid white; 
+    border-bottom: 1px solid white;
     text-decoration:none;
     text-align:center;
     color:white;

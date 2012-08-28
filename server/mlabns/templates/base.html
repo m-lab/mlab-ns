@@ -30,27 +30,46 @@
                 </li>
                 {% endblock %}
 
+
                 {%block MenuLookup %}
+                <!--
                 <li>
                     <a  href="/admin/lookup"
                         class="header">Lookup</a>
                 </li>
+                -->
                 {% endblock %}
 
-                {%block MenuHome %}
+                {%block MenuMapIPv4 %}
                 <li>
-                    <a  href="/admin"
-                        class="header">Map</a>
+                    <a  href="/admin/map/ipv4"
+                        class="header">Map IPv4</a>
 
                     <ul>
-                        <li><a href="/map/neubot">Neubot</a></li>
-			            <li><a href="/map/npad">Npad</a></li>
-			            <li><a href="/map/ndt">Ndt</a></li>
-                        <li><a href="/map/glasnost">Glasnost</a></li>
+                        <li><a href="/admin/map/ipv4/neubot">Neubot</a></li>
+			            <li><a href="/admin/map/ipv4/npad">Npad</a></li>
+			            <li><a href="/admin/map/ipv4/ndt">Ndt</a></li>
+                        <li><a href="/admin/map/ipv4/glasnost">Glasnost</a></li>
 		            </ul>
                 </li>
                 {% endblock %}
-            </ul>
+
+                {%block MenuMapIPv6 %}
+                <li>
+                    <a  href="/admin/map/ipv6"
+                        class="header">Map IPv6</a>
+
+                    <ul>
+                        <li><a href="/admin/map/ipv6/neubot">Neubot</a></li>
+			            <li><a href="/admin/map/ipv6/npad">Npad</a></li>
+			            <li><a href="/admin/map/ipv6/ndt">Ndt</a></li>
+                        <li><a href="/admin/map/ipv6/glasnost">Glasnost</a></li>
+		            </ul>
+                </li>
+                {% endblock %}
+
+
+             </ul>
         </div>
         {% endblock %}
 
