@@ -5,13 +5,13 @@
     <title>
         {% block title %}mlab-ns (MLab Naming Service){% endblock %}
     </title>
-    
-    <meta 
+
+    <meta
         name="viewport"
         content="width=device-width initial-scale=1.0, user-scalable=no" />
 
      <link  type="text/css"
-            rel="stylesheet" 
+            rel="stylesheet"
             href="/stylesheets/main.css" />
 
 {% block javascript %}
@@ -20,7 +20,7 @@
     </script>
 
     <script type="text/javascript">
-        
+
         var map;
         var green = "81F781";
         var red = "FF0000";
@@ -42,11 +42,11 @@
                 zoom: 8,
                 mapTypeId: google.maps.MapTypeId.ROADMAP
             };
-                
+
             map = new google.maps.Map(
                 document.getElementById("map_canvas"),
                 mapOptions);
-            
+
             var cities = {{cities|safe}};
             for (i in cities) {
                 var cityName = "";
@@ -63,13 +63,13 @@
                     cityName = cities[i][site]['city'];
                     countryName = cities[i][site]['country'];
 
-                    var htmlSiteInfo = "<h3>" + 
+                    var htmlSiteInfo = "<h3>" +
                         cities[i][site].site_id + "<h3/>";
                     geo['latitude'] = cities[i][site]['latitude'];
                     geo['longitude'] = cities[i][site]['longitude'];
                     geo['city'] = cities[i][site]['city'];
                     geo['country'] = cities[i][site]['country'];
-                    
+
                     htmlSiteInfo += '<table>' +
                     '<tr>' +
                     '<th> </th>' +
@@ -81,25 +81,25 @@
                     for (var j in cities[i][site].sliver_tools) {
                         var status = cities[i][site].sliver_tools[j].status;
                         statusCount[status] += 1;
-                        htmlSiteInfo += '<tr>' + 
-                            '<td>' + 
+                        htmlSiteInfo += '<tr>' +
+                            '<td>' +
                             cities[i][site].sliver_tools[j].slice_id +
                             '</td>' +
-                            '<td>' + 
+                            '<td>' +
                             cities[i][site].sliver_tools[j].tool_id +
                             '</td>' +
-                            '<td>' + 
+                            '<td>' +
                             cities[i][site].sliver_tools[j].server_id +
                             '</td>' +
-                            '<td ' + 
+                            '<td ' +
                             'class="' + status +'">' +
                             cities[i][site].sliver_tools[j].status +
                             '</td>' +
-                            '<td>' + 
+                            '<td>' +
                             cities[i][site].sliver_tools[j].timestamp +
                             '</td>' +
                             '</tr>';
-                        
+
                     }
                     htmlSiteInfo += '</table>';
                     htmlSitesInfo += htmlSiteInfo;
@@ -107,7 +107,7 @@
                 var htmlInfo = '<div id="siteinfo">' +
                     '<h2>' + cityName + ',' + countryName + '</h2>' +
                     htmlSitesInfo + '</div>';
-          
+
                 if (statusCount['offline'] > 0) {
                     markerStyle = 'warning';
                 }
@@ -136,13 +136,13 @@
             showMarkers();
         }
 
-        function addMarkerListener(marker) {    
+        function addMarkerListener(marker) {
         }
 
         function makeMarker(data, icon) {
             var position = new google.maps.LatLng(
                 data["latitude"], data["longitude"] );
-            var title = data["city"] + "," + data["country"]; 
+            var title = data["city"] + "," + data["country"];
             var marker = new google.maps.Marker({
                 position: position,
                 title: title,
@@ -166,10 +166,10 @@
 
             if (style == "warning") {
                 query_string =  "chst=d_map_pin_letter&" +
-                    "chld=" + letter + "|" + 
+                    "chld=" + letter + "|" +
                     warningColor + "|" + warningColor;
             }
-            
+
             if (style == "info") {
                 query_string =  "chst=d_map_pin_letter&" +
                     "chld=x|" + green + "|" + black;
@@ -183,7 +183,7 @@
 
             if (style == "user") {
                 query_string =  "chst=d_map_pin_icon&" +
-                    "chld=glyphish_user|" + "00BFFF"; 
+                    "chld=glyphish_user|" + "00BFFF";
             }
 
             var icon = new google.maps.MarkerImage(
@@ -202,7 +202,7 @@
                 }
             }
         }
-        
+
         function showMarkers() {
             if (markersArray) {
                 for (i in markersArray) {
@@ -224,9 +224,9 @@
 {% block tag_body %}
 <body onload="inizialize()">
 {% endblock %}
-    <div id="container"> 
+    <div id="container">
         {% block header %}
-        <div id="header">      
+        <div id="header">
             <ul class="navigation">
                 {% block logo %}
                 <img src="/images/mlab-logo.png" align=left hspace="4"/>
@@ -247,29 +247,46 @@
                 {% endblock %}
 
                 {%block MenuLookup %}
+                <!--
                 <li>
                     <a  href="/admin/lookup"
                         class="header">Lookup</a>
                 </li>
+                -->
                 {% endblock %}
 
-                {%block MenuHome %}
+                {%block MenuMapIPv4 %}
                 <li>
-                    <a  href="/admin"
-                        id="menuHome"
-                        class="header">Map</a>
+                    <a  href="/admin/map/ipv4"
+                        class="header">Map IPv4</a>
 
                     <ul>
-                        <li><a href="/map/neubot">Neubot</a></li>
-			            <li><a href="/map/npad">Npad</a></li>
-			            <li><a href="/map/ndt">Ndt</a></li>
-                        <li><a href="/map/glasnost">Glasnost</a></li>
+                        <li><a href="/admin/map/ipv4/neubot">Neubot</a></li>
+			            <li><a href="/admin/map/ipv4/npad">Npad</a></li>
+			            <li><a href="/admin/map/ipv4/ndt">Ndt</a></li>
+                        <li><a href="/admin/map/ipv4/glasnost">Glasnost</a></li>
 		            </ul>
                 </li>
                 {% endblock %}
+
+                {%block MenuMapIPv6 %}
+                <li>
+                    <a  href="/admin/map/ipv6"
+                        class="header">Map IPv6</a>
+
+                    <ul>
+                        <li><a href="/admin/map/ipv6/neubot">Neubot</a></li>
+			            <li><a href="/admin/map/ipv6/npad">Npad</a></li>
+			            <li><a href="/admin/map/ipv6/ndt">Ndt</a></li>
+                        <li><a href="/admin/map/ipv6/glasnost">Glasnost</a></li>
+		            </ul>
+                </li>
+                {% endblock %}
+
+
             </ul>
         </div>
-        {% endblock %}    
+        {% endblock %}
         <div id="map_canvas">
         </div>
     <div>

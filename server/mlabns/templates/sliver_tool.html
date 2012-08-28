@@ -14,12 +14,14 @@
 {% block content %}
 <table id="box-table-blue">
 <tr>
-  <th>Tool ID</th>
-  <th>Site ID</th>
-  <th>Slice ID</th>
-  <th>Server ID</th>
-  <th>Status</th>
-  <th>URL</th>
+  <th>Tool</th>
+  <th>Site</th>
+  <th>Slice</th>
+  <th>Server</th>
+  <th>Status IPv4</th>
+  <th>Status IPv6</th>
+  <th>Sliver IPv4</th>
+  <th>Sliver IPv6</th>
   <th>Last update</th>
 </tr>
 
@@ -29,8 +31,10 @@
     <td>{{ record.site_id }}</td>
     <td>{{ record.slice_id }}</td>
     <td>{{ record.server_id }}</td>
-    <td>{{ record.status }}</td>
-    <td> <a href="{{record.url}}"> {{ record.url }} </a></td>
+    <td>{{ record.status_ipv4 }}</td>
+    <td>{{ record.status_ipv6 }}</td>
+    <td>{{ record.sliver_ipv4 }}</td>
+    <td>{{ record.sliver_ipv6 }}</td>
     <td>{{ record.when }}</td>
     </tr>
 {% endfor %}
