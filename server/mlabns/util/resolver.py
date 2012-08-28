@@ -20,7 +20,7 @@ class LookupQuery:
         self.policy = message.POLICY_GEO
         self.metro = None
         self.ip_address = None
-        self.ipv6_flag = None
+        self.address_family = None
         self.city = None
         self.country = None
         self.latitude = 0.0
@@ -42,8 +42,6 @@ class LookupQuery:
             dictionary: A dict containing the query configuration.
         """
 
-        # TODO(claudiu) Add support for URLs of the type:
-        # http://mlab-ns.appspot.com/tool-name/ipv6.
         if message.REMOTE_ADDRESS in dictionary:
             self.ip_address = dictionary[message.REMOTE_ADDRESS]
 
@@ -63,15 +61,21 @@ class LookupQuery:
         if message.CITY in dictionary:
             self.city = dictionary[message.CITY]
 
+        if message.ADDRESS_FAMILY in dictionary:
+            if self.is_valid_address_family(
+                dictionary[message.ADDRESS_FAMILY]):
+                self.address_family = dictionary[message.ADDRESS_FAMILY]
+
         # Default to geo policy.
         if not self.policy:
             self.policy = message.POLICY_GEO
 
-        try:
-            socket.inet_pton(socket.AF_INET6, self.ip_address)
-            self.ipv6_flag = True
-        except socket.error:
-            self.ipv6_flag = False
+        if self.address_family is None:
+            try:
+                socket.inet_pton(socket.AF_INET6, self.ip_address)
+                self.address_family = message.ADDRESS_FAMILY_IPv6
+            except socket.error:
+                self.address_family = message.ADDRESS_FAMILY_IPv4
 
         self.add_maxmind_geolocation()
 
@@ -81,16 +85,8 @@ class LookupQuery:
         Args:
             request: An instance of google.appengine.webapp.Request.
         """
-        # TODO(claudiu) Add support for URLs of the type:
-        # http://mlab-ns.appspot.com/tool-name/ipv6.
         parts = request.path.strip('/').split('/')
         self.tool_id = parts[0]
-
-        try:
-            socket.inet_pton(socket.AF_INET6, request.remote_addr)
-            self.ipv6_flag = True
-        except socket.error:
-            self.ipv6_flag = False
 
         self.ip_address = request.remote_addr
         self.policy = request.get(message.POLICY)
@@ -99,12 +95,23 @@ class LookupQuery:
         self.city = request.get(message.CITY)
         self.country = request.get(message.COUNTRY)
 
+        address_family = request.get(message.ADDRESS_FAMILY)
+        if self.is_valid_address_family(address_family):
+            self.address_family = address_family
+
         if self.metro:
             self.policy = message.POLICY_METRO
 
         # Default to geo policy.
         if not self.policy:
             self.policy = message.POLICY_GEO
+
+        if self.address_family is None:
+            try:
+                socket.inet_pton(socket.AF_INET6, self.ip_address)
+                self.address_family = message.ADDRESS_FAMILY_IPv6
+            except socket.error:
+                self.address_family = message.ADDRESS_FAMILY_IPv4
 
         if self.country:
             self.add_maxmind_geolocation()
@@ -115,7 +122,8 @@ class LookupQuery:
 
     def add_maxmind_geolocation(self):
         if self.country and self.city:
-            geo_record = maxmind.get_city_geolocation(self.city, self.country)
+            geo_record = maxmind.get_city_geolocation(
+                self.city, self.country)
         elif self.country:
             geo_record = maxmind.get_country_geolocation(self.country)
         else:
@@ -139,10 +147,29 @@ class LookupQuery:
             logging.error('Bad geo coordinates %s', lat_long)
             self.add_maxmind_geolocation(request)
 
+    def is_valid_address_family(self, address_family):
+        return (address_family == message.ADDRESS_FAMILY_IPv4 or
+                address_family == message.ADDRESS_FAMILY_IPv6)
+
 class GeoResolver:
     """Implements the closest-node policy."""
 
     def get_sliver_tool_candidates(self, lookup_query):
+        """Find candidates for server selection.
+
+        Args:
+            lookup_query: A LookupQuery instance.
+
+        Returns:
+            A list of SliverTool entities that match the requirements
+            specified in the 'lookup_query'.
+        """
+        if lookup_query.address_family == message.ADDRESS_FAMILY_IPv6:
+            return self.get_sliver_tool_candidates_ipv6(lookup_query)
+
+        return self.get_sliver_tool_candidates_ipv4(lookup_query)
+
+    def get_sliver_tool_candidates_ipv4(self, lookup_query):
         """Find candidates for server selection.
 
         Args:
@@ -158,18 +185,62 @@ class GeoResolver:
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(lookup_query.tool_id)
         if sliver_tools is not None:
-            logging.info('Sliver tools found in memcache')
+            logging.info(
+                'Sliver tools found in memcache (%s results)',
+                len(sliver_tools.keys()))
             candidates = []
             for sliver_tool in sliver_tools.values():
                 if (sliver_tool.update_request_timestamp > oldest_timestamp
-                    and sliver_tool.status == message.STATUS_ONLINE):
+                    and sliver_tool.status_ipv4 == message.STATUS_ONLINE):
                     candidates.append(sliver_tool)
             return candidates
 
         logging.info('Sliver tools not found in memcache')
+
         candidates = model.SliverTool.gql(
             "WHERE tool_id = :tool_id "
-            "AND status = :status "
+            "AND status_ipv4 = :status "
+            "AND update_request_timestamp > :timestamp ",
+            tool_id=lookup_query.tool_id,
+            status=message.STATUS_ONLINE,
+            timestamp=oldest_timestamp)
+            # TODO (claudiu) Check ipv6/ipv4.
+
+        logging.info(
+            'Found (%s candidates)', candidates.count())
+        return candidates.fetch(constants.MAX_FETCHED_RESULTS)
+
+    def get_sliver_tool_candidates_ipv6(self, lookup_query):
+        """Find candidates for server selection.
+
+        Args:
+            lookup_query: A LookupQuery instance.
+
+        Returns:
+            A list of SliverTool entities that match the requirements
+            specified in the 'lookup_query'.
+        """
+
+        oldest_timestamp = long(time.time()) - constants.UPDATE_INTERVAL
+
+        # First try to get the sliver tools from the cache.
+        sliver_tools = memcache.get(lookup_query.tool_id)
+        if sliver_tools is not None:
+            logging.info(
+                'Sliver tools found in memcache (%s results)',
+                len(sliver_tools))
+            candidates = []
+            for sliver_tool in sliver_tools.values():
+                if (sliver_tool.update_request_timestamp > oldest_timestamp
+                    and sliver_tool.status_ipv6 == message.STATUS_ONLINE):
+                    candidates.append(sliver_tool)
+            return candidates
+
+        logging.info('Sliver tools not found in memcache')
+
+        candidates = model.SliverTool.gql(
+            "WHERE tool_id = :tool_id "
+            "AND status_ipv6 = :status "
             "AND update_request_timestamp > :timestamp ",
             tool_id=lookup_query.tool_id,
             status=message.STATUS_ONLINE,
@@ -239,20 +310,19 @@ class MetroResolver:
     """Implements the metro policy."""
 
     def answer_query(self, query):
-        """Select the sliver tool that best matches the requirements.
+        """Selects the sliver tool that best matches the requirements.
 
         Select all the sliver tools that match the 'metro' requirements
-        specified in the request, order the results by timestamp and
-        return the first result.
+        specified in the request and returns one randomly.
 
         Return:
             A SliverTool entity if available, or None.
         """
-
         sites = model.Site.all().filter("metro =", query.metro).fetch(
             constants.MAX_FETCHED_RESULTS)
 
-        logging.info('No result found for metro %s.', len(sites))
+        logging.info(
+            'Found %s results for metro %s.', len(sites), query.metro)
         if len(sites) == 0:
             logging.info('No result found for metro %s.', query.metro)
             return None
@@ -262,16 +332,28 @@ class MetroResolver:
             site_id_list.append(site.site_id)
 
         oldest_timestamp = long(time.time()) - constants.UPDATE_INTERVAL
-        candidates = model.SliverTool.gql(
-            "WHERE tool_id = :tool_id "
-            "AND status = :status "
-            "AND update_request_timestamp > :timestamp "
-            "AND site_id in :site_id_list ",
-            tool_id=query.tool_id,
-            status=message.STATUS_ONLINE,
-            timestamp=oldest_timestamp,
-            site_id_list=site_id_list).fetch(constants.MAX_FETCHED_RESULTS)
-            # TODO (claudiu) Check ipv6/ipv4.
+
+        candidates = []
+        if query.address_family == message.ADDRESS_FAMILY_IPv4:
+            candidates = model.SliverTool.gql(
+                "WHERE tool_id = :tool_id "
+                "AND status_ipv4 = :status "
+                "AND update_request_timestamp > :timestamp "
+                "AND site_id in :site_id_list ",
+                tool_id=query.tool_id,
+                status=message.STATUS_ONLINE,
+                timestamp=oldest_timestamp,
+                site_id_list=site_id_list).fetch(constants.MAX_FETCHED_RESULTS)
+        else:
+            candidates = model.SliverTool.gql(
+                "WHERE tool_id = :tool_id "
+                "AND status_ipv6 = :status "
+                "AND update_request_timestamp > :timestamp "
+                "AND site_id in :site_id_list ",
+                tool_id=query.tool_id,
+                status=message.STATUS_ONLINE,
+                timestamp=oldest_timestamp,
+                site_id_list=site_id_list).fetch(constants.MAX_FETCHED_RESULTS)
 
         if not candidates:
             return None

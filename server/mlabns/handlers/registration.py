@@ -9,8 +9,9 @@ from mlabns.util import message
 from mlabns.util import registration_message
 from mlabns.util import util
 
-import logging
 import codecs
+import logging
+import time
 
 class RegistrationHandler(webapp.RequestHandler):
     """Handles SliverTools registrations.
@@ -169,22 +170,24 @@ class RegistrationHandler(webapp.RequestHandler):
                 'SliverTool site %s was not found in the db.',
                 registration.site_id)
             return util.send_not_found(self)
-
+        timestamp=long(time.time())
         sliver_tool = model.SliverTool(
             tool_id=registration.tool_id,
             slice_id=registration.slice_id,
             site_id=registration.site_id,
             server_id=registration.server_id,
-            fqdn=registration.fqdn,
+            fqdn_ipv4=registration.fqdn_ipv4,
+            fqdn_ipv6=registration.fqdn_ipv6,
             server_port=registration.server_port,
             http_port=registration.http_port,
             sliver_tool_key=registration.sliver_tool_key,
             sliver_ipv4=registration.sliver_ipv4,
             sliver_ipv6=registration.sliver_ipv6,
-            url=registration.url,
-            status=registration.status,
+            status_ipv4=registration.status_ipv4,
+            status_ipv6=registration.status_ipv6,
             latitude=site.latitude,
             longitude=site.longitude,
+            update_request_timestamp=timestamp,
             key_name=sliver_tool_id)
 
         try:

@@ -3,10 +3,9 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
-import urllib2
-
 import logging
 import time
+import urllib2
 
 from mlabns.db import model
 from mlabns.util import constants
@@ -14,7 +13,7 @@ from mlabns.util import message
 from mlabns.util import update_message
 from mlabns.util import util
 
-class NagiosHandler(webapp.RequestHandler):
+class NagiosUpdateHandler(webapp.RequestHandler):
     """Handles SliverTools updates."""
 
     def get(self):
@@ -32,20 +31,42 @@ class NagiosHandler(webapp.RequestHandler):
                     slice_parts[1],
                     slice_parts[0],
                     server_fqdn])
-                self.update_sliver_tools_status(
+                self.update_sliver_tools_status_ipv4(
                     fqdn, slice_status[server_fqdn])
 
-    def update_sliver_tools_status(self, fqdn, status):
+    def update_sliver_tools_status_ipv4(self, fqdn, status):
         logging.info('Updating %s to %s', fqdn, status)
         sliver_tools = model.SliverTool.gql(
-            'WHERE fqdn = :fqdn',
+            'WHERE fqdn_ipv4 = :fqdn',
             fqdn=fqdn).fetch(constants.MAX_FETCHED_RESULTS)
 
         logging.info('Returned %s records', len(sliver_tools))
 
         for sliver_tool in sliver_tools:
             logging.info('%s status is %s', fqdn, status)
-            sliver_tool.status = status
+            sliver_tool.status_ipv4 = status
+            sliver_tool.update_request_timestamp = long(time.time())
+             # Write changes to db.
+            try:
+                sliver_tool.put()
+            except TransactionFailedError:
+                # TODO(claudiu) Trigger an event/notification.
+                logging.error('Failed to write changes to db.')
+            self.update_memcache(sliver_tool)
+
+
+    def update_sliver_tools_status_ipv6(self, fqdn, status):
+        logging.info('Updating %s to %s', fqdn, status)
+        sliver_tools = model.SliverTool.gql(
+            'WHERE fqdn_ipv6 = :fqdn',
+            fqdn=fqdn).fetch(constants.MAX_FETCHED_RESULTS)
+
+        logging.info('Returned %s records', len(sliver_tools))
+
+        for sliver_tool in sliver_tools:
+            logging.info('%s status is %s', fqdn, status)
+            sliver_tool.status_ipv6 = status
+            sliver_tool.update_request_timestamp = long(time.time())
              # Write changes to db.
             try:
                 sliver_tool.put()
@@ -70,11 +91,23 @@ class NagiosHandler(webapp.RequestHandler):
         if not memcache.set(sliver_tool.tool_id, sliver_tools):
             logging.error('Memcache set failed')
 
-    def get_slice_status(self, url, username, password, tool_id):
-        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, username, password)
+    def get_slice_status(self, url, username, password, slice_id):
+        """Read slice status from Nagios.
 
-        authhandler = urllib2.HTTPDigestAuthHandler(passman)
+        Args:
+            url: String representing the URL to Nagios.
+            username: Nagios username.
+            password: Nagios password.
+            slice_id: String representing the name of slice.
+
+        Returns:
+            A dict that contains the status of the slivers in this
+            slice.
+        """
+        password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        password_manager.add_password(None, url, username, password)
+
+        authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
         opener = urllib2.build_opener(authhandler)
         urllib2.install_opener(opener)
 
@@ -85,7 +118,8 @@ class NagiosHandler(webapp.RequestHandler):
                 fqdn,state,hard_state = line.split(' ')
                 status[fqdn] = 'online' if state == '0' else 'offline'
         except urllib2.HTTPError:
-            logging.error('Cannot connect to nagios monitoring system')
+            # TODO(claudiu) Notify(email) when this happens.
+            logging.error('Cannot connect to nagios monitoring system.')
 
         return status
 
