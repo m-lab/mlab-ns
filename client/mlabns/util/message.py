@@ -10,6 +10,9 @@ from Crypto.Cipher import AES
 
 # These constants are all possible fields in a
 # message.
+ADDRESS_FAMILY  = 'address_family'
+ADDRESS_FAMILY_IPv4  = 'address_family'
+ADDRESS_FAMILY_IPv6  = 'address_family'
 CIPHERTEXT      = 'ciphertext'
 CITY            = 'city'
 COUNTRY         = 'country'
@@ -20,9 +23,12 @@ FORMAT          = 'format'
 FORMAT_HTML     = 'html'
 FORMAT_JSON     = 'json'
 FORMAT_PROTOBUF = 'protobuf'
+FQDN_IPv4       = 'fqdn_ipv4'
+FQDN_IPv6       = 'fqdn_ipv6'
 HEADER_CITY     = 'X-AppEngine-City'
 HEADER_COUNTRY  = 'X-AppEngine-Country'
 HEADER_LAT_LONG = 'X-AppEngine-CityLatLong'
+HTTP_PORT       = 'http_port'
 LAT_LONG        = 'lat_long'
 METRO           = 'metro'
 POLICY          = 'policy'
@@ -32,10 +38,8 @@ REMOTE_ADDRESS  = 'ip'
 RESPONSE_FORMAT = 'format'
 RESPONSE_TYPE   = 'format'
 SERVER_ID       = 'server_id'
-SERVER_PORT     = 'server_port'
-HTTP_PORT       = 'http_port'
-FQDN            = 'fqdn'
 SERVER_ID       = 'server_id'
+SERVER_PORT     = 'server_port'
 SIGNATURE       = 'sign'
 SITE_ID         = 'site_id'
 SLICE_ID        = 'slice_id'
@@ -44,6 +48,8 @@ SLIVER_IPv6     = 'sliver_ipv6'
 SLIVER_TOOL_KEY = 'sliver_tool_key'
 STATUS          = 'status'
 STATUS_ERROR    = 'error'
+STATUS_IPv4     = 'status_ipv4'
+STATUS_IPv6     = 'status_ipv6'
 STATUS_OFFLINE  = 'offline'
 STATUS_ONLINE   = 'online'
 STATUS_REGISTERED = 'init'
@@ -150,7 +156,7 @@ class Message():
         signature = base64.encodestring(digest).strip()
 
         logging.info('key: %s', secret_key)
-        logging.info('Cipertext: %s', data[CIPHERTEXT])
+        logging.info('Ciphertext: %s', data[CIPHERTEXT])
         logging.info('Computed signature: %s', signature)
         logging.info('Signature: %s', data[SIGNATURE])
 

@@ -225,7 +225,13 @@ def main():
         for tool in slices[sliver['slice_id']]:
             record = {}
             parts = sliver['slice_id'].split('_')
-            record['fqdn'] = '.' . join([
+            record['fqdn_ipv4'] = '.' . join([
+                parts[1],
+                parts[0],
+                sliver['server_id'],
+                sliver['site_id'],
+                'measurement-lab.org'])
+            record['fqdn_ipv6'] = '.' . join([
                 parts[1],
                 parts[0],
                 sliver['server_id'],
@@ -241,14 +247,8 @@ def main():
             record['sliver_tool_key'] = tools[tool]['tool_key']
             record['sliver_ipv4'] = sliver['sliver_ipv4']
             record['sliver_ipv6'] = sliver['sliver_ipv6']
-            record['url'] = 'off'
-            if (record['http_port'] != 'off'):
-                record['url'] = ''.join([
-                    'http://',
-                    record['fqdn'],
-                    ':',
-                    record['http_port']])
-            record['status'] = 'init'
+            record['status_ipv4'] = 'init'
+            record['status_ipv6'] = 'init'
             if sliver['site_id'] in sites:
                 record['lat_long'] = sites[sliver['site_id']]['lat_long']
             else:
@@ -257,7 +257,8 @@ def main():
 
             print '[%s]' % (record['id'])
             print 'entity: %s' % (record['entity'])
-            print 'fqdn: %s' % (record['fqdn'])
+            print 'fqdn_ipv4: %s' % (record['fqdn_ipv4'])
+            print 'fqdn_ipv6: %s' % (record['fqdn_ipv6'])
             print 'tool_id: %s' % (record['tool_id'])
             print 'site_id: %s' % (record['site_id'])
             print 'slice_id: %s' % (record['slice_id'])
@@ -267,8 +268,8 @@ def main():
             print 'sliver_tool_key: %s' % (record['sliver_tool_key'])
             print 'sliver_ipv4: %s' % (record['sliver_ipv4'])
             print 'sliver_ipv6: %s' % (record['sliver_ipv6'])
-            print 'url: %s' % (record['url'])
-            print 'status: %s' % (record['status'])
+            print 'status_ipv4: %s' % (record['status_ipv4'])
+            print 'status_ipv6: %s' % (record['status_ipv6'])
             print 'lat_long: %s' % (record['lat_long'])
             print '\n'
 

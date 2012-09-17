@@ -18,21 +18,20 @@ from os import path
 from mlabns.util import message
 from mlabns.util import registration_message
 
+ENCRYPTION_KEY = 'BiQajLAKtCF2RIyu'
+LOCAL_URL = 'http://localhost:8080/register'
+REMOTE_URL = 'http://mlab-ns.appspot.com/register'
+
 class RegistrationClient:
     """Registers SliverTools with the GAE server."""
 
-    def __init__(self):
+    def __init__(self, encryption_key, url):
         # TODO (claudiu) Add comments for each instance var.
-        self.server_url = None
+        self.encryption_key=encryption_key
+        self.url=url
         self.registrations = []
 
-    def read_configuration(
-        self,
-        config_file,
-        section_key,
-        option_key,
-        section_url,
-        option_url):
+    def read_configuration(self,config_file):
 
         """Sends SliverTools and sites registrations.
 
@@ -60,23 +59,7 @@ class RegistrationClient:
             return False
         fp.close()
 
-        admin_key = None
         for section in config.sections():
-            if section == section_key:
-                admin_key = config.get(section, option_key)
-                continue
-            if section == section_url:
-                self.server_url = config.get(section, option_url)
-                continue
-            if admin_key is None:
-                logging.error('Missing key (section: %s)', section)
-                return False
-            if self.server_url is None:
-                logging.error(
-                    'Missing server url (section: %s).',
-                     section)
-                return False
-
             logging.info('BEGIN %s', section)
             dictionary = {}
             for option in config.options(section):
@@ -104,7 +87,8 @@ class RegistrationClient:
                 return False
 
             registration.add_timestamp()
-            registration.encrypt_message(admin_key)
+            if self.encryption_key is not None:
+                registration.encrypt_message(self.encryption_key)
             self.registrations.append(registration)
 
         return True
@@ -137,7 +121,7 @@ class RegistrationClient:
             data[message.CIPHERTEXT] = registration.ciphertext
 
             encoded_data = urllib.urlencode(data)
-            request = urllib2.Request(self.server_url, encoded_data)
+            request = urllib2.Request(self.url, encoded_data)
             logging.info('Sending request:')
             for key in data.keys():
                 logging.info('data[%s] = "%s"', key, data[key])
@@ -153,43 +137,42 @@ def main():
         format='[%(asctime)s] %(levelname)s: %(message)s',
         level=logging.DEBUG)
 
+    url = LOCAL_URL
+
     parser = OptionParser()
+    parser.add_option(
+        '-r',
+        '--remote',
+        dest='remote',
+        action='store_true',
+        default=False,
+        help='Register remotely.')
+    parser.add_option(
+        '-k',
+        '--key',
+        dest='encryption_key',
+        default=ENCRYPTION_KEY,
+        help='URL to send the registration')
     parser.add_option(
         '-f',
         '--file',
         dest='filename',
         help='configuration file')
-    parser.add_option(
-        '',
-        '--section-key',
-        dest='section_key',
-        default='key',
-        help='Name of the key section in the config file')
-    parser.add_option(
-        '',
-        '--options-key',
-        dest='option_key',
-        default='key',
-        help='Name of the option in the "key" section.')
-    parser.add_option(
-        '',
-        '--section-url',
-        dest='section_url',
-        default='server_url',
-        help='Name of the url section in the config file.')
-    parser.add_option(
-        '',
-        '--option-url',
-        dest='option_url',
-        default='server_url',
-        help='Name of the option in the "url" section.')
-
     (options, args) = parser.parse_args()
     if options.filename is None:
         # TODO(claudiu) Trigger an event/notification.
         logging.error('Missing configuration file.')
         parser.print_help()
         exit(-1)
+
+    if options.remote:
+        # TODO(claudiu) Trigger an event/notification.
+        url = REMOTE_URL
+        logging.debug('URL is %s', url)
+
+    if options.encryption_key:
+        # TODO(claudiu) Trigger an event/notification.
+        encryption_key = options.encryption_key
 
     config_file = options.filename
     if not path.exists(config_file):
@@ -207,13 +190,8 @@ def main():
         logging.error('Cannot read file %s.', config_file)
         exit(-1)
 
-    client = RegistrationClient()
-    if not client.read_configuration(
-        config_file,
-        options.section_key,
-        options.option_key,
-        options.section_url,
-        options.option_url):
+    client = RegistrationClient(encryption_key, url)
+    if not client.read_configuration(config_file):
         logging.error('Cannot read file %s.', config_file)
         exit(-1)
 
