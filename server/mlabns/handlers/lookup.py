@@ -45,9 +45,9 @@ class LookupHandler(webapp.RequestHandler):
         if query.response_format == message.FORMAT_JSON:
             self.send_json_response(sliver_tool, query)
         elif query.response_format == message.FORMAT_HTML:
-            self.send_html_response(sliver_tool)
+            self.send_html_response(sliver_tool, query)
         else:
-            self.send_redirect_response(sliver_tool)
+            self.send_redirect_response(sliver_tool, query)
 
     def send_json_response(self, sliver_tool, query):
         if sliver_tool is None:
@@ -78,14 +78,13 @@ class LookupHandler(webapp.RequestHandler):
             memcache.set('sites', sites)
 
         site = sites[sliver_tool.site_id]
-
         data['city'] = site.city
         data['country'] = site.country
         json_data = json.dumps(data)
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(json_data)
 
-    def send_html_response(self, sliver_tool):
+    def send_html_response(self, sliver_tool, query):
         if sliver_tool is None:
             return util.send_not_found(self, 'html')
         records = []
@@ -95,14 +94,17 @@ class LookupHandler(webapp.RequestHandler):
             template.render(
                 'mlabns/templates/lookup_response.html', values))
 
-    def send_redirect_response(self, sliver_tool):
+    def send_redirect_response(self, sliver_tool, query):
+        logging.info(
+            'fqdn: %s, port: %s', sliver_tool.fqdn_ipv4, sliver_tool.http_port)
         if sliver_tool is None:
             return util.send_not_found(self, 'html')
+        if sliver_tool.http_port != 'off':
+            url = '' .join([
+                'http://', sliver_tool.fqdn_ipv4, ':', sliver_tool.http_port])
+            return self.redirect(str(url))
 
-        if sliver_tool.url == 'off':
-            return self.send_json_response(sliver_tool)
-
-        return self.redirect(str(sliver_tool.url))
+        return self.send_json_response(sliver_tool, query)
 
     def log_request(self,  query, sliver_tool):
         """Logs the request.
@@ -122,6 +124,7 @@ class LookupHandler(webapp.RequestHandler):
             memcache.set('sites', sites)
 
         if sliver_tool is None or not sliver_tool.site_id in sites:
+            # TODO(claudiu) Log also the error.
             return
 
         site = sites[sliver_tool.site_id]

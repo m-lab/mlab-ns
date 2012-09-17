@@ -66,6 +66,15 @@ def ipv4_to_long(ipv4_address):
     return result
 
 def get_ip_geolocation(remote_addr):
+    """Returns the geolocation data associated with an IP address.
+
+    Args:
+        remote_addr: A string describing an IPv4 or IPv6 address.
+
+    Returns:
+        A GeoRecord if the geolocation data is found in the db,
+        otherwise an empty GeoRecord.
+    """
     try:
         socket.inet_pton(socket.AF_INET, remote_addr)
         return get_ipv4_geolocation(remote_addr)
@@ -73,6 +82,15 @@ def get_ip_geolocation(remote_addr):
         return get_ipv6_geolocation(remote_addr)
 
 def get_ipv4_geolocation(remote_addr):
+    """Returns the geolocation data associated with an IPv4 address.
+
+    Args:
+        remote_addr: A string describing an IPv4 address.
+
+    Returns:
+        A GeoRecord containing the geolocation data if is found in the db,
+        otherwise an empty GeoRecord.
+    """
     geo_record = GeoRecord()
     ip_long = ipv4_to_long(remote_addr)
     if not ip_long:
@@ -108,36 +126,60 @@ def get_ipv4_geolocation(remote_addr):
     return geo_record
 
 def get_ipv6_geolocation(remote_addr):
+    """Returns the geolocation data associated with an IPv6 address.
+
+    Args:
+        remote_addr: A string describing an IPv6 address.
+
+    Returns:
+        A GeoRecord containing the geolocation data if found,
+        otherwise an empty GeoRecord.
+    """
     geo_record = GeoRecord()
     ip_long = ipv6_to_long(remote_addr)
     if not ip_long:
         return geo_record
 
+    # TODO(claudiu) Add implementation.
     return geo_record
 
 def get_country_geolocation(country):
+    """Returns the geolocation data associated with a country code.
+
+    Args:
+        country: A string describing a two alphanumeric country code.
+
+    Returns:
+        A GeoRecord containing the geolocation data if found,
+        otherwise an empty GeoRecord.
+    """
     geo_record = GeoRecord()
 
     logging.info("Retrieving geolocation info for %s.", country)
-    location = model.MaxmindCityLocation.gql(
-        'WHERE country = :country',
-        country=country).get()
-    if not location:
-        logging.error("Location not found in the database.")
-        return geo_record
-
-    geo_record.city = location.city
-    geo_record.country = location.country
-    geo_record.latitude = location.latitude
-    geo_record.longitude = location.longitude
+    location = model.CountryCode.get_by_key_name(country)
+    if location:
+        geo_record.city = 'Unknown'
+        geo_record.country = location.alpha2_code
+        geo_record.latitude = location.latitude
+        geo_record.longitude = location.longitude
 
     logging.info(
-        'City : %s, Country: %s, Latitude :%s, Longitude: %s',
-        location.city, location.country,
-        location.latitude, location.longitude)
+        'Country: %s, Latitude :%s, Longitude: %s',
+        location.alpha2_code, location.latitude, location.longitude)
     return geo_record
 
 def get_city_geolocation(city, country):
+    """Returns the geolocation data associated with a city and country code.
+
+    Args:
+        city: A string specifying the name of the city.
+        country: A string describing a two alphanumeric country code.
+
+    Returns:
+        A GeoRecord containing the geolocation data if found,
+        otherwise an empty GeoRecord.
+    """
+
     geo_record = GeoRecord()
 
     logging.info("Retrieving geolocation info for %s, %s.", city,country)
@@ -145,8 +187,9 @@ def get_city_geolocation(city, country):
         'WHERE city = :city AND country = :country',
         city=city,country=country).get()
     if not location:
-        logging.error("Location not found in the database.")
-        return geo_record
+        logging.error(
+            '%s,%s not found in the database.', city, country)
+        return get_country_geolocation(country)
 
     geo_record.city = location.city
     geo_record.country = location.country

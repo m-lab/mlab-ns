@@ -60,6 +60,8 @@ class AdminHandler(webapp.RequestHandler):
     def get(self):
         view = self.request.get('db')
         path = self.request.path.rstrip('/')
+        if not path:
+            return self.redirect('/admin/map/ipv4')
         if path == '/admin':
             return self.redirect('/admin/map/ipv4')
         if path == '/admin/map':

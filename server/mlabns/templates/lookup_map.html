@@ -5,13 +5,13 @@
     <title>
         {% block title %}mlab-ns (MLab Naming Service){% endblock %}
     </title>
-    
-    <meta 
+
+    <meta
         name="viewport"
         content="width=device-width initial-scale=1.0, user-scalable=no" />
 
      <link  type="text/css"
-            rel="stylesheet" 
+            rel="stylesheet"
             href="/stylesheets/main.css" />
 
 {% block javascript %}
@@ -20,7 +20,7 @@
     </script>
 
     <script type="text/javascript">
-        
+
         var map;
         var green = "81F781";
         var red = "FF0000";
@@ -35,14 +35,14 @@
         var onlineMarkersArray = [];
         var offlineMarkersArray = [];
         var errorMarkersArray = [];
- 
+
         function initialize() {
             var mapOptions = {
                 center: new google.maps.LatLng(41.9000, 12.500),
                 zoom: 8,
                 mapTypeId: google.maps.MapTypeId.ROADMAP
             };
-                
+
             map = new google.maps.Map(
                 document.getElementById("map_canvas"),
                 mapOptions);
@@ -50,8 +50,8 @@
             var boundsListener = google.maps.event.addListenerOnce(
                 map, 'bounds_changed', function(event) {
                     map.setZoom(3);
-                    var points = [ 
-                        user_marker.position, 
+                    var points = [
+                        user_marker.position,
                         destination_marker.position ];
 
                     var line = new google.maps.Polyline({
@@ -73,12 +73,12 @@
 
             destination_marker = makeMarker(destination, "info");
             user_marker = makeMarker(user, "user");
-            
+
             boundsMarkers.push(destination_marker);
             boundsMarkers.push(user_marker);
 
             showSites();
-     
+
             markersArray.push(user_marker);
             markersArray.push(destination_marker);
 
@@ -96,8 +96,8 @@
         function makeMarker(data, iconStyle) {
             var position = new google.maps.LatLng(
                 data["latitude"], data["longitude"] );
-            var title = data["city"] + "," + data["country"]; 
-            var icon = makeIcon(iconStyle) 
+            var title = data["city"] + "," + data["country"];
+            var icon = makeIcon(iconStyle)
             var marker = new google.maps.Marker({
                 position: position,
                 title: title,
@@ -121,10 +121,10 @@
 
             if (style == "warning") {
                 query_string =  "chst=d_map_xpin_letter&" +
-                    "chld=pin_star|o|" + green + "|" + 
+                    "chld=pin_star|o|" + green + "|" +
                     green + "|" + red;
             }
-            
+
             if (style == "info") {
                 query_string =  "chst=d_map_pin_letter&" +
                     "chld=x|" + green + "|" + black;
@@ -132,7 +132,7 @@
 
             if (style == "user") {
                 query_string =  "chst=d_map_pin_icon&" +
-                    "chld=glyphish_user|" + "00BFFF"; 
+                    "chld=glyphish_user|" + "00BFFF";
             }
 
             var icon = new google.maps.MarkerImage(
@@ -150,8 +150,8 @@
                 map: map
             });
             markersArray.push(marker);
-        } 
-        
+        }
+
         function clearOverlayes() {
             if (markersArray) {
                 for (i in markersArray) {
@@ -159,7 +159,7 @@
                 }
             }
         }
-        
+
         function showSites() {
             if (markersArray) {
                 for (i in markersArray) {
@@ -181,53 +181,32 @@
 {% block tag_body %}
 <body onload="inizialize()">
 {% endblock %}
-    <div id="container"> 
+    <div id="container">
         {% block header %}
-        <div id="header">      
+        <div id="header">
             <ul>
                 {% block logo %}
                 <img src="/images/mlab-logo.png" align=left hspace="4"/>
                 {% endblock %}
 
                 {%block MenuSites %}
-                <!--
-                <li>
-                    <a  href="/admin/sites"
-                        class="header">Sites</a>
-                </li>
-                -->
                 {% endblock %}
 
                 {%block MenuSliverTools %}
-                <!--
-                <li>
-                    <a  href="/admin/sliver_tools"
-                        class ="header">Sliver Tools</a>
-                </li>
-                -->
                 {% endblock %}
 
                 {%block MenuLookup %}
-                <!--
-                <li>
-                    <a  href="/admin/lookup"
-                        class="header">Lookup</a>
-                </li>
-                -->
                 {% endblock %}
 
-                {%block MenuHome %}
-                <!--
-                <li>
-                    <a  href="/admin/home"
-                        id="menuHome"
-                        class="header">Home</a>
-                </li>
-                -->
+                {%block MenuMapIPv4 %}
                 {% endblock %}
+
+                {%block MenuMapIPv6 %}
+                {% endblock %}
+
             </ul>
         </div>
-        {% endblock %}    
+        {% endblock %}
         <div id="map_canvas">
         </div>
     <div>

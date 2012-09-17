@@ -11,13 +11,11 @@ from solution import level4
 
 app = webapp.WSGIApplication(
     [(r'/geo/.*', debug.DebugHandler),
-    (r'/query/.*', debug.QueryHandler),
-    (r'/status.*', debug.StatusHandler),
     (r'/admin/map/ipv4/.*', admin.MapViewHandler),
     (r'/admin/map/ipv6/.*', admin.MapViewHandler),
+    (r'/', admin.AdminHandler),
     (r'/admin.*', admin.AdminHandler),
     (r'/register', registration.RegistrationHandler),
-    (r'/tools/.*', debug.DebugHandler),
     (r'/update', update.UpdateHandler),
     (r'/cron/check_status', update.NagiosUpdateHandler),
     (r'/solution/level4', level4.Level4Handler),
