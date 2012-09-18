@@ -11,7 +11,6 @@ from google.appengine.api import logservice
 from google.appengine.api import files
 from google.appengine.ext.webapp import template
 
-
 from apiclient.discovery import build
 from oauth2client.appengine import AppAssertionCredentials
 

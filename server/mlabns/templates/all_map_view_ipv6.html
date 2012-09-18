@@ -1,18 +1,18 @@
 {% extends "map_view.html" %}
 
-{% block title %}Neubot IPv6 (mlab-ns tools){% endblock %}
+{% block title %}Map IPv6 (mlab-ns tools){% endblock %}
 
 {%block MenuMapIPv6 %}
 <li>
-    <a  href="/admin/map/ipv6/neubot"
+    <a  href="/admin/map/ipv6/all"
         id="menuMapIPv6"
-        class="header">Neubot IPv6</a>
+        class="header">Map IPv6</a>
 
     <ul>
+        <li><a href="/admin/map/ipv6/neubot">Neubot</a></li>
         <li><a href="/admin/map/ipv6/npad">Npad</a></li>
         <li><a href="/admin/map/ipv6/ndt">Ndt</a></li>
         <li><a href="/admin/map/ipv6/glasnost">Glasnost</a></li>
-        <li><a href="/admin/map/ipv6/all">Map</a></li>
     </ul>
 </li>
 {% endblock %}

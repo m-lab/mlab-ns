@@ -19,24 +19,9 @@ handlers:
   static_files: mlabns/images/favicon.ico
   upload: mlabns/images/favicon.ico
 
-- url: /(update|register|tools|geo|query).*
-  script: main.app
-
-- url: /status.*
-  script: main.app
-
-- url: /admin.*
+- url: /(admin|map).*
   script: main.app
   #login: required
-
-- url: /map/.*
-  script: main.app
-  #login: required
-
-###### Start log2bq #######
-#
-- url: /solution/level4
-  script: solution.level4.app
 
 - url: /static
   static_dir: shell/static
@@ -47,7 +32,6 @@ handlers:
 
 - url: /oauth2callback
   script: oauth2client/appengine.py
-###### End log2bq #######
 
 - url: /.*
   script: main.app
@@ -69,7 +53,5 @@ libraries:
 - name: jinja2
   version: 2.6
 
-###### Start log2bq #######
 includes:
 - mapreduce/include.yaml
-###### End log2bq #######
