@@ -81,6 +81,7 @@ class LookupHandler(webapp.RequestHandler):
         data['city'] = site.city
         data['country'] = site.country
         json_data = json.dumps(data)
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(json_data)
 
@@ -90,6 +91,7 @@ class LookupHandler(webapp.RequestHandler):
         records = []
         records.append(sliver_tool)
         values = {'records' : records}
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.out.write(
             template.render(
                 'mlabns/templates/lookup_response.html', values))
