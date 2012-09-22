@@ -19,9 +19,12 @@ TOOL_ID         = 'tool_id'
 UPDATE_INTERVAL = 3600 * 24 * 60
 
 # 10 minutes.
-#UPDATE_INTERVAL = 10 * 60
+# UPDATE_INTERVAL = 10 * 60
 URL             = 'url'
 USER_CITY       = 'user_city'
 USER_COUNTRY    = 'user_country'
 USER_IP         = 'user_ip'
 USER_LAT_LONG   = 'user_lat_long'
+
+# Earth radius in km.
+EARTH_RADIUS    = 6371

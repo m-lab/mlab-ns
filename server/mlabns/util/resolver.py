@@ -34,7 +34,7 @@ class LookupQuery:
         self.city = None
         self.country = None
         self.latitude = 0.0
-        self.losngitude = 0.0
+        self.longitude = 0.0
         self.response_format = None
 
     @property

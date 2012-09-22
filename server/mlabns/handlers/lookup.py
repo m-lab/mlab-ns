@@ -6,7 +6,6 @@ from google.appengine.api import taskqueue
 
 from mlabns.db import model
 from mlabns.util import constants
-from mlabns.util import distance
 from mlabns.util import message
 from mlabns.util import resolver
 from mlabns.util import util

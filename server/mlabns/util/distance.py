@@ -1,7 +1,13 @@
 import math
 
+from mlabns.util import constants
+
 def distance(lat1, lon1, lat2, lon2):
     """Computes the distance between two points.
+
+    This is a python implementation of Haversine formula to find
+    the distance between two latitude/longitude points. For more details, see
+    http://en.wikipedia.org/wiki/Haversine_formula.
 
     Args:
         lat1: A float representing the latitude of the origin point.
@@ -12,7 +18,7 @@ def distance(lat1, lon1, lat2, lon2):
     Returns:
         A float representing distance in km from origin to destination.
     """
-    radius = 6371
+    radius = constants.EARTH_RADIUS
 
     dlat = math.radians(lat2-lat1)
     dlon = math.radians(lon2-lon1)

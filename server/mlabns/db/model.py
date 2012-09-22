@@ -12,15 +12,22 @@ class SliverTool(db.Model):
     http_port = db.StringProperty()
     fqdn_ipv4 = db.StringProperty()
     fqdn_ipv6 = db.StringProperty()
-    sliver_tool_key = db.StringProperty()
     sliver_ipv4 = db.StringProperty()
     sliver_ipv6 = db.StringProperty()
     url = db.StringProperty()
+
+    # These can have the following values: online, offline, error.
     status_ipv4 = db.StringProperty()
     status_ipv6 = db.StringProperty()
+
     update_request_timestamp = db.IntegerProperty(default=0)
+
+    # To avoid an additional lookup in the datastore,
+    # we keep also the geographical coordinates of the site.
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
+
+    # Date representing the last modification time.
     when = db.DateTimeProperty(auto_now=True)
 
 class Site(db.Model):
@@ -28,10 +35,21 @@ class Site(db.Model):
     city = db.StringProperty()
     region = db.StringProperty()
     country = db.StringProperty()
+
+    # Latitude/longitude of the airport that uniquely identifies
+    # an M-Lab site.
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
+
+    # List of 'group' identifiers (e.g., [ath, ath01]). It allows to
+    # select a server from a specific subset of sites.
     metro = db.StringListProperty(default=None)
+
+    # Date representing the registration time (the first time a new site
+    # is added to mlab-ns).
     timestamp = db.IntegerProperty(default=0)
+
+    # Date representing the last modification time.
     when = db.DateTimeProperty(auto_now=True)
 
 class Lookup(db.Model):
@@ -58,11 +76,13 @@ class MaxmindCityLocation(db.Model):
     city = db.StringProperty()
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
+    when = db.DateTimeProperty(auto_now=True)
 
 class MaxmindCityBlock(db.Model):
     start_ip_num = db.IntegerProperty()
     end_ip_num = db.IntegerProperty()
     location_id = db.StringProperty()
+    when = db.DateTimeProperty(auto_now=True)
 
 class MaxmindCityv6(db.Model):
     start_ip_num = db.IntegerProperty()
@@ -70,6 +90,7 @@ class MaxmindCityv6(db.Model):
     country = db.StringProperty()
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
+    when = db.DateTimeProperty(auto_now=True)
 
 class CountryCode(db.Model):
     name = db.StringProperty()
@@ -78,6 +99,7 @@ class CountryCode(db.Model):
     numeric_code = db.IntegerProperty()
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
+    when = db.DateTimeProperty(auto_now=True)
 
 class EncryptionKey(db.Model):
     key_id = db.StringProperty()
