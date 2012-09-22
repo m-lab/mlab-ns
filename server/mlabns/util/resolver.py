@@ -9,20 +9,10 @@ from mlabns.util import distance
 from mlabns.util import message
 from mlabns.util.geo import maxmind
 
-import gflags
 import logging
 import random
 import socket
 import time
-
-FLAGS = gflags.FLAGS
-
-gflags.DEFINE_string(
-    'ipv4','ipv4','The IPv4 address_family')
-gflags.DEFINE_string(
-    'ipv6','ipv6','The IPv6 address_family')
-gflags.DEFINE_string(
-    'address_family','address_family','The address family argument')
 
 class LookupQuery:
     def __init__(self):
@@ -30,7 +20,7 @@ class LookupQuery:
         self.policy = message.POLICY_GEO
         self.metro = None
         self.ip_address = None
-        self.address_family = FLAGS.ipv4
+        self.address_family = message.ADDRESS_FAMILY_IPv4
         self.city = None
         self.country = None
         self.latitude = 0.0
@@ -70,9 +60,10 @@ class LookupQuery:
         if message.CITY in dictionary:
             self.city = dictionary[message.CITY]
 
-        if FLAGS.address_family in dictionary:
-            address_family = dictionary[FLAGS.address_family]
-            if address_family == FLAGS.ipv4 or address_family == FLAGS.ipv6:
+        if message.ADDRESS_FAMILY in dictionary:
+            address_family = dictionary[message.ADDRESS_FAMILY]
+            if (address_family == message.ADDRESS_FAMILY_IPv4 or
+                address_family == message.ADDRESS_FAMILY_IPv6):
                 self.address_family = address_family
 
         # Default to geo policy.
@@ -105,7 +96,8 @@ class LookupQuery:
         self.country = request.get(message.COUNTRY)
 
         address_family = request.get(message.ADDRESS_FAMILY)
-        if address_family == FLAGS.ipv4 or address_family == FLAGS.ipv6:
+        if (address_family == message.ADDRESS_FAMILY_IPv4 or
+            address_family == message.ADDRESS_FAMILY_IPv6):
             self.address_family = address_family
 
         if self.metro:

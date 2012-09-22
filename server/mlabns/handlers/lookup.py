@@ -13,12 +13,6 @@ from mlabns.util import util
 import json
 import logging
 import time
-import gflags
-
-FLAGS = gflags.FLAGS
-
-gflags.DEFINE_string('policy_metro','metro','The metro policy')
-gflags.DEFINE_string('policy_geo','geo','The "geo" policy')
 
 class LookupHandler(webapp.RequestHandler):
     """Routes GET requests to the appropriate SliverTools."""
@@ -33,8 +27,7 @@ class LookupHandler(webapp.RequestHandler):
         query = resolver.LookupQuery()
         query.initialize_from_http_request(self.request)
         sliver_tool = None
-        #if query.policy == message.POLICY_METRO:
-        if query.policy == FLAGS.policy_metro:
+        if query.policy == message.POLICY_METRO:
             sliver_tool = resolver.MetroResolver().answer_query(query)
         else:
             sliver_tool = resolver.GeoResolver().answer_query(query)
