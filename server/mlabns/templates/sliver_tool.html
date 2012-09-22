@@ -10,33 +10,19 @@
 </li>
 {% endblock %}
 
-
 {% block content %}
-<table id="box-table-blue">
-<tr>
-  <th>Tool</th>
-  <th>Site</th>
-  <th>Slice</th>
-  <th>Server</th>
-  <th>Status IPv4</th>
-  <th>Status IPv6</th>
-  <th>Sliver IPv4</th>
-  <th>Sliver IPv6</th>
-  <th>Last update</th>
-</tr>
-
-{% for record in records %}
+    <table id="box-table-blue">
     <tr>
-    <td>{{ record.tool_id }}</td>
-    <td>{{ record.site_id }}</td>
-    <td>{{ record.slice_id }}</td>
-    <td>{{ record.server_id }}</td>
-    <td>{{ record.status_ipv4 }}</td>
-    <td>{{ record.status_ipv6 }}</td>
-    <td>{{ record.sliver_ipv4 }}</td>
-    <td>{{ record.sliver_ipv6 }}</td>
-    <td>{{ record.when }}</td>
+    {% for header in headers %}
+        <th>{{ header }}</th>
+    {% endfor %}
     </tr>
-{% endfor %}
-</table>
+    {% for record in records %}
+        <tr>
+          {% for item in record %}
+            <td> {{ item }}</td>
+          {% endfor %}
+        </tr>
+    {% endfor %}
+    </table>
 {% endblock %}

@@ -5,10 +5,10 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
-from mlabns.util import constants
 from mlabns.db import model
-from mlabns.util import util
+from mlabns.util import constants
 from mlabns.util import message
+from mlabns.util import util
 
 import gflags
 import logging
@@ -20,44 +20,90 @@ class AdminHandler(webapp.RequestHandler):
 
     def get(self):
         path = self.request.path.rstrip('/')
-        if not path or path == '/admin' or path == '/admin/map':
+        valid_paths = [
+            '/',
+            '/admin',
+            '/admin/sites',
+            '/admin/sliver_tools',
+            '/admin/map',
+            '/admin/map/ipv4',
+            '/admin/map/ipv4/all',
+            '/admin/map/ipv4/glasnost',
+            '/admin/map/ipv4/neubot',
+            '/admin/map/ipv4/ndt',
+            '/admin/map/ipv4/npad',
+            '/admin/map/ipv6',
+            '/admin/map/ipv6/all',
+            '/admin/map/ipv4/glasnost',
+            '/admin/map/ipv6/neubot',
+            '/admin/map/ipv6/ndt',
+            '/admin/map/ipv6/npad' ]
+
+        if path not in valid_paths:
+            return util.send_not_found(self)
+
+        # http://mlab-ns.appspot.com/admin/sites
+        if path == '/admin/sites':
+            return self.site_view()
+
+        # http://mlab-ns.appspot.com/admin/sliver_tools
+        if path =='/admin/sliver_tools':
+            return self.sliver_tool_view()
+
+        # http://mlab-ns.appspot.com/admin
+        # http://mlab-ns.appspot.com/admin/map
+        if not path or path == '/admin/map':
             return self.redirect('/admin/map/ipv4/all')
+
+        # http://mlab-ns.appspot.com/admin/map/ipv4
+        if path == '/admin/map/ipv4':
+            return self.redirect('/admin/map/ipv4/all')
+
+        # http://mlab-ns.appspot.com/admin/map/ipv6
+        if path == '/admin/map/ipv6':
+            return self.redirect('/admin/map/ipv6/all')
 
         parts = self.request.path.strip('/').split('/')
 
-        # http://mlabns.appspot.com/admin/sites
-        if 'sites' in parts:
-            return self.site_view()
-
-        # http://mlabns.appspot.com/admin/sliver_tools
-        if 'sliver_tools' in parts:
-            return self.sliver_tool_view()
-
-        # http://mlabns.appspot.com/admin/cache?tool=tool_id
-        # TODO (claudiu) This is for debug only.
-        if 'cache' in parts:
-            return self.cache_view()
-
-        # http://mlabns.appspot.com/admin/map/*
+        # http://mlab-ns.appspot.com/admin/map/ipv4/[ndt|npad|neubot|glasnost]
+        # http://mlab-ns.appspot.com/admin/map/ipv6/[ndt|npad|neubot|glasnost]
         if 'map' in parts:
             tool_id = parts[len(parts) - 1]
-            view_status = 'ipv4'
+            address_family = 'ipv4'
             if 'ipv6' in parts:
-                view_status = 'ipv6'
-            return self.map_view(tool_id, view_status)
+                address_family = 'ipv6'
+            return self.map_view(tool_id, address_family)
 
-        return util.send_not_found(self)
+        return self.redirect('/admin/map/ipv4/all')
 
     def sliver_tool_view(self):
-        records = model.SliverTool.gql("ORDER BY tool_id DESC")
-        values = {'records' : records}
-        self.response.out.write(
-            template.render('mlabns/templates/sliver_tool.html', values))
+        headers = [
+            'Tool',
+            'Site',
+            'Slice',
+            'Server',
+            'Status IPv4',
+            'Status IPv6',
+            'Sliver IPv4',
+            'Sliver IPv6',
+            'When']
 
-    def cache_view(self):
-        tool_id = self.request.get(message.TOOL_ID)
-        records = memcache.get(tool_id).values()
-        values = {'records' : records}
+        sliver_tools = model.SliverTool.gql('ORDER BY tool_id DESC')
+        records = []
+        for sliver_tool in sliver_tools:
+            sliver_tool_info = [
+                sliver_tool.tool_id,
+                sliver_tool.site_id,
+                sliver_tool.slice_id,
+                sliver_tool.server_id,
+                sliver_tool.status_ipv4,
+                sliver_tool.status_ipv6,
+                sliver_tool.sliver_ipv4,
+                sliver_tool.sliver_ipv6,
+                sliver_tool.when ]
+            records.append(sliver_tool_info)
+
+        values = {'records' : records, 'headers': headers}
         self.response.out.write(
             template.render('mlabns/templates/sliver_tool.html', values))
 
@@ -71,12 +117,24 @@ class AdminHandler(webapp.RequestHandler):
             'Metro',
             'When']
 
-        records = model.Site.gql('ORDER BY site_id DESC')
+        sites = model.Site.gql('ORDER BY site_id DESC')
+        records = []
+        for site in sites:
+            site_info = [
+                site.site_id,
+                site.city,
+                site.country,
+                site.latitude,
+                site.longitude,
+                site.metro,
+                site.when ]
+            records.append(site_info)
+
         values = {'records' : records, 'headers': headers}
         self.response.out.write(
             template.render('mlabns/templates/site.html', values))
 
-    def map_view(self, tool_id, view_status):
+    def map_view(self, tool_id, address_family):
         sliver_tools = None
 
         if tool_id == 'all':
@@ -94,14 +152,14 @@ class AdminHandler(webapp.RequestHandler):
         if not sliver_tools:
             return util.send_not_found(self)
 
-        data = self.get_sites_info(sliver_tools, view_status)
+        data = self.get_sites_info(sliver_tools, address_family)
         json_data = simplejson.dumps(data)
         file_name = '' . join([
-            'mlabns/templates/', tool_id, '_map_view_', view_status, '.html'])
+            'mlabns/templates/',tool_id,'_map_view_',address_family,'.html'])
         self.response.out.write(
             template.render(file_name, {'cities' : json_data}))
 
-    def get_sites_info(self, sliver_tools, view_status):
+    def get_sites_info(self, sliver_tools, address_family):
         sites = model.Site.gql('ORDER BY site_id DESC')
         site_dict = {}
         sites_per_city = {}
@@ -122,7 +180,7 @@ class AdminHandler(webapp.RequestHandler):
             sliver_tool_info['slice_id'] = sliver_tool.slice_id
             sliver_tool_info['tool_id'] = sliver_tool.tool_id
             sliver_tool_info['server_id'] = sliver_tool.server_id
-            if view_status == 'ipv4':
+            if address_family == 'ipv4':
                 sliver_tool_info['status'] = sliver_tool.status_ipv4
             else:
                 sliver_tool_info['status'] = sliver_tool.status_ipv6

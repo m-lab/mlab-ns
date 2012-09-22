@@ -19,13 +19,9 @@
     </tr>
     {% for record in records %}
         <tr>
-        <td>{{ record.site_id }}</td>
-        <td>{{ record.city }}</td>
-        <td>{{ record.country }}</td>
-        <td>{{ record.latitude }}</td>
-        <td>{{ record.longitude }}</td>
-        <td>{{ record.metro }}</td>
-        <td>{{ record.when }}</td>
+          {% for item in record %}
+            <td> {{ item }}</td>
+          {% endfor %}
         </tr>
     {% endfor %}
     </table>

@@ -16,18 +16,19 @@ class SliverTool(db.Model):
     sliver_ipv6 = db.StringProperty()
     url = db.StringProperty()
 
-    # These can have the following values: online, offline, error.
+    # These can have the following values: online and offline.
     status_ipv4 = db.StringProperty()
     status_ipv6 = db.StringProperty()
 
     update_request_timestamp = db.IntegerProperty(default=0)
 
-    # To avoid an additional lookup in the datastore,
+    # To avoid an additional lookup in the datastore
+    # when replying to a user lookup request,
     # we keep also the geographical coordinates of the site.
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
 
-    # Date representing the last modification time.
+    # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
 
 class Site(db.Model):
@@ -41,15 +42,18 @@ class Site(db.Model):
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
 
-    # List of 'group' identifiers (e.g., [ath, ath01]). It allows to
-    # select a server from a specific subset of sites.
+    # List of 'group' identifiers (sites and metros, e.g., [ath, ath01]).
+    # It allows to select a server from a specific subset of sites.
+    # For instance, a request for http://mlabns.appspot.com/npad?metro=ath
+    # will only consider sliver tools from the 'ath' sites (
+    # currently ath01 and ath02).
     metro = db.StringListProperty(default=None)
 
     # Date representing the registration time (the first time a new site
     # is added to mlab-ns).
     timestamp = db.IntegerProperty(default=0)
 
-    # Date representing the last modification time.
+    # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
 
 class Lookup(db.Model):
