@@ -162,10 +162,6 @@ def get_country_geolocation(country):
         geo_record.country = location.alpha2_code
         geo_record.latitude = location.latitude
         geo_record.longitude = location.longitude
-
-    logging.info(
-        'Country: %s, Latitude :%s, Longitude: %s',
-        location.alpha2_code, location.latitude, location.longitude)
     return geo_record
 
 def get_city_geolocation(city, country):
@@ -196,9 +192,5 @@ def get_city_geolocation(city, country):
     geo_record.latitude = location.latitude
     geo_record.longitude = location.longitude
 
-    logging.info(
-        'City : %s, Country: %s, Latitude :%s, Longitude: %s',
-        location.city, location.country,
-        location.latitude, location.longitude)
     return geo_record
 

@@ -22,8 +22,14 @@ class LookupHandler(webapp.RequestHandler):
         return util.send_not_found(self)
 
     def get(self):
-        """Handles an HTTP GET request."""
+        """Handles an HTTP GET request.
 
+        The URL must be in the following format:
+        'http://mlab-ns.appspot.com/tool-name?query_string',
+        where tool-name is one of the tools running on M-Lab.
+        For more information about the URL and the supported arguments
+        in the query string, see the design doc at http://goo.gl/48S22.
+        """
         query = resolver.LookupQuery()
         query.initialize_from_http_request(self.request)
         sliver_tool = None
@@ -42,6 +48,14 @@ class LookupHandler(webapp.RequestHandler):
             self.send_redirect_response(sliver_tool, query)
 
     def send_json_response(self, sliver_tool, query):
+        """Sends the response to the lookup request in json format.
+
+        Args:
+            sliver_tool: A SliverTool instance, representing the best sliver
+                tool selected for this lookup request.
+            query: A LookupQuery instance representing the user lookup request.
+
+        """
         if sliver_tool is None:
             return util.send_not_found(self, 'json')
         data = {}
@@ -78,6 +92,14 @@ class LookupHandler(webapp.RequestHandler):
         self.response.out.write(json_data)
 
     def send_html_response(self, sliver_tool, query):
+        """Sends the response to the lookup request in html format.
+
+        Args:
+            sliver_tool: A SliverTool instance, representing the best sliver
+                tool selected for this lookup request.
+            query: A LookupQuery instance representing the user lookup request.
+
+        """
         if sliver_tool is None:
             return util.send_not_found(self, 'html')
         records = []
@@ -89,8 +111,15 @@ class LookupHandler(webapp.RequestHandler):
                 'mlabns/templates/lookup_response.html', values))
 
     def send_redirect_response(self, sliver_tool, query):
-        logging.info(
-            'fqdn: %s, port: %s', sliver_tool.fqdn_ipv4, sliver_tool.http_port)
+        """Sends an HTTP redirect (for web-based tools only).
+
+        Args:
+            sliver_tool: A SliverTool instance, representing the best sliver
+                tool selected for this lookup request.
+            query: A LookupQuery instance representing the user lookup request.
+
+        """
+
         if sliver_tool is None:
             return util.send_not_found(self, 'html')
         if sliver_tool.http_port != 'off':
@@ -101,7 +130,7 @@ class LookupHandler(webapp.RequestHandler):
         return self.send_json_response(sliver_tool, query)
 
     def log_request(self,  query, sliver_tool):
-        """Logs the request.
+        """Logs the request. Each entry in the log is uploaded to BigQuery.
 
         Args:
             query: A LookupQuery instance.
@@ -130,6 +159,8 @@ class LookupHandler(webapp.RequestHandler):
             ip = sliver_tool.sliver_ipv6
             fqdn = sliver_tool.fqdn_ipv6
 
+        # TODO(claudiu) This might change based on the privacy doc
+        # (see http://goo.gl/KYPQW).
         logging.debug(
             '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
             '[lookup]',

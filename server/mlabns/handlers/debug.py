@@ -25,6 +25,17 @@ class DebugHandler(webapp.RequestHandler):
         Returns the server where the user would be redirected
         if a lookup request was made from this IP address.
         """
+
+        path = self.request.path.rstrip('/')
+        valid_paths = [
+            '/geo/glasnost',
+            '/geo/neubot',
+            '/geo/ndt',
+            '/geo/npad' ]
+
+        if path not in valid_paths:
+            return util.send_not_found(self)
+
         parts = self.request.path.strip('/').split('/')
         lookup_query = resolver.LookupQuery()
 
@@ -54,7 +65,14 @@ class DebugHandler(webapp.RequestHandler):
         return self.send_map_view(destination, lookup_query, sites)
 
     def send_map_view(self, sliver_tool, lookup_query, sites):
-        # Destination site.
+        """Displays the map with the user location and the destination site.
+
+        Args:
+            sliver_tool: A SliverTool instance. Details about the sliver tool
+                are displayed in an info window associated to the site marker.
+            lookup_query: A LookupQuery instance.
+            site: A Site instance, used to draw a marker on the map.
+        """
         site = model.Site.get_by_key_name(sliver_tool.site_id)
         if site is None:
             return self.send_html_view(sliver_tool)
