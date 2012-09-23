@@ -9,14 +9,19 @@ import urllib2
 
 from mlabns.db import model
 from mlabns.util import constants
-from mlabns.util import message
-from mlabns.util import update_message
 from mlabns.util import util
 
 class NagiosUpdateHandler(webapp.RequestHandler):
     """Handles SliverTools updates."""
 
     def get(self):
+        """Triggers the update handler.
+
+        Updates sliver status with information from nagios. The nagios url
+        containing the information is stored in the Nagios db along with
+        the credentials necessary to access the data.
+
+        """
         nagios = model.Nagios.get_by_key_name('default')
         mlab_slices = model.Slice.gql(
             'ORDER by slice_id DESC').fetch(constants.MAX_FETCHED_RESULTS)
@@ -34,16 +39,28 @@ class NagiosUpdateHandler(webapp.RequestHandler):
                 self.update_sliver_tools_status_ipv4(
                     fqdn, slice_status[server_fqdn])
 
-    def update_sliver_tools_status_ipv4(self, fqdn, status):
-        logging.info('Updating %s to %s', fqdn, status)
+    def update_sliver_tools_status_ipv4(self, fqdn_ipv4, status):
+        """Updates the sliver tools identified by fqdn_ipv4.
+
+        Note that the fqdn alone does not necessarily identifies only
+        one sliver tool, since multiple tools might run on the same
+        sliver.
+
+        Args:
+            fqdn_ipv4: A string representing the fqdn that resolves
+                to an IPv4 address.
+            status: A string describing the status: 'online' or 'offline'.
+
+        """
+        logging.info('Updating %s to %s', fqdn_ipv4, status)
         sliver_tools = model.SliverTool.gql(
-            'WHERE fqdn_ipv4 = :fqdn',
-            fqdn=fqdn).fetch(constants.MAX_FETCHED_RESULTS)
+            'WHERE fqdn_ipv4 = :fqdn_ipv4',
+            fqdn_ipv4=fqdn_ipv4).fetch(constants.MAX_FETCHED_RESULTS)
 
         logging.info('Returned %s records', len(sliver_tools))
 
         for sliver_tool in sliver_tools:
-            logging.info('%s status is %s', fqdn, status)
+            logging.info('%s status is %s', fqdn_ipv4, status)
             sliver_tool.status_ipv4 = status
             sliver_tool.update_request_timestamp = long(time.time())
              # Write changes to db.
@@ -55,16 +72,28 @@ class NagiosUpdateHandler(webapp.RequestHandler):
             self.update_memcache(sliver_tool)
 
 
-    def update_sliver_tools_status_ipv6(self, fqdn, status):
-        logging.info('Updating %s to %s', fqdn, status)
+    def update_sliver_tools_status_ipv6(self, fqdn_ipv6, status):
+        """Updates the sliver tools identified by fqdn_ipv6.
+
+        Note that the fqdn alone does not necessarily identifies only
+        one sliver tool, since multiple tools might run on the same
+        sliver.
+
+        Args:
+            fqdn_ipv6: A string representing the fqdn that resolves
+                to an IPv6 address.
+            status: A string describing the status: 'online' or 'offline'.
+
+        """
+        logging.info('Updating %s to %s', fqdn_ipv6, status)
         sliver_tools = model.SliverTool.gql(
-            'WHERE fqdn_ipv6 = :fqdn',
-            fqdn=fqdn).fetch(constants.MAX_FETCHED_RESULTS)
+            'WHERE fqdn_ipv6 = :fqdn_ipv6',
+            fqdn_ipv6=fqdn_ipv6).fetch(constants.MAX_FETCHED_RESULTS)
 
         logging.info('Returned %s records', len(sliver_tools))
 
         for sliver_tool in sliver_tools:
-            logging.info('%s status is %s', fqdn, status)
+            logging.info('%s status is %s', fqdn_ipv6, status)
             sliver_tool.status_ipv6 = status
             sliver_tool.update_request_timestamp = long(time.time())
              # Write changes to db.
@@ -76,6 +105,15 @@ class NagiosUpdateHandler(webapp.RequestHandler):
             self.update_memcache(sliver_tool)
 
     def update_memcache(self, sliver_tool):
+        """Adds this sliver tool to the memcache.
+
+        For each tool, there is a memcache entry containing a dict with
+        all the sliver tools. Each entry in the dict is a pair of the type
+        (key = sliver_tool_id, value = SliverTool instance).
+
+        Args:
+            sliver_tool: A SliverTool instance to be added to the memcache.
+        """
         sliver_tool_id = model.get_sliver_tool_id(
             sliver_tool.tool_id,
             sliver_tool.slice_id,
@@ -122,83 +160,3 @@ class NagiosUpdateHandler(webapp.RequestHandler):
             logging.error('Cannot connect to nagios monitoring system.')
 
         return status
-
-class UpdateHandler(webapp.RequestHandler):
-    """Handles SliverTools updates."""
-
-    def get(self):
-        # Not implemented.
-        return util.send_not_found(self)
-
-    def post(self):
-        dictionary = {}
-        for argument in self.request.arguments():
-            dictionary[argument] = self.request.get(argument)
-
-        update = update_message.UpdateMessage()
-        try:
-            update.initialize_from_dictionary(dictionary)
-        except message.FormatError, e:
-            logging.error('Format error: %s', e)
-            return util.send_not_found(self)
-
-        sliver_tool_id = model.get_sliver_tool_id(
-            update.tool_id,
-            update.slice_id,
-            update.server_id,
-            update.site_id)
-        sliver_tool = model.SliverTool.get_by_key_name(sliver_tool_id)
-
-        if sliver_tool is None:
-            # TODO(claudiu) Trigger an event/notification.
-            logging.error('Unknown sliver_tool_id %s.', sliver_tool_id)
-            return util.send_not_found(self)
-
-        signature = update.compute_signature(
-            sliver_tool.sliver_tool_key)
-        logging.info('key is %s', sliver_tool.sliver_tool_key)
-        if (signature != self.request.get(message.SIGNATURE)):
-            # TODO(claudiu) Trigger an event/notification.
-            logging.error('Bad signature from %s.', sliver_tool_id)
-            return util.send_not_found(self)
-
-        # Prevent reply attacks.
-        if (update.timestamp <= sliver_tool.update_request_timestamp):
-            logging.error(
-                'Timestamp in update %s is older than value in db (%s).',
-                sliver_tool_id, sliver_tool.update_request_timestamp)
-            return util.send_not_found(self)
-
-        # TODO(claudiu) Monitor and log changes in the parameters.
-        # TODO(claudiu) Trigger an event or notification.
-        sliver_tool.status = update.status
-        if update.sliver_ipv4:
-            logging.info(
-                "Changing IPv4 address from %s to %s.",
-                sliver_tool.sliver_ipv4, update.sliver_ipv4)
-            sliver_tool.sliver_ipv4 = update.sliver_ipv4
-        if update.sliver_ipv6:
-            logging.info(
-                "Changing IPv6 address from %s to %s.",
-                sliver_tool.sliver_ipv6, update.sliver_ipv6)
-            sliver_tool.sliver_ipv6 = update.sliver_ipv6
-        sliver_tool.url = update.url
-        sliver_tool.update_request_timestamp = long(time.time())
-
-        # Write changes to db.
-        try:
-            sliver_tool.put()
-        except TransactionFailedError:
-            # TODO(claudiu) Trigger an event/notification.
-            logging.error('Failed to write changes to db.')
-
-        # Update the memcache.
-        sliver_tools = memcache.get(sliver_tool.tool_id)
-        if sliver_tools is None:
-            sliver_tools = {}
-
-        sliver_tools[sliver_tool_id] = sliver_tool
-        if not memcache.set(sliver_tool.tool_id, sliver_tools):
-            logging.error('Memcache set failed')
-
-        return util.send_success(self)

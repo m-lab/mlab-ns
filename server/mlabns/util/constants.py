@@ -1,30 +1,17 @@
-EPSILON = 1.005
-
 # Maximum period in seconds between two consecutive updates.
 # If there is no liveness check during this interval, the sliver
 # won't be considered in the server selection.
-# TODO(claudiu) This is only for debug. The true value should
-# probably be no more than one hour.
-MAX_FETCHED_RESULTS = 500
+# This value should be always a couple of minutes greater than the interval
+# used to check for updates from nagios. See the configuration of the
+# '/cron/check_status' job in cron.yaml.
 
-METRO           = 'metro'
-POLICY_METRO    = 'metro'
-STATUS_ERROR    = 'error'
-STATUS_OFFLINE  = 'offline'
-STATUS_ONLINE   = 'online'
-STATUS_REGISTERED = 'init'
-SUCCESS         = 'SUCCESS'
-TIMESTAMP       = 'timestamp'
-TOOL_ID         = 'tool_id'
+# UPDATE_INTERVAL = 15 * 60
+
+# This value should be used only for testing.
 UPDATE_INTERVAL = 3600 * 24 * 60
-
-# 10 minutes.
-# UPDATE_INTERVAL = 10 * 60
-URL             = 'url'
-USER_CITY       = 'user_city'
-USER_COUNTRY    = 'user_country'
-USER_IP         = 'user_ip'
-USER_LAT_LONG   = 'user_lat_long'
 
 # Earth radius in km.
 EARTH_RADIUS    = 6371
+
+# Maximum number of entities fetched from datastore in a single query.
+MAX_FETCHED_RESULTS = 500

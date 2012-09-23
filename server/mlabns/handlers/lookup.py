@@ -64,7 +64,7 @@ class LookupHandler(webapp.RequestHandler):
         if sites is None:
             sites = {}
             entities = model.Site.gql('ORDER by site_id DESC').fetch(
-                    constants.MAX_FETCHED_RESULTS)
+                constants.MAX_FETCHED_RESULTS)
             for entity in entities:
                 sites[entity.site_id] = entity
             memcache.set('sites', sites)

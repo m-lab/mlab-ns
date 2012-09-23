@@ -169,7 +169,7 @@ class AdminHandler(webapp.RequestHandler):
             template.render(file_name, {'cities' : json_data}))
 
     def get_sites_info(self, sliver_tools, address_family):
-       """Returns info about the sites.
+        """Returns info about the sites.
 
         This data is used to build the markers on the map. In particular,
         there is a marker for each city and an info window that pops up
@@ -192,7 +192,6 @@ class AdminHandler(webapp.RequestHandler):
             update.
 
         """
-
         sites = model.Site.gql('ORDER BY site_id DESC')
         site_dict = {}
         sites_per_city = {}
