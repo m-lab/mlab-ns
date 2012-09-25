@@ -18,7 +18,7 @@ from os import path
 from mlabns.util import message
 from mlabns.util import registration_message
 
-ENCRYPTION_KEY = 'BiQajLAKtCF2RIyu'
+ENCRYPTION_KEY = None
 LOCAL_URL = 'http://localhost:8080/register'
 REMOTE_URL = 'http://mlab-ns.appspot.com/register'
 
@@ -32,7 +32,6 @@ class RegistrationClient:
         self.registrations = []
 
     def read_configuration(self,config_file):
-
         """Sends SliverTools and sites registrations.
 
         The config parameters are specified in the ConfigParser format.
@@ -94,6 +93,15 @@ class RegistrationClient:
         return True
 
     def get_site_registration(self, dictionary):
+        """Inizialize a SiteRegistrationMessage from a dict.
+
+        Args:
+            dictionary: A dict containing site configuration.
+
+        Returns:
+            A SiteRegistrationMessage instance.
+
+        """
         registration = registration_message.SiteRegistrationMessage()
         try:
             registration.initialize_from_dictionary(dictionary)
@@ -103,6 +111,14 @@ class RegistrationClient:
         return registration
 
     def get_sliver_tool_registration(self, dictionary):
+        """Inizialize a SliverToolRegistrationMessage from a dict.
+
+        Args:
+            dictionary: A dict containing sliver tool configuration.
+
+        Returns:
+            A SliverToolRegistrationMessage instance.
+        """
         registration = registration_message.SliverToolRegistrationMessage()
         try:
             registration.initialize_from_dictionary(dictionary)
