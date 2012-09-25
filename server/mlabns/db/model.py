@@ -9,7 +9,11 @@ class SliverTool(db.Model):
     site_id = db.StringProperty()
     server_id = db.StringProperty()
     server_port = db.StringProperty()
+
+    # For web-based tools, this is used to build the URL the client is
+    # redirected to: http://fqdn[ipv4|ipv6]:http_port
     http_port = db.StringProperty()
+
     fqdn_ipv4 = db.StringProperty()
     fqdn_ipv6 = db.StringProperty()
     sliver_ipv4 = db.StringProperty()
@@ -42,7 +46,7 @@ class Site(db.Model):
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
 
-    # List of 'group' identifiers (sites and metros, e.g., [ath, ath01]).
+    # List of sites and metros, e.g., [ath, ath01].
     # It allows to select a server from a specific subset of sites.
     # For instance, a request for http://mlabns.appspot.com/npad?metro=ath
     # will only consider sliver tools from the 'ath' sites (
@@ -51,7 +55,7 @@ class Site(db.Model):
 
     # Date representing the registration time (the first time a new site
     # is added to mlab-ns).
-    timestamp = db.IntegerProperty(default=0)
+    registration_timestamp = db.IntegerProperty(default=0)
 
     # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
@@ -106,7 +110,11 @@ class CountryCode(db.Model):
     when = db.DateTimeProperty(auto_now=True)
 
 class EncryptionKey(db.Model):
+    """Key used to encrypt the communication with the RegistrationClient."""
+    # Name of the key (by default is 'admin').
     key_id = db.StringProperty()
+
+    # 16 bytes encryption key (AES).
     encryption_key = db.StringProperty()
 
 class Slice(db.Model):

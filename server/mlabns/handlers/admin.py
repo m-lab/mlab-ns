@@ -21,7 +21,7 @@ class AdminHandler(webapp.RequestHandler):
     def get(self):
         path = self.request.path.rstrip('/')
         valid_paths = [
-            '/',
+            '',
             '/admin',
             '/admin/sites',
             '/admin/sliver_tools',
@@ -52,7 +52,7 @@ class AdminHandler(webapp.RequestHandler):
 
         # http://mlab-ns.appspot.com/admin
         # http://mlab-ns.appspot.com/admin/map
-        if not path or path == '/admin/map':
+        if path == '/admin' or path == '/admin/map':
             return self.redirect('/admin/map/ipv4/all')
 
         # http://mlab-ns.appspot.com/admin/map/ipv4
@@ -67,10 +67,10 @@ class AdminHandler(webapp.RequestHandler):
 
         # http://mlab-ns.appspot.com/admin/map/ipv4/[ndt|npad|neubot|glasnost]
         # http://mlab-ns.appspot.com/admin/map/ipv6/[ndt|npad|neubot|glasnost]
-        if 'map' in parts:
+        if len(parts) > 2 and parts[1] == 'map':
             tool_id = parts[len(parts) - 1]
             address_family = 'ipv4'
-            if 'ipv6' in parts:
+            if parts[2] == 'ipv6':
                 address_family = 'ipv6'
             return self.map_view(tool_id, address_family)
 
@@ -140,8 +140,8 @@ class AdminHandler(webapp.RequestHandler):
         """Displays a per tool map with the status of the slivers.
 
         Args:
-            tool_id: A string representing the tool id(e.g., npad, ndt).
-            address_family: A string specifying the address family(ipv4,ipv6).
+            tool_id: A string representing the tool id (e.g., npad, ndt).
+            address_family: A string specifying the address family (ipv4,ipv6).
 
         """
         sliver_tools = None
@@ -177,10 +177,10 @@ class AdminHandler(webapp.RequestHandler):
 
         Args:
             sliver_tools: A list of sliver_tools.
-            address_family: A string specifying the address family(ipv4,ipv6).
+            address_family: A string specifying the address family (ipv4,ipv6).
 
         Returns:
-            A dict of the form (key=city, value=[site_info, site_info, ...],
+            A dict (key=city, value=[site_info, site_info, ...],
             containing for each city the list of the sites deployed in
             that particular city. Each 'site_info' element is a dict
             containing all relevant information about the site:
