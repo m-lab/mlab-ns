@@ -186,9 +186,12 @@ def main():
         url = REMOTE_URL
         logging.debug('URL is %s', url)
 
-    if options.encryption_key:
-        # TODO(claudiu) Trigger an event/notification.
-        encryption_key = options.encryption_key
+    if not options.encryption_key:
+        logging.error('The encryption key is required!')
+        parser.print_help()
+        exit(-1)
+
+    encryption_key = options.encryption_key
 
     config_file = options.filename
     if not path.exists(config_file):

@@ -9,7 +9,7 @@ def send_not_found(request, output_type='html'):
             template.render('mlabns/templates/not_found.html', {}))
     if output_type == 'json':
         data = {}
-        data['error'] = 'Not found'
+        data['status_code'] = '404 Not found'
         json_data = json.dumps(data)
         request.response.headers['Content-Type'] = 'application/json'
         request.response.out.write(json_data)

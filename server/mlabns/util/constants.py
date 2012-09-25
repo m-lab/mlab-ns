@@ -7,7 +7,7 @@
 UPDATE_INTERVAL = 15 * 60
 
 # Earth radius in km.
-EARTH_RADIUS    = 6371
+EARTH_RADIUS = 6371
 
 # Maximum number of entities fetched from datastore in a single query.
 MAX_FETCHED_RESULTS = 500

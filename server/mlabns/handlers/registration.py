@@ -21,51 +21,7 @@ class RegistrationHandler(webapp.RequestHandler):
 
     def get(self):
         """Not implemented."""
-
-        if self.request.path != '/register/sites_from_file':
-            return util.send_not_found(self)
-
-        block_number = self.request.get('block_number')
-
-        prefix = 'mlabns/util/tmp/site_block'
-        filename = '.'.join([prefix, block_number])
-
-        keys = [
-            'location_id',
-            'country',
-            'region',
-            'city',
-            'postal_code',
-            'latitude',
-            'longitude',
-            'metro_code',
-            'area_code'
-        ]
-
-        # Add to db.
-        for line in open(filename, 'r').readlines():
-            values = line.split(',')
-
-            location = dict(zip(keys, values))
-            location['latitude'] = float(location['latitude'])
-            location['longitude'] = float(location['longitude'])
-            location['region'] = location['region'].decode(
-                'utf-8','ignore')
-            location['country'] = location['country'].decode(
-                'utf-8','ignore')
-            location['city'] = location['city'].decode(
-                'utf-8','ignore')
-
-            model.GeoLiteCityLocation(
-                location_id=location['location_id'],
-                country=location['country'],
-                region=location['region'],
-                city=location['city'],
-                latitude=location['latitude'],
-                longitude=location['longitude'],
-                key_name=location['location_id']).put()
-
-        util.send_success(self)
+        return util.send_not_found(self)
 
     def post(self):
         """Handles registrations through HTTP POST requests.
@@ -102,7 +58,7 @@ class RegistrationHandler(webapp.RequestHandler):
         try:
             registration.decrypt_message(dictionary, encryption_key)
         except message.DecryptionError, e:
-            logging.error('Encryption error: %s', e)
+            logging.error('Decryption error: %s', e)
             return util.send_not_found(self)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
@@ -152,7 +108,7 @@ class RegistrationHandler(webapp.RequestHandler):
         try:
             registration.decrypt_message(dictionary, encryption_key)
         except message.DecryptionError, e:
-            logging.error('Encryption error: %s', e)
+            logging.error('Decryption error: %s', e)
         except message.FormatError, e:
             logging.error('Format error: %s', e)
             return util.send_not_found(self)

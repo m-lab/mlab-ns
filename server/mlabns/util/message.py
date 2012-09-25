@@ -38,7 +38,6 @@ REMOTE_ADDRESS  = 'ip'
 RESPONSE_FORMAT = 'format'
 RESPONSE_TYPE   = 'format'
 SERVER_ID       = 'server_id'
-SERVER_ID       = 'server_id'
 SERVER_PORT     = 'server_port'
 SIGNATURE       = 'sign'
 SITE_ID         = 'site_id'
@@ -73,7 +72,7 @@ class Message():
         self.ciphertext = None
         self.padding = '#'
         self.block_size = 32
-        self.inizialization_vector = 'x' * 16
+        self.initialization_vector = 'x' * 16
 
     def add_timestamp(self):
         """Updates the 'timestamp' field with the current time."""
@@ -203,7 +202,7 @@ class Message():
             A string representing the encrypted text.
         """
         key = bytes(secret_key)
-        cipher = AES.new(key, AES.MODE_CBC, self.inizialization_vector)
+        cipher = AES.new(key, AES.MODE_CBC, self.initialization_vector)
         plaintext = self._add_padding(text, block_size, padding)
         return base64.b64encode(cipher.encrypt(plaintext))
 
@@ -221,7 +220,7 @@ class Message():
             A string representing the decrypted ciphertext.
         """
         key = bytes(secret_key)
-        cipher = AES.new(key, AES.MODE_CBC, self.inizialization_vector)
+        cipher = AES.new(key, AES.MODE_CBC, self.initialization_vector)
         return cipher.decrypt(base64.b64decode(ciphertext)).rstrip(padding)
 
     def to_dictionary(self):
