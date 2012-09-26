@@ -92,7 +92,7 @@ class MaxmindCityBlock(db.Model):
     location_id = db.StringProperty()
     when = db.DateTimeProperty(auto_now=True)
 
-class MaxmindCityv6(db.Model):
+class MaxmindCityBlockv6(db.Model):
     start_ip_num = db.IntegerProperty()
     end_ip_num = db.IntegerProperty()
     country = db.StringProperty()

@@ -11,3 +11,8 @@ EARTH_RADIUS = 6371
 
 # Maximum number of entities fetched from datastore in a single query.
 MAX_FETCHED_RESULTS = 500
+
+# Country code representing an unknown country location. This is automatically
+# added in the X-AppEngine-Country header if AppEngine cannot determine the
+# location.
+UNKNOWN_COUNTRY = 'ZZ'

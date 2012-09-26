@@ -119,7 +119,6 @@ class LookupHandler(webapp.RequestHandler):
             query: A LookupQuery instance representing the user lookup request.
 
         """
-
         if sliver_tool is None:
             return util.send_not_found(self, 'html')
         if sliver_tool.http_port != 'off':

@@ -80,7 +80,7 @@ class LookupQuery:
         self.add_maxmind_geolocation()
 
     def initialize_from_http_request(self, request):
-        """Inizializes the lookup parameters from the HTTP request.
+        """Initializes the lookup parameters from the HTTP request.
 
         Args:
             request: An instance of google.appengine.webapp.Request.
@@ -114,7 +114,7 @@ class LookupQuery:
             except socket.error:
                 self.address_family = message.ADDRESS_FAMILY_IPv4
 
-        if self.country:
+        if self.country and self.country != constants.UNKNOWN_COUNTRY:
             self.add_maxmind_geolocation()
         elif message.HEADER_LAT_LONG in request.headers:
             self.add_appengine_geolocation(request)
@@ -143,7 +143,6 @@ class LookupQuery:
 
         Args:
             request: A webapp.Request instance.
-
         """
         if message.HEADER_CITY in request.headers:
             self.city = request.headers[message.HEADER_CITY]
@@ -199,7 +198,6 @@ class GeoResolver:
             A list of SliverTool entities that match the requirements
             specified in the 'lookup_query'.
         """
-
         oldest_timestamp = long(time.time()) - constants.UPDATE_INTERVAL
 
         # First try to get the sliver tools from the cache.
