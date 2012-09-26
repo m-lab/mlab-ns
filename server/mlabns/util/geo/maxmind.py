@@ -136,11 +136,31 @@ def get_ipv6_geolocation(remote_addr):
         otherwise an empty GeoRecord.
     """
     geo_record = GeoRecord()
-    ip_long = ipv6_to_long(remote_addr)
-    if not ip_long:
+    ip_num = ipv6_to_long(remote_addr)
+    if not ip_num:
         return geo_record
 
-    # TODO(claudiu) Add implementation.
+    # We currently keep only /64s in the MaxmindCityBlocksv6 db.
+    ip_num = (ip_num >> 64)
+
+    logging.info('IPv6 num is %s.', ip_num)
+    geo_city_block_v6 = model.MaxmindCityBlockv6.gql(
+        'WHERE start_ip_num <= :ip_num '
+        'ORDER BY start_ip_num DESC',
+        ip_num=ip_num).get()
+
+    if not geo_city_block_v6:
+        logging.error("Ip not found in the database.")
+        return geo_record
+
+    logging.info("Retrieving geolocation info for %s.", remote_addr)
+    geo_record.country = geo_city_block_v6.country
+    geo_record.latitude = geo_city_block_v6.latitude
+    geo_record.longitude = geo_city_block_v6.longitude
+
+    logging.info(
+        'Country: %s, Latitude :%s, Longitude: %s',
+        geo_record.country, geo_record.latitude, geo_record.longitude)
     return geo_record
 
 def get_country_geolocation(country):

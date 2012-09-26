@@ -19,62 +19,30 @@ class AdminHandler(webapp.RequestHandler):
         return util.send_not_found(self)
 
     def get(self):
-        path = self.request.path.rstrip('/')
-        valid_paths = [
-            '',
-            '/admin',
-            '/admin/sites',
-            '/admin/sliver_tools',
-            '/admin/map',
-            '/admin/map/ipv4',
-            '/admin/map/ipv4/all',
-            '/admin/map/ipv4/glasnost',
-            '/admin/map/ipv4/neubot',
-            '/admin/map/ipv4/ndt',
-            '/admin/map/ipv4/npad',
-            '/admin/map/ipv6',
-            '/admin/map/ipv6/all',
-            '/admin/map/ipv4/glasnost',
-            '/admin/map/ipv6/neubot',
-            '/admin/map/ipv6/ndt',
-            '/admin/map/ipv6/npad' ]
+        valid_paths = {
+            '':lambda:self.redirect('/admin/map/ipv4/all'),
+            '/admin':lambda:self.redirect('/admin/map/ipv4/all'),
+            '/admin/sites':lambda:self.site_view(),
+            '/admin/sliver_tools':lambda:self.sliver_tool_view(),
+            '/admin/map':lambda:self.redirect('/admin/map/ipv4/all'),
+            '/admin/map/ipv4':lambda:self.redirect('/admin/map/ipv4/all'),
+            '/admin/map/ipv4/all':lambda:self.map_view('all', 'ipv4'),
+            '/admin/map/ipv4/glasnost':lambda:self.map_view('glasnost', 'ipv4'),
+            '/admin/map/ipv4/neubot':lambda:self.map_view('neubot', 'ipv4'),
+            '/admin/map/ipv4/ndt':lambda:self.map_view('ndt', 'ipv4'),
+            '/admin/map/ipv4/npad':lambda:self.map_view('npad', 'ipv4'),
+            '/admin/map/ipv6':lambda:self.map_view('all', 'ipv6'),
+            '/admin/map/ipv6/all':lambda:self.map_view('all', 'ipv6'),
+            '/admin/map/ipv4/glasnost':lambda:self.map_view('glasnost','ipv6'),
+            '/admin/map/ipv6/neubot':lambda:self.map_view('neubot', 'ipv6'),
+            '/admin/map/ipv6/ndt':lambda:self.map_view('ndt', 'ipv6'),
+            '/admin/map/ipv6/npad':lambda:self.map_view('npad', 'ipv6') }
 
-        if path not in valid_paths:
+        path = self.request.path.rstrip('/')
+        if path not in valid_paths.keys():
             return util.send_not_found(self)
 
-        # http://mlab-ns.appspot.com/admin/sites
-        if path == '/admin/sites':
-            return self.site_view()
-
-        # http://mlab-ns.appspot.com/admin/sliver_tools
-        if path =='/admin/sliver_tools':
-            return self.sliver_tool_view()
-
-        # http://mlab-ns.appspot.com/admin
-        # http://mlab-ns.appspot.com/admin/map
-        if path == '/admin' or path == '/admin/map':
-            return self.redirect('/admin/map/ipv4/all')
-
-        # http://mlab-ns.appspot.com/admin/map/ipv4
-        if path == '/admin/map/ipv4':
-            return self.redirect('/admin/map/ipv4/all')
-
-        # http://mlab-ns.appspot.com/admin/map/ipv6
-        if path == '/admin/map/ipv6':
-            return self.redirect('/admin/map/ipv6/all')
-
-        parts = self.request.path.strip('/').split('/')
-
-        # http://mlab-ns.appspot.com/admin/map/ipv4/[ndt|npad|neubot|glasnost]
-        # http://mlab-ns.appspot.com/admin/map/ipv6/[ndt|npad|neubot|glasnost]
-        if len(parts) > 2 and parts[1] == 'map':
-            tool_id = parts[len(parts) - 1]
-            address_family = 'ipv4'
-            if parts[2] == 'ipv6':
-                address_family = 'ipv6'
-            return self.map_view(tool_id, address_family)
-
-        return self.redirect('/admin/map/ipv4/all')
+        return valid_paths[path]()
 
     def sliver_tool_view(self):
         """Returns an HTML page containing sliver tools information."""
