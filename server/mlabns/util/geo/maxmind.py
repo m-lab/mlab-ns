@@ -14,8 +14,8 @@ class GeoRecord:
     def __init__(self):
         self.city = None
         self.country = None
-        self.latitude = 0.0
-        self.longitude = 0.0
+        self.latitude = None
+        self.longitude = None
 
 def ipv6_to_long(ipv6_address):
     """Converts an IPv6 address to a long.
@@ -26,7 +26,6 @@ def ipv6_to_long(ipv6_address):
     Returns:
         A long obtained by converting the IPv6 address in input to a
         decimal representation, according to Maxmind's specifications.
-
     """
     try:
         int_values = [ int(x,16) for x in ipv6_address.split(':') ]
@@ -50,7 +49,6 @@ def ipv4_to_long(ipv4_address):
     Returns:
         A long obtained by converting the IPv4 address in input to a
         decimal representation, according to Maxmind's specifications.
-
     """
     try:
         int_values = [ int(x) for x in ipv4_address.split('.') ]
@@ -79,7 +77,17 @@ def get_ip_geolocation(remote_addr):
         socket.inet_pton(socket.AF_INET, remote_addr)
         return get_ipv4_geolocation(remote_addr)
     except socket.error:
+        pass
+
+    try:
+        socket.inet_pton(socket.AF_INET6, remote_addr)
         return get_ipv6_geolocation(remote_addr)
+    except socket.error:
+        pass
+
+    # Return an empty GeoRecord.
+    logging.info('Returning empty record')
+    return GeoRecord()
 
 def get_ipv4_geolocation(remote_addr):
     """Returns the geolocation data associated with an IPv4 address.
@@ -103,7 +111,7 @@ def get_ipv4_geolocation(remote_addr):
         ip_num=ip_long).get()
 
     if not geo_city_block:
-        logging.error("Ip not found in the database.")
+        logging.error("IP not found in the database.")
         return geo_record
 
     logging.info("Retrieving geolocation info for %s.", remote_addr)
@@ -150,7 +158,7 @@ def get_ipv6_geolocation(remote_addr):
         ip_num=ip_num).get()
 
     if not geo_city_block_v6:
-        logging.error("Ip not found in the database.")
+        logging.error("IP not found in the database.")
         return geo_record
 
     logging.info("Retrieving geolocation info for %s.", remote_addr)
@@ -195,7 +203,6 @@ def get_city_geolocation(city, country):
         A GeoRecord containing the geolocation data if found,
         otherwise an empty GeoRecord.
     """
-
     geo_record = GeoRecord()
 
     logging.info("Retrieving geolocation info for %s, %s.", city,country)

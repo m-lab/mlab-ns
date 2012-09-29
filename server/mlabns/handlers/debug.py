@@ -37,32 +37,37 @@ class DebugHandler(webapp.RequestHandler):
             return util.send_not_found(self)
 
         parts = self.request.path.strip('/').split('/')
-        lookup_query = resolver.LookupQuery()
+        query = resolver.LookupQuery()
 
         ip_address = self.request.get(message.REMOTE_ADDRESS)
         if ip_address:
             dictionary = {}
             for argument in self.request.arguments():
                 dictionary[argument] = self.request.get(argument)
-            lookup_query.initialize_from_dictionary(dictionary)
+            query.initialize_from_dictionary(dictionary)
         else:
-            lookup_query.initialize_from_http_request(self.request)
+            query.initialize_from_http_request(self.request)
 
-        lookup_query.tool_id = parts[1]
-        geo_resolver = resolver.GeoResolver()
-        destination = geo_resolver.answer_query(lookup_query)
+        query.tool_id = parts[1]
+        debug_resolver = None
+        if query.policy == message.POLICY_METRO:
+            debug_resolver = resolver.MetroResolver()
+        elif query.policy == message.POLICY_GEO:
+            debug_resolver = resolver.GeoResolver()
+        elif query.policy == message.POLICY_RANDOM:
+            debug_resolver = resolver.RandomResolver()
+
+        if debug_resolver is None:
+            return util.send_not_found(self)
+
+        destination = debug_resolver.answer_query(query)
+        candidates = debug_resolver.get_candidates(query)
 
         if destination is None:
             return util.send_not_found(self)
 
-        sliver_tools = geo_resolver.get_sliver_tool_candidates(
-            lookup_query)
-        sites  =[]
-        for sliver_tool in sliver_tools:
-            site = model.Site.get_by_key_name(sliver_tool.site_id)
-            sites.append(site)
-
-        return self.send_map_view(destination, lookup_query, sites)
+        sites = model.Site.all().fetch(constants.MAX_FETCHED_RESULTS)
+        return self.send_map_view(destination, query, sites)
 
     def send_map_view(self, sliver_tool, lookup_query, sites):
         """Displays the map with the user location and the destination site.

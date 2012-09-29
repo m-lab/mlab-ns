@@ -32,11 +32,14 @@ class LookupHandler(webapp.RequestHandler):
         """
         query = resolver.LookupQuery()
         query.initialize_from_http_request(self.request)
+
         sliver_tool = None
         if query.policy == message.POLICY_METRO:
             sliver_tool = resolver.MetroResolver().answer_query(query)
-        else:
+        elif query.policy == message.POLICY_GEO:
             sliver_tool = resolver.GeoResolver().answer_query(query)
+        elif query.policy == message.POLICY_RANDOM:
+            sliver_tool = resolver.RandomResolver().answer_query(query)
 
         self.log_request(query, sliver_tool)
 
@@ -128,7 +131,7 @@ class LookupHandler(webapp.RequestHandler):
 
         return self.send_json_response(sliver_tool, query)
 
-    def log_request(self,  query, sliver_tool):
+    def log_request(self, query, sliver_tool):
         """Logs the request. Each entry in the log is uploaded to BigQuery.
 
         Args:

@@ -37,7 +37,7 @@ class AdminHandler(webapp.RequestHandler):
             '/admin/map/ipv6' : lambda : self.map_view('all', 'ipv6'),
             '/admin/map/ipv6/all' : lambda : self.map_view('all', 'ipv6'),
             '/admin/map/ipv4/glasnost' : lambda : self.map_view(
-                'glasnost','ipv6'),
+                'glasnost','ipv4'),
             '/admin/map/ipv6/neubot' : lambda : self.map_view(
                 'neubot', 'ipv6'),
             '/admin/map/ipv6/ndt' : lambda : self.map_view('ndt', 'ipv6'),
