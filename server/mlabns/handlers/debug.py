@@ -6,9 +6,9 @@ from google.appengine.ext.webapp import template
 
 from mlabns.db import model
 from mlabns.util import constants
-from mlabns.util  import util
 from mlabns.util import message
 from mlabns.util import resolver
+from mlabns.util import util
 
 import logging
 
@@ -26,17 +26,14 @@ class DebugHandler(webapp.RequestHandler):
         if a lookup request was made from this IP address.
         """
 
-        path = self.request.path.rstrip('/')
         valid_paths = [
             '/geo/glasnost',
             '/geo/neubot',
             '/geo/ndt',
             '/geo/npad' ]
-
         if path not in valid_paths:
             return util.send_not_found(self)
 
-        parts = self.request.path.strip('/').split('/')
         query = resolver.LookupQuery()
 
         ip_address = self.request.get(message.REMOTE_ADDRESS)
@@ -48,7 +45,10 @@ class DebugHandler(webapp.RequestHandler):
         else:
             query.initialize_from_http_request(self.request)
 
-        query.tool_id = parts[1]
+        path = self.request.path.rstrip('/')
+        path_parts = self.request.path.strip('/').split('/')
+        query.tool_id = path_parts[1]
+
         debug_resolver = None
         if query.policy == message.POLICY_METRO:
             debug_resolver = resolver.MetroResolver()
@@ -56,50 +56,48 @@ class DebugHandler(webapp.RequestHandler):
             debug_resolver = resolver.GeoResolver()
         elif query.policy == message.POLICY_RANDOM:
             debug_resolver = resolver.RandomResolver()
-
         if debug_resolver is None:
             return util.send_not_found(self)
 
-        destination = debug_resolver.answer_query(query)
-        candidates = debug_resolver.get_candidates(query)
-
-        if destination is None:
+        destination_sliver_tool = debug_resolver.answer_query(query)
+        if destination_sliver_tool is None:
             return util.send_not_found(self)
+        candidate_sites = debug_resolver.get_candidates(query)
 
         sites = model.Site.all().fetch(constants.MAX_FETCHED_RESULTS)
-        return self.send_map_view(destination, query, sites)
+        return self.send_map_view(destination_sliver_tool, query, sites)
 
-    def send_map_view(self, sliver_tool, lookup_query, sites):
+    def send_map_view(self, destination_sliver_tool, lookup_query, sites):
         """Displays the map with the user location and the destination site.
 
         Args:
-            sliver_tool: A SliverTool instance. Details about the sliver tool
-                are displayed in an info window associated to the site marker.
+            destination_sliver_tool: A SliverTool instance. Details about the
+                sliver tool are displayed in an info window associated to the
+                sliver_tool's site marker.
             lookup_query: A LookupQuery instance.
             site: A Site instance, used to draw a marker on the map.
         """
-        site = model.Site.get_by_key_name(sliver_tool.site_id)
-        if site is None:
-            return self.send_html_view(sliver_tool)
+        destination_site = model.Site.get_by_key_name(destination_sliver_tool.site_id)
+        if destination_site is None:
+            return self.send_html_view(destination_sliver_tool)
 
-        destination_site = {}
-        destination_site['site_id'] = site.site_id
-        destination_site['city'] = site.city
-        destination_site['country'] = site.country
-        destination_site['latitude'] = site.latitude
-        destination_site['longitude'] = site.longitude
+        destination_site_dict = {}
+        destination_site_dict['site_id'] = destination_site.site_id
+        destination_site_dict['city'] = destination_site.city
+        destination_site_dict['country'] = destination_site.country
+        destination_site_dict['latitude'] = destination_site.latitude
+        destination_site_dict['longitude'] = destination_site.longitude
         url_info = '';
-        if sliver_tool.http_port != 'off':
+        if destination_sliver_tool.http_port != 'off':
             url = '' .join([
                 'http://', sliver_tool.fqdn_ipv4, ':', sliver_tool.http_port])
             url_info = ''.join([
                 '<a class="footer" href=', url,'>', url,'</a>'])
-
         logging.info('URL: %s', url_info)
-        destination_site['info'] = ''.join([
+        destination_site_dict['info'] = ''.join([
             '<div id=siteShortInfo>',
             '<h2>',
-            site.city, ',', site.country,
+            site.city, ', ', site.country,
             '</h2>',
             url_info,
             '</div>'])
@@ -107,14 +105,15 @@ class DebugHandler(webapp.RequestHandler):
         # Get the list af all other sites.
         site_list = []
         for site in sites:
-            if site.site_id != destination_site['site_id']:
-                record = {}
-                record['site_id'] = site.site_id
-                record['city'] = site.city
-                record['country'] = site.country
-                record['latitude'] = site.latitude
-                record['longitude'] = site.longitude
-                site_list.append(record)
+            if site.site_id == destination_site.site_id:
+                continue
+            site_dict = {}
+            site_dict['site_id'] = site.site_id
+            site_dict['city'] = site.city
+            site_dict['country'] = site.country
+            site_dict['latitude'] = site.latitude
+            site_dict['longitude'] = site.longitude
+            site_list.append(site_dict)
 
         user_info = {}
         user_info['city'] = lookup_query.city
@@ -123,7 +122,7 @@ class DebugHandler(webapp.RequestHandler):
         user_info['longitude'] = lookup_query.longitude
 
         site_list_json = simplejson.dumps(site_list)
-        destination_site_json = simplejson.dumps(destination_site)
+        destination_site_json = simplejson.dumps(destination_site_dict)
         user_info_json = simplejson.dumps(user_info)
 
         self.response.out.write(
