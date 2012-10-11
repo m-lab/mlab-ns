@@ -97,6 +97,14 @@ class Message():
         """
         pass
 
+    def to_dictionary(self):
+        """Creates a dict containing the fields of this Message.
+
+        Returns:
+            A dict containing the fields of this Message.
+        """
+        pass
+
     def compute_signature(self, secret_key):
         """Computes the signature of this Message.
 
@@ -228,11 +236,3 @@ class Message():
         key = bytes(secret_key)
         cipher = AES.new(key, AES.MODE_CBC, self.initialization_vector)
         return cipher.decrypt(base64.b64decode(ciphertext)).rstrip(padding)
-
-    def to_dictionary(self):
-        """Creates a dict containing the fields of this Message.
-
-        Returns:
-            A dict containing the fields of this Message.
-        """
-        pass
