@@ -1,10 +1,11 @@
 from google.appengine.api import memcache
+from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from google.appengine.ext import db
 
 from Crypto.Cipher import DES
 from mlabns.db import model
+from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import registration_message
 from mlabns.util import util
@@ -26,7 +27,7 @@ class RegistrationHandler(webapp.RequestHandler):
     def post(self):
         """Handles registrations through HTTP POST requests.
 
-        Decrypt the request and if valid, add a new record to the
+        Decrypt the request and, if valid, add a new record to the
         corresponding db.
         """
         dictionary = {}
@@ -43,14 +44,15 @@ class RegistrationHandler(webapp.RequestHandler):
 
         logging.error('Unknow entity %s', entity)
         for item in dictionary:
-            logging.info('data[%s] = %s', item, dictionary[item])
+            logging.error('data[%s] = %s', item, dictionary[item])
 
         return util.send_not_found(self)
 
     def register_site(self, dictionary):
-        admin_key = model.EncryptionKey.get_by_key_name('admin')
+        admin_key = model.EncryptionKey.get_by_key_name(
+            constants.REGISTRATION_KEY_ID)
         if not admin_key:
-            logging.error('Admin key not found.')
+            logging.error('Registration key not found.')
             return util.send_not_found(self)
         encryption_key = admin_key.encryption_key
 
@@ -98,9 +100,10 @@ class RegistrationHandler(webapp.RequestHandler):
         return util.send_success(self)
 
     def register_sliver_tool(self, dictionary):
-        admin_key = model.EncryptionKey.get_by_key_name('admin')
+        admin_key = model.EncryptionKey.get_by_key_name(
+            constants.REGISTRATION_KEY_ID)
         if not admin_key:
-            logging.error('Admin key not found.')
+            logging.error('Registration key not found.')
             return util.send_not_found(self)
         encryption_key = admin_key.encryption_key
 
@@ -119,7 +122,7 @@ class RegistrationHandler(webapp.RequestHandler):
             registration.server_id,
             registration.site_id)
 
-        # Add lat/long info from the site db.
+        # Get lat/long info from the site db.
         site = model.Site.get_by_key_name(registration.site_id)
         if not site:
             logging.error(
@@ -136,13 +139,14 @@ class RegistrationHandler(webapp.RequestHandler):
             fqdn_ipv6=registration.fqdn_ipv6,
             server_port=registration.server_port,
             http_port=registration.http_port,
-            sliver_tool_key=registration.sliver_tool_key,
             sliver_ipv4=registration.sliver_ipv4,
             sliver_ipv6=registration.sliver_ipv6,
             status_ipv4=registration.status_ipv4,
             status_ipv6=registration.status_ipv6,
             latitude=site.latitude,
             longitude=site.longitude,
+            city=site.city,
+            country=site.country,
             update_request_timestamp=timestamp,
             key_name=sliver_tool_id)
 

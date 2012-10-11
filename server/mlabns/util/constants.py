@@ -16,3 +16,11 @@ MAX_FETCHED_RESULTS = 500
 # added in the X-AppEngine-Country header if AppEngine cannot determine the
 # location.
 UNKNOWN_COUNTRY = 'ZZ'
+
+# Name of the encryption key used by the RegistrationClient.
+REGISTRATION_KEY_ID = 'admin'
+
+# Geolocation type values.
+GEOLOCATION_APP_ENGINE = 'app_engine'
+GEOLOCATION_MAXMIND = 'maxmind'
+GEOLOCATION_USER_DEFINED = 'user_defined'

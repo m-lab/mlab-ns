@@ -59,7 +59,6 @@ class SliverToolRegistrationMessage(message.Message):
         self.fqdn_ipv6 = None
         self.sliver_ipv4 = None
         self.sliver_ipv6 = None
-        self.sliver_tool_key = None
         self.status_ipv4 = None
         self.status_ipv6 = None
 
@@ -74,7 +73,6 @@ class SliverToolRegistrationMessage(message.Message):
             message.SLICE_ID,
             message.SLIVER_IPv4,
             message.SLIVER_IPv6,
-            message.SLIVER_TOOL_KEY,
             message.STATUS_IPv4,
             message.STATUS_IPv6,
             message.TOOL_ID])
@@ -95,7 +93,6 @@ class SliverToolRegistrationMessage(message.Message):
         self.site_id = dictionary[message.SITE_ID]
         self.sliver_ipv4 = dictionary[message.SLIVER_IPv4]
         self.sliver_ipv6 = dictionary[message.SLIVER_IPv6]
-        self.sliver_tool_key = dictionary[message.SLIVER_TOOL_KEY]
         self.status_ipv4 = dictionary[message.STATUS_IPv4]
         self.status_ipv6 = dictionary[message.STATUS_IPv6]
 
@@ -114,7 +111,6 @@ class SliverToolRegistrationMessage(message.Message):
         dictionary[message.SLICE_ID] = self.slice_id
         dictionary[message.SLIVER_IPv4] = self.sliver_ipv4
         dictionary[message.SLIVER_IPv6] = self.sliver_ipv6
-        dictionary[message.SLIVER_TOOL_KEY] = self.sliver_tool_key
         dictionary[message.STATUS_IPv4] = self.status_ipv4
         dictionary[message.STATUS_IPv6] = self.status_ipv6
         dictionary[message.TIMESTAMP] = self.timestamp

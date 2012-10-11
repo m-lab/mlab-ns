@@ -17,75 +17,16 @@ import time
 class LookupQuery:
     def __init__(self):
         self.tool_id = None
-        self.policy = message.POLICY_GEO
+        self.policy = None
         self.metro = None
         self.ip_address = None
-        self.address_family = message.ADDRESS_FAMILY_IPv4
+        self.address_family = None
         self.city = None
         self.country = None
         self.latitude = None
         self.longitude = None
+        self.geolocation_type = constants.GEOLOCATION_APP_ENGINE
         self.response_format = None
-
-    @property
-    def policy_geo(self):
-        return self.policy == message.POLICY_GEO
-
-    @property
-    def policy_metro(self):
-        return self.policy == message.POLICY_METRO
-
-    @property
-    def has_geolocation(self):
-        return (self.latitude is not None and self.longitude is not None)
-
-    def initialize_from_dictionary(self, dictionary):
-        """Inizializes the lookup parameters from a dictionary.
-
-        Args:
-            dictionary: A dict containing the query configuration.
-        """
-        if message.REMOTE_ADDRESS in dictionary:
-            self.ip_address = dictionary[message.REMOTE_ADDRESS]
-
-        if message.POLICY in dictionary:
-            self.policy = dictionary[message.POLICY]
-
-        if message.RESPONSE_FORMAT in dictionary:
-            self.response_format = dictionary[message.RESPONSE_FORMAT]
-
-        if message.METRO in dictionary:
-            self.metro = dictionary[message.METRO]
-            self.policy = message.POLICY_METRO
-
-        if message.COUNTRY in dictionary:
-            self.country = dictionary[message.COUNTRY]
-
-        if message.CITY in dictionary:
-            self.city = dictionary[message.CITY]
-
-        if message.ADDRESS_FAMILY in dictionary:
-            address_family = dictionary[message.ADDRESS_FAMILY]
-            if (address_family == message.ADDRESS_FAMILY_IPv4 or
-                address_family == message.ADDRESS_FAMILY_IPv6):
-                self.address_family = address_family
-
-        # Default to geo policy.
-        if not self.policy:
-            self.policy = message.POLICY_GEO
-
-        if self.address_family is None:
-            try:
-                socket.inet_pton(socket.AF_INET6, self.ip_address)
-                self.address_family = message.ADDRESS_FAMILY_IPv6
-            except socket.error:
-                self.address_family = message.ADDRESS_FAMILY_IPv4
-
-        self.add_maxmind_geolocation()
-
-        # If there is no geolocation data, set the policy to random.
-        if not self.has_geolocation:
-            self.policy = message.POLICY_RANDOM
 
     def initialize_from_http_request(self, request):
         """Initializes the lookup parameters from the HTTP request.
@@ -96,44 +37,78 @@ class LookupQuery:
         parts = request.path.strip('/').split('/')
         self.tool_id = parts[0]
 
-        self.ip_address = request.remote_addr
-        self.policy = request.get(message.POLICY)
         self.metro = request.get(message.METRO)
         self.response_format = request.get(message.RESPONSE_FORMAT)
+
         self.city = request.get(message.CITY)
         self.country = request.get(message.COUNTRY)
+        if self.country:
+            self.geolocation_type = constants.GEOLOCATION_MAXMIND
 
+        self.latitude = request.get(message.LATITUDE)
+        self.longitude = request.get(message.LONGITUDE)
+        if self.latitude and self.longitude:
+            self.geolocation_type = constants.GEOLOCATION_USER_DEFINED
+
+        self.set_ip_address(request)
+        self.set_address_family(request)
+        self.set_policy(request)
+
+        # Add geolocation only for the 'geo' policy and if
+        # the request didn't specify the 'latitude' and
+        # 'longitude' in the query string.
+        if self.policy == message.POLICY_GEO:
+            self.set_geolocation(request)
+
+    def set_ip_address(self, request):
+        # First check if the request specifies the ip address
+        # as a query string argument, otherwise use the client's
+        # remote address.
+        self.ip_address = request.get(message.REMOTE_ADDRESS)
+        if self.ip_address:
+            self.geolocation_type = constants.GEOLOCATION_MAXMIND
+        else:
+            self.ip_address = request.remote_addr
+
+    def set_address_family(self, request):
         address_family = request.get(message.ADDRESS_FAMILY)
         if (address_family == message.ADDRESS_FAMILY_IPv4 or
             address_family == message.ADDRESS_FAMILY_IPv6):
             self.address_family = address_family
-
-        if self.metro:
-            self.policy = message.POLICY_METRO
-
-        # Default to geo policy.
-        if not self.policy:
-            self.policy = message.POLICY_GEO
-
-        if self.address_family is None:
+        else:
             try:
                 socket.inet_pton(socket.AF_INET6, self.ip_address)
                 self.address_family = message.ADDRESS_FAMILY_IPv6
             except socket.error:
                 self.address_family = message.ADDRESS_FAMILY_IPv4
 
-        if self.country and self.country != constants.UNKNOWN_COUNTRY:
-            self.add_maxmind_geolocation()
-        elif message.HEADER_LAT_LONG in request.headers:
-            self.add_appengine_geolocation(request)
+    def set_policy(self, request):
+        valid_policies = [
+            message.POLICY_METRO,
+            message.POLICY_GEO,
+            message.POLICY_RANDOM,
+            message.POLICY_COUNTRY ]
+        policy = request.get(message.POLICY)
+        if policy in valid_policies:
+            self.policy = policy
+        elif self.metro:
+            self.policy = message.POLICY_METRO
         else:
-            self.add_maxmind_geolocation()
+            # TODO (claudiu) Discuss the default policy.
+            self.policy = message.POLICY_GEO
 
-        # If there is no geolocation data, set the policy to random.
-        if not self.has_geolocation:
-            self.policy = message.POLICY_RANDOM
+    def set_geolocation(self, request):
+        """Adds geolocation information to the LookupQuery.
 
-    def add_maxmind_geolocation(self):
+        Args:
+            request: A webapp.Request instance.
+        """
+        if self.geolocation_type == constants.GEOLOCATION_MAXMIND:
+            self.set_maxmind_geolocation()
+        elif self.geolocation_type == constants.GEOLOCATION_APP_ENGINE:
+            self.set_appengine_geolocation(request)
+
+    def set_maxmind_geolocation(self):
         """Adds geolocation info using the data from MaxMind."""
         if self.country and self.city:
             geo_record = maxmind.get_city_geolocation(
@@ -147,7 +122,7 @@ class LookupQuery:
         self.latitude = geo_record.latitude
         self.longitude = geo_record.longitude
 
-    def add_appengine_geolocation(self, request):
+    def set_appengine_geolocation(self, request):
         """Adds geolocation info using the data provided by AppEngine.
 
         If the geolocation info is not included in the headers, it will
@@ -160,30 +135,17 @@ class LookupQuery:
             self.city = request.headers[message.HEADER_CITY]
         if message.HEADER_COUNTRY in request.headers:
             self.country = request.headers[message.HEADER_COUNTRY]
-        lat_long = request.headers[message.HEADER_LAT_LONG]
-        try:
-            self.latitude, self.longitude = [
-                float(x) for x in lat_long.split(',')]
-        except ValueError:
-            # Log the error and use maxmind.
-            logging.error('Bad geo coordinates %s', lat_long)
-            self.add_maxmind_geolocation(request)
+        if message.HEADER_LAT_LONG in request.headers:
+            lat_long = request.headers[message.HEADER_LAT_LONG]
+            try:
+                self.latitude, self.longitude = [
+                    float(x) for x in lat_long.split(',')]
+            except ValueError:
+                # Log the error and use maxmind.
+                logging.error('Bad geo coordinates %s', lat_long)
+                self.set_maxmind_geolocation(request)
 
-    def is_valid_address_family(self, address_family):
-        """Validates the 'address_family' argument in the query string.
-
-        Args:
-            address_family: A string describing the IP address family.
-                Currently the accepted values are 'ipv4' or 'ipv6'.
-
-        Returns:
-            True if address_family is 'ipv4' or 'ipv6', False otherwise.
-        """
-        return (address_family == message.ADDRESS_FAMILY_IPv4 or
-                address_family == message.ADDRESS_FAMILY_IPv6)
-
-
-class Resolver:
+class ResolverBase:
     """Resolver base class."""
 
     def get_candidates(self, query):
@@ -197,7 +159,7 @@ class Resolver:
             specified in the 'query'.
         """
         if query.address_family == message.ADDRESS_FAMILY_IPv6:
-            return self.get_candidates_ipv6(lookup_query)
+            return self.get_candidates_ipv6(query)
 
         return self.get_candidates_ipv4(query)
 
@@ -270,10 +232,13 @@ class Resolver:
         pass
 
 
-class GeoResolver(Resolver):
+class GeoResolver(ResolverBase):
     """Implements the closest-node policy."""
 
     def answer_query(self, query):
+        # TODO(claudiu) Handle also requests without geolocation(lat/lon)
+        # but that have specified a 'country/city'. Maybe adding the
+        # country to the metro?
         """Selects the geographically closest SliverTool.
 
         Args:
@@ -287,6 +252,10 @@ class GeoResolver(Resolver):
         if not candidates:
             logging.error('No results found for %s.', query.tool_id)
             return None
+
+        if not query.latitude or not query.longitude:
+            # TODO (claudiu) Return not found instead ?
+            return random.choice(candidates)
 
         logging.info('Found %s candidates.', len(candidates))
         min_distance = float('+inf')
@@ -331,7 +300,7 @@ class GeoResolver(Resolver):
 
         return random.choice(best_sliver_tools)
 
-class MetroResolver(Resolver):
+class MetroResolver(ResolverBase):
     """Implements the metro policy."""
 
     def get_candidates_ipv4(self, query):
@@ -399,7 +368,7 @@ class MetroResolver(Resolver):
 
         return random.choice(candidates)
 
-class RandomResolver(Resolver):
+class RandomResolver(ResolverBase):
     """Returns a server chosen randomly."""
 
     def answer_query(self, query):
@@ -417,3 +386,57 @@ class RandomResolver(Resolver):
             return None
 
         return random.choice(candidates)
+
+
+class CountryResolver(ResolverBase):
+    """Returns a server in a specified country."""
+
+    def answer_query(self, query):
+        """Returns a SliverTool in a specified country.
+
+        Args:
+            query: A LookupQuery instance.
+
+        Returns:
+            A SliverTool entity if available, None otherwise.
+        """
+        if not query.country:
+            return None
+
+        candidates = self.get_candidates(query)
+        if not candidates:
+            logging.error('No results found for %s.', query.tool_id)
+            return None
+
+        country_candidates = []
+        for candidate in candidates:
+            if candidate.country == query.country:
+                country_candidates.append(candidate)
+
+        if not country_candidates:
+            return None
+        return random.choice(country_candidates)
+
+class Resolver:
+    def __init__(self, query):
+        self.resolver = None
+        self.query = query
+
+        if query.policy == message.POLICY_GEO:
+            self.resolver =  GeoResolver()
+        elif query.policy == message.POLICY_METRO:
+            self.resolver = MetroResolver()
+        elif query.policy == message.POLICY_RANDOM:
+            self.resolver = RandomResolver()
+        elif query.policy == message.POLICY_COUNTRY:
+            self.resolver = CountryResolver()
+
+    def answer_query(self):
+        if self.resolver:
+            return self.resolver.answer_query(self.query)
+        return None
+
+    def get_candidates(self):
+        if self.resolver:
+            return self.resolver.get_candidates(self.query)
+        return None

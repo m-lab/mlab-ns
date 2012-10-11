@@ -12,9 +12,6 @@ handlers:
 - url: /stylesheets
   static_dir: mlabns/stylesheets
 
-- url: /bootstrap
-  static_dir: bootstrap
-
 - url: /favicon.ico
   static_files: mlabns/images/favicon.ico
   upload: mlabns/images/favicon.ico
@@ -22,13 +19,6 @@ handlers:
 - url: /(admin|map).*
   script: main.app
   #login: required
-
-- url: /static
-  static_dir: shell/static
-
-- url: /shell.*
-  script: shell.shell.application
-  login: admin
 
 - url: /oauth2callback
   script: oauth2client/appengine.py

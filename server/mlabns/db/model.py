@@ -18,7 +18,6 @@ class SliverTool(db.Model):
     fqdn_ipv6 = db.StringProperty()
     sliver_ipv4 = db.StringProperty()
     sliver_ipv6 = db.StringProperty()
-    url = db.StringProperty()
 
     # These can have the following values: online and offline.
     status_ipv4 = db.StringProperty()
@@ -31,6 +30,8 @@ class SliverTool(db.Model):
     # we keep also the geographical coordinates of the site.
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
+    city = db.StringProperty()
+    country = db.StringProperty()
 
     # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
@@ -38,7 +39,6 @@ class SliverTool(db.Model):
 class Site(db.Model):
     site_id = db.StringProperty()
     city = db.StringProperty()
-    region = db.StringProperty()
     country = db.StringProperty()
 
     # Latitude/longitude of the airport that uniquely identifies
