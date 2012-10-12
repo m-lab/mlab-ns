@@ -36,11 +36,19 @@ class RegistrationHandler(webapp.RequestHandler):
             logging.info('data[%s] = %s',
                 argument, dictionary[argument])
 
+        key_entry = model.EncryptionKey.get_by_key_name(
+            constants.REGISTRATION_KEY_ID)
+        if not key_entry:
+            logging.error('Registration key not found.')
+            return util.send_not_found(self)
+
         entity = self.request.get(message.ENTITY)
         if entity == message.ENTITY_SITE:
-            return self.register_site(dictionary)
+            return self.register_site(
+                dictionary, key_entry.encryption_key)
         if entity == message.ENTITY_SLIVER_TOOL:
-            return self.register_sliver_tool(dictionary)
+            return self.register_sliver_tool(
+                dictionary, key_entry.encryption_key)
 
         logging.error('Unknow entity %s', entity)
         for item in dictionary:
@@ -48,14 +56,7 @@ class RegistrationHandler(webapp.RequestHandler):
 
         return util.send_not_found(self)
 
-    def register_site(self, dictionary):
-        admin_key = model.EncryptionKey.get_by_key_name(
-            constants.REGISTRATION_KEY_ID)
-        if not admin_key:
-            logging.error('Registration key not found.')
-            return util.send_not_found(self)
-        encryption_key = admin_key.encryption_key
-
+    def register_site(self, dictionary, encryption_key):
         registration = registration_message.SiteRegistrationMessage()
         try:
             registration.decrypt_message(dictionary, encryption_key)
@@ -79,6 +80,7 @@ class RegistrationHandler(webapp.RequestHandler):
             latitude=lat,
             longitude=lon,
             metro=registration.metro.split(','),
+            registration_timestamp=long(time.time()),
             key_name=registration.site_id)
 
         try:
@@ -99,14 +101,7 @@ class RegistrationHandler(webapp.RequestHandler):
 
         return util.send_success(self)
 
-    def register_sliver_tool(self, dictionary):
-        admin_key = model.EncryptionKey.get_by_key_name(
-            constants.REGISTRATION_KEY_ID)
-        if not admin_key:
-            logging.error('Registration key not found.')
-            return util.send_not_found(self)
-        encryption_key = admin_key.encryption_key
-
+    def register_sliver_tool(self, dictionary, encryption_key):
         registration = registration_message.SliverToolRegistrationMessage()
         try:
             registration.decrypt_message(dictionary, encryption_key)

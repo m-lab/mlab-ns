@@ -50,14 +50,11 @@ SITE_ID         = 'site_id'
 SLICE_ID        = 'slice_id'
 SLIVER_IPv4     = 'sliver_ipv4'
 SLIVER_IPv6     = 'sliver_ipv6'
-SLIVER_TOOL_KEY = 'sliver_tool_key'
 STATUS          = 'status'
-STATUS_ERROR    = 'error'
 STATUS_IPv4     = 'status_ipv4'
 STATUS_IPv6     = 'status_ipv6'
 STATUS_OFFLINE  = 'offline'
 STATUS_ONLINE   = 'online'
-STATUS_REGISTERED = 'init'
 TIMESTAMP       = 'timestamp'
 TOOL_ID         = 'tool_id'
 TOOL_NAME       = 'tool'
@@ -161,7 +158,7 @@ class Message():
         if CIPHERTEXT not in data:
             raise DecryptionError('Missing encrypted payload.')
 
-        # Remove default unicode encoding.
+        # Datastore stores strings as unicode.
         key = bytes(secret_key)
 
         digest = hmac.new(

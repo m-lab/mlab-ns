@@ -53,6 +53,7 @@ class SliverToolRegistrationMessage(message.Message):
         self.tool_id = None
         self.slice_id = None
         self.server_id = None
+        self.site_id = None
         self.server_port = None
         self.http_port = None
         self.fqdn_ipv4 = None

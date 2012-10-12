@@ -1,14 +1,16 @@
-import webapp2
-import csv
-import time
-import httplib2
+# TODO(claudiu) Update this with the latest online version
+# http://code.google.com/p/log2bq/.
 import StringIO
-import os
-import logging
+import csv
+import httplib2
 import json
+import logging
+import os
+import time
+import webapp2
 
-from google.appengine.api import logservice
 from google.appengine.api import files
+from google.appengine.api import logservice
 from google.appengine.ext.webapp import template
 
 from apiclient.discovery import build
@@ -57,7 +59,7 @@ class Log2Gs(base_handler.PipelineBase):
             },
         shards=16)
 
-# Create a mapper function that convert request logs object to CSV.
+# Create a mapper function that converts request logs object to CSV.
 def log2csv(request_log):
   """Convert log API RequestLog object to csv."""
 
@@ -130,28 +132,3 @@ class Log2BigQueryHandler(webapp2.RequestHandler):
     p = Log2Bq(start_time, now, [major])
     p.start()
     #self.redirect('/mapreduce/pipeline/status?root=%s' % p.root_pipeline_id)
-
-
-class UserLookupHandler(webapp2.RequestHandler):
-    def get(self):
-        user_ip = self.request.remote_addr
-        query = \
-            "SELECT " +\
-            "user_ip, tool_id, policy, server_fqdn, server_ip, "+\
-            "site_city,site_country, " +\
-            "STRFTIME_UTC_USEC(log_time * 1000000, '%d-%b-%Y %H:%M') "+ \
-            "FROM mlabns.lookup WHERE user_ip = '" + user_ip + "' " +\
-            "limit 50"
-
-        logging.info('Query is %s', query)
-        jobs = service.jobs()
-        result = jobs.query(
-            projectId=config.project_id,body={'query':query}).execute()
-
-        logging.info(result)
-        if 'rows' not in result:
-            return util.send_not_found(self)
-        else:
-            logging.info(result['rows'])
-            self.response.out.write(template.render(
-                'mlabns/templates/history.html', {'records' : result['rows']}))

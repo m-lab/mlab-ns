@@ -19,6 +19,8 @@ class AdminHandler(webapp.RequestHandler):
         return util.send_not_found(self)
 
     def get(self):
+        # TODO(claudiu) This doesn't scale. Generate HTML pages for maps
+        # automatically for each tool.
         valid_paths = {
             '' : lambda : self.redirect('/admin/map/ipv4/all'),
             '/admin' : lambda : self.redirect('/admin/map/ipv4/all'),
