@@ -1,4 +1,3 @@
-# coding=utf-8
 from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -14,6 +13,9 @@ import logging
 import random
 import socket
 import time
+
+AF_IPV4 = 'ipv4'
+AF_IPV6 = 'ipv6'
 
 class LookupQuery:
     def __init__(self):
@@ -160,73 +162,33 @@ class ResolverBase:
             specified in the 'query'.
         """
         if query.address_family == message.ADDRESS_FAMILY_IPv6:
-            return self.get_candidates_ipv6(query)
+            return self._get_candidates(query, AF_IPV6)
+        return self._get_candidates(query, AF_IPV4)
 
-        return self.get_candidates_ipv4(query)
-
-    def get_candidates_ipv4(self, query):
-        """Find candidates for server selection.
-
-        Args:
-            query: A LookupQuery instance.
-
-        Returns:
-            A list of SliverTool entities that match the requirements
-            specified in the 'lookup_query'.
-        """
+    def _get_candidates(self, query, address_family=AF_IPV4):
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(query.tool_id)
+        status_field = 'status_' + address_family
         if sliver_tools is not None:
             logging.info(
                 'Sliver tools found in memcache (%s results).',
                 len(sliver_tools))
             candidates = []
             for sliver_tool in sliver_tools:
-                if (sliver_tool.status_ipv4 == message.STATUS_ONLINE):
+                if (sliver_tool.__dict__[status_field] == message.STATUS_ONLINE):
                     candidates.append(sliver_tool)
             return candidates
 
         logging.info('Sliver tools not found in memcache.')
         # Get the sliver tools from from datastore.
         candidates = model.SliverTool.gql(
-            "WHERE tool_id = :tool_id "
-            "AND status_ipv4 = :status",
+            'WHERE tool_id = :tool_id '
+            'AND ' + status_field + ' = :status',
             tool_id=query.tool_id,
             status=message.STATUS_ONLINE)
 
         logging.info(
             'Found (%s candidates)', candidates.count())
-        return candidates.fetch(constants.MAX_FETCHED_RESULTS)
-
-    def get_candidates_ipv6(self, query):
-        """Finds candidates for server selection.
-
-        Args:
-            query: A LookupQuery instance.
-
-        Returns:
-            A list of SliverTool entities that match the requirements
-            specified in the 'query'.
-        """
-        # First try to get the sliver tools from the cache.
-        sliver_tools = memcache.get(query.tool_id)
-        if sliver_tools is not None:
-            logging.info(
-                'Sliver tools found in memcache (%s results).',
-                len(sliver_tools))
-            candidates = []
-            for sliver_tool in sliver_tools:
-                if (sliver_tool.status_ipv6 == message.STATUS_ONLINE):
-                    candidates.append(sliver_tool)
-            return candidates
-
-        logging.info('Sliver tools not found in memcache.')
-        # Get the sliver tools from from datastore.
-        candidates = model.SliverTool.gql(
-            "WHERE tool_id = :tool_id "
-            "AND status_ipv6 = :status",
-            tool_id=query.tool_id,
-            status=message.STATUS_ONLINE)
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
 
     def answer_query(self, query):
@@ -302,7 +264,7 @@ class GeoResolver(ResolverBase):
 class MetroResolver(ResolverBase):
     """Implements the metro policy."""
 
-    def get_candidates_ipv4(self, query):
+    def _get_candidates(self, query, address_family=AF_IPV4):
         # TODO(claudiu) Test whether the following query works as expected:
         # sites = model.Site.gql("WHERE metro = :metro", metro=query.metro)
         sites = model.Site.all().filter("metro =", query.metro).fetch(
@@ -318,35 +280,12 @@ class MetroResolver(ResolverBase):
         for site in sites:
             site_id_list.append(site.site_id)
 
+        status_field = 'status_' + address_family
         # TODO(claudiu) Use the memcache.
         candidates = model.SliverTool.gql(
-            "WHERE tool_id = :tool_id "
-            "AND status_ipv4 = :status "
-            "AND site_id in :site_id_list",
-            tool_id=query.tool_id,
-            status=message.STATUS_ONLINE,
-            site_id_list=site_id_list).fetch(constants.MAX_FETCHED_RESULTS)
-
-        return candidates
-
-    def get_candidates_ipv6(self, query):
-        sites = model.Site.all().filter("metro =", query.metro).fetch(
-            constants.MAX_FETCHED_RESULTS)
-
-        logging.info(
-            'Found %s results for metro %s.', len(sites), query.metro)
-        if not sites:
-            logging.info('No results found for metro %s.', query.metro)
-            return None
-
-        site_id_list = []
-        for site in sites:
-            site_id_list.append(site.site_id)
-
-        candidates = model.SliverTool.gql(
-            "WHERE tool_id = :tool_id "
-            "AND status_ipv6 = :status "
-            "AND site_id in :site_id_list",
+            'WHERE tool_id = :tool_id '
+            'AND ' + status_field + ' = :status '
+            'AND site_id in :site_id_list',
             tool_id=query.tool_id,
             status=message.STATUS_ONLINE,
             site_id_list=site_id_list).fetch(constants.MAX_FETCHED_RESULTS)
