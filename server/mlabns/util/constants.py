@@ -1,3 +1,7 @@
+# Name of the entry in the Nagios table, containing the default
+# configuration.
+DEFAULT_NAGIOS_ENTRY = 'default'
+
 # Earth radius in km.
 EARTH_RADIUS = 6371
 
@@ -9,6 +13,9 @@ GEOLOCATION_USER_DEFINED = 'user_defined'
 # Maximum number of entities fetched from datastore in a single query.
 MAX_FETCHED_RESULTS = 500
 
+# Maximum number of entities fetched from datastore in a single query.
+GQL_BATCH_SIZE = 1000
+
 # Name of the encryption key used by the RegistrationClient.
 REGISTRATION_KEY_ID = 'admin'
 
@@ -16,4 +23,7 @@ REGISTRATION_KEY_ID = 'admin'
 # added in the X-AppEngine-Country header if AppEngine cannot determine the
 # location.
 UNKNOWN_COUNTRY = 'ZZ'
+UNKNOWN_CITY = 'Zion'
+
+
 

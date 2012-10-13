@@ -1,8 +1,8 @@
 from google.appengine.api import memcache
+from google.appengine.api import taskqueue
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from google.appengine.api import taskqueue
 
 from mlabns.db import model
 from mlabns.util import constants
@@ -33,7 +33,11 @@ class LookupHandler(webapp.RequestHandler):
         query = resolver.LookupQuery()
         query.initialize_from_http_request(self.request)
 
-        sliver_tool = resolver.Resolver(query).answer_query()
+        lookup_resolver = resolver.new_resolver(query.policy)
+        logging.info('Policy is %s', query.policy)
+        sliver_tool = lookup_resolver.answer_query(query)
+        if sliver_tool is None:
+            return util.send_not_found(self, query.response_format)
 
         if query.response_format == message.FORMAT_JSON:
             self.send_json_response(sliver_tool, query)
@@ -42,7 +46,8 @@ class LookupHandler(webapp.RequestHandler):
         elif query.response_format == message.FORMAT_REDIRECT:
             self.send_redirect_response(sliver_tool, query)
         elif query.response_format == message.FORMAT_MAP:
-            self.send_map_response(sliver_tool, query)
+            candidates = lookup_resolver.get_candidates(query)
+            self.send_map_response(sliver_tool, query, candidates)
         else:
             # TODO (claudiu) Discuss what should be the default behaviour.
             # I think json it's OK since is valid for all tools, while
@@ -59,10 +64,7 @@ class LookupHandler(webapp.RequestHandler):
             sliver_tool: A SliverTool instance, representing the best sliver
                 tool selected for this lookup request.
             query: A LookupQuery instance representing the user lookup request.
-
         """
-        if sliver_tool is None:
-            return util.send_not_found(self, 'json')
         data = {}
         ip = sliver_tool.sliver_ipv4
         fqdn = sliver_tool.fqdn_ipv4
@@ -72,7 +74,7 @@ class LookupHandler(webapp.RequestHandler):
             fqdn = sliver_tool.fqdn_ipv6
 
         if sliver_tool.http_port:
-            data['url'] = ':' . join ([
+            data['url'] = ':'.join ([
                 'http://' + fqdn, sliver_tool.http_port])
 
         data['fqdn'] = fqdn
@@ -95,8 +97,6 @@ class LookupHandler(webapp.RequestHandler):
             query: A LookupQuery instance representing the user lookup request.
 
         """
-        if sliver_tool is None:
-            return util.send_not_found(self, 'html')
         records = []
         records.append(sliver_tool)
         values = {'records' : records}
@@ -114,8 +114,6 @@ class LookupHandler(webapp.RequestHandler):
             query: A LookupQuery instance representing the user lookup request.
 
         """
-        if sliver_tool is None:
-            return util.send_not_found(self, 'html')
         if sliver_tool.http_port:
             url = '' .join([
                 'http://', sliver_tool.fqdn_ipv4, ':', sliver_tool.http_port])
@@ -123,19 +121,19 @@ class LookupHandler(webapp.RequestHandler):
 
         return util.send_not_found(self, 'html')
 
-    def send_map_response(self, sliver_tool, query):
-        """Displays the map with the user location and the destination site.
+    def send_map_response(self, sliver_tool, query, candidates):
+        """Shows the result of the query in a map.
+
+        The map displays a set of markers representing the user location,
+        all the available sites and a line connecting the user to the
+        destination site.
 
         Args:
-            destination_sliver_tool: A SliverTool instance. Details about the
+            sliver_tool: A SliverTool instance. Details about the
                 sliver tool are displayed in an info window associated to the
                 sliver_tool's site marker.
-            lookup_query: A LookupQuery instance.
-            site: A Site instance, used to draw a marker on the map.
+            query: A LookupQuery instance.
         """
-        if sliver_tool is None:
-            return util.send_not_found(self, 'html')
-
         destination_site_dict = {}
         destination_site_dict['site_id'] = sliver_tool.site_id
         destination_site_dict['city'] = sliver_tool.city
@@ -143,11 +141,11 @@ class LookupHandler(webapp.RequestHandler):
         destination_site_dict['latitude'] = sliver_tool.latitude
         destination_site_dict['longitude'] = sliver_tool.longitude
 
-        fqdn = sliver_tool.fqdn_ipv4
+        destination_fqdn = sliver_tool.fqdn_ipv4
         if query.address_family == message.ADDRESS_FAMILY_IPv6:
-            fqdn = sliver_tool.fqdn_ipv6
+            destination_fqdn = sliver_tool.fqdn_ipv6
 
-        destination_info = fqdn
+        destination_info = destination_fqdn
         # For web-based tools set this to the URL.
         if sliver_tool.http_port:
             url = ''.join([
@@ -163,20 +161,17 @@ class LookupHandler(webapp.RequestHandler):
             destination_info,
             '</div>'])
 
-        # Get the list af all other sites.
-        candidates = resolver.Resolver(query).get_candidates()
-
-        site_list = []
+        candidate_site_list = []
         for candidate in candidates:
             if candidate.site_id == sliver_tool.site_id:
                 continue
-            site_dict = {}
-            site_dict['site_id'] = candidate.site_id
-            site_dict['city'] = candidate.city
-            site_dict['country'] = candidate.country
-            site_dict['latitude'] = candidate.latitude
-            site_dict['longitude'] = candidate.longitude
-            site_list.append(site_dict)
+            candidate_site_dict = {}
+            candidate_site_dict['site_id'] = candidate.site_id
+            candidate_site_dict['city'] = candidate.city
+            candidate_site_dict['country'] = candidate.country
+            candidate_site_dict['latitude'] = candidate.latitude
+            candidate_site_dict['longitude'] = candidate.longitude
+            candidate_site_list.append(candidate_site_dict)
 
         user_info = {}
         user_info['city'] = query.city
@@ -184,13 +179,13 @@ class LookupHandler(webapp.RequestHandler):
         user_info['latitude'] = query.latitude
         user_info['longitude'] = query.longitude
 
-        site_list_json = json.dumps(site_list)
+        candidate_site_list_json = json.dumps(candidate_site_list)
         destination_site_json = json.dumps(destination_site_dict)
         user_info_json = json.dumps(user_info)
 
         self.response.out.write(
             template.render('mlabns/templates/lookup_map.html', {
-                'sites' : site_list_json,
+                'sites' : candidate_site_list_json,
                 'user' : user_info_json,
                 'destination' : destination_site_json }))
 
@@ -216,6 +211,9 @@ class LookupHandler(webapp.RequestHandler):
 
         # TODO(claudiu) This might change based on the privacy doc
         # (see http://goo.gl/KYPQW).
+        # The list of these fields must be consistent with the BigQuery
+        # table schema described in server/config.py.
+        # TODO(claudiu) Replace with json and update log2bq.py accordingly.
         logging.debug(
             '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
             '[lookup]',

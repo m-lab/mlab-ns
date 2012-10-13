@@ -126,7 +126,7 @@ class AdminHandler(webapp.RequestHandler):
         else:
             cached_sliver_tools = memcache.get(tool_id)
             if cached_sliver_tools:
-                sliver_tools = cached_sliver_tools.values()
+                sliver_tools = cached_sliver_tools
             else:
                 sliver_tools = model.SliverTool.gql(
                     'WHERE tool_id=:tool_id '

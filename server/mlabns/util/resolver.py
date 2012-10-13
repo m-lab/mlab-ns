@@ -1,3 +1,4 @@
+# coding=utf-8
 from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -7,7 +8,7 @@ from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import distance
 from mlabns.util import message
-from mlabns.util.geo import maxmind
+from mlabns.util import maxmind
 
 import logging
 import random
@@ -34,89 +35,88 @@ class LookupQuery:
         Args:
             request: An instance of google.appengine.webapp.Request.
         """
-        parts = request.path.strip('/').split('/')
-        self.tool_id = parts[0]
-
-        self.metro = request.get(message.METRO)
+        self.tool_id = request.path.strip('/').split('/')[0]
         self.response_format = request.get(message.RESPONSE_FORMAT)
-
-        self.city = request.get(message.CITY)
-        self.country = request.get(message.COUNTRY)
-        if self.country:
-            self.geolocation_type = constants.GEOLOCATION_MAXMIND
-
-        self.latitude = request.get(message.LATITUDE)
-        self.longitude = request.get(message.LONGITUDE)
-        if self.latitude and self.longitude:
-            self.geolocation_type = constants.GEOLOCATION_USER_DEFINED
-
         self.set_ip_address(request)
-        self.set_address_family(request)
-        self.set_policy(request)
+        self.set_address_family(request, self.ip_address)
+        self.metro = request.get(message.METRO)
+        self.set_policy(request, self.metro)
 
-        # Add geolocation only for the 'geo' policy and if
-        # the request didn't specify the 'latitude' and
-        # 'longitude' in the query string.
-        if self.policy == message.POLICY_GEO:
+        if self.policy == message.POLICY_COUNTRY:
+            self.country = request.get(message.COUNTRY)
+        elif self.policy == message.POLICY_GEO:
             self.set_geolocation(request)
 
     def set_ip_address(self, request):
-        # First check if the request specifies the ip address
+        # Check if the request specifies the ip address
         # as a query string argument, otherwise use the client's
         # remote address.
-        self.ip_address = request.get(message.REMOTE_ADDRESS)
-        if self.ip_address:
-            self.geolocation_type = constants.GEOLOCATION_MAXMIND
+        input_ip_address = request.get(message.REMOTE_ADDRESS)
+        if input_ip_address:
+            self.ip_address = input_ip_address
         else:
             self.ip_address = request.remote_addr
 
-    def set_address_family(self, request):
-        address_family = request.get(message.ADDRESS_FAMILY)
-        if (address_family == message.ADDRESS_FAMILY_IPv4 or
-            address_family == message.ADDRESS_FAMILY_IPv6):
-            self.address_family = address_family
+    def set_address_family(self, request, input_ip_address):
+        # Check if the request specifies the ip address family
+        # as a query string argument, otherwise infer address
+        # family from ip_address.
+        input_address_family = request.get(message.ADDRESS_FAMILY)
+        if (input_address_family == message.ADDRESS_FAMILY_IPv4 or
+            input_address_family == message.ADDRESS_FAMILY_IPv6):
+            self.address_family = input_address_family
         else:
             try:
-                socket.inet_pton(socket.AF_INET6, self.ip_address)
+                socket.inet_pton(socket.AF_INET6, input_ip_address)
                 self.address_family = message.ADDRESS_FAMILY_IPv6
             except socket.error:
                 self.address_family = message.ADDRESS_FAMILY_IPv4
 
-    def set_policy(self, request):
+    def set_policy(self, request, input_metro):
         valid_policies = [
             message.POLICY_METRO,
             message.POLICY_GEO,
             message.POLICY_RANDOM,
-            message.POLICY_COUNTRY ]
-        policy = request.get(message.POLICY)
-        if policy in valid_policies:
-            self.policy = policy
-        elif self.metro:
+            message.POLICY_COUNTRY]
+        input_policy = request.get(message.POLICY)
+        if input_policy in valid_policies:
+            self.policy = input_policy
+        elif input_metro:
             self.policy = message.POLICY_METRO
         else:
-            # TODO (claudiu) Discuss the default policy.
+            # TODO(claudiu): Discuss the default policy.
             self.policy = message.POLICY_GEO
 
     def set_geolocation(self, request):
-        """Adds geolocation information to the LookupQuery.
+        input_latitude = request.get(message.LATITUDE)
+        input_longitude = request.get(message.LONGITUDE)
+        input_city = request.get(message.CITY)
+        input_country = request.get(message.COUNTRY)
+        input_ip_address = request.get(message.REMOTE_ADDRESS)
+        try:
+            self.latitude = float(input_latitude)
+            self.longitude = float(input_longitude)
+            self.geolocation_type = constants.GEOLOCATION_USER_DEFINED
+        except ValueError:
+            if input_country or input_ip_address:
+                self.geolocation_type = constants.GEOLOCATION_MAXMIND
+                self.set_maxmind_geolocation(
+                    input_country, input_city, input_ip_address)
+            else:
+                self.geolocation_type = constants.GEOLOCATION_APP_ENGINE
+                self.set_appengine_geolocation(request)
 
-        Args:
-            request: A webapp.Request instance.
-        """
-        if self.geolocation_type == constants.GEOLOCATION_MAXMIND:
-            self.set_maxmind_geolocation()
-        elif self.geolocation_type == constants.GEOLOCATION_APP_ENGINE:
-            self.set_appengine_geolocation(request)
-
-    def set_maxmind_geolocation(self):
+    def set_maxmind_geolocation(
+        self, input_country, input_city, input_ip_address):
         """Adds geolocation info using the data from MaxMind."""
-        if self.country and self.city:
+
+        if input_country and input_city:
             geo_record = maxmind.get_city_geolocation(
-                self.city, self.country)
-        elif self.country:
-            geo_record = maxmind.get_country_geolocation(self.country)
+                input_city, input_country)
+        elif input_city:
+            geo_record = maxmind.get_country_geolocation(input_city)
         else:
-            geo_record = maxmind.get_ip_geolocation(self.ip_address)
+            geo_record = maxmind.get_ip_geolocation(input_ip_address)
         self.city = geo_record.city
         self.country = geo_record.country
         self.latitude = geo_record.latitude
@@ -143,7 +143,8 @@ class LookupQuery:
             except ValueError:
                 # Log the error and use maxmind.
                 logging.error('Bad geo coordinates %s', lat_long)
-                self.set_maxmind_geolocation(request)
+                self.set_maxmind_geolocation(
+                    request, self.country, self.city, self.ip_address)
 
 class ResolverBase:
     """Resolver base class."""
@@ -178,9 +179,9 @@ class ResolverBase:
         if sliver_tools is not None:
             logging.info(
                 'Sliver tools found in memcache (%s results).',
-                len(sliver_tools.keys()))
+                len(sliver_tools))
             candidates = []
-            for sliver_tool in sliver_tools.values():
+            for sliver_tool in sliver_tools:
                 if (sliver_tool.status_ipv4 == message.STATUS_ONLINE):
                     candidates.append(sliver_tool)
             return candidates
@@ -214,7 +215,7 @@ class ResolverBase:
                 'Sliver tools found in memcache (%s results).',
                 len(sliver_tools))
             candidates = []
-            for sliver_tool in sliver_tools.values():
+            for sliver_tool in sliver_tools:
                 if (sliver_tool.status_ipv6 == message.STATUS_ONLINE):
                     candidates.append(sliver_tool)
             return candidates
@@ -233,12 +234,9 @@ class ResolverBase:
 
 
 class GeoResolver(ResolverBase):
-    """Implements the closest-node policy."""
+    """Chooses the server geographically closest to the client."""
 
     def answer_query(self, query):
-        # TODO(claudiu) Handle also requests without geolocation(lat/lon)
-        # but that have specified a 'country/city'. Maybe adding the
-        # country to the metro?
         """Selects the geographically closest SliverTool.
 
         Args:
@@ -254,7 +252,8 @@ class GeoResolver(ResolverBase):
             return None
 
         if not query.latitude or not query.longitude:
-            # TODO (claudiu) Return not found instead ?
+            logging.warning(
+                'No geolocation info, returning a random sliver tool')
             return random.choice(candidates)
 
         logging.info('Found %s candidates.', len(candidates))
@@ -264,7 +263,7 @@ class GeoResolver(ResolverBase):
 
         # Compute for each SliverTool the distance and add the SliverTool
         # to the 'closest_sliver_tools' list if the computed  distance is
-        # less(or equal) then the current minimum.
+        # less (or equal) than the current minimum.
         # To avoid computing the distances twice, cache the results in
         # a dict.
         for sliver_tool in candidates:
@@ -304,6 +303,8 @@ class MetroResolver(ResolverBase):
     """Implements the metro policy."""
 
     def get_candidates_ipv4(self, query):
+        # TODO(claudiu) Test whether the following query works as expected:
+        # sites = model.Site.gql("WHERE metro = :metro", metro=query.metro)
         sites = model.Site.all().filter("metro =", query.metro).fetch(
             constants.MAX_FETCHED_RESULTS)
 
@@ -317,6 +318,7 @@ class MetroResolver(ResolverBase):
         for site in sites:
             site_id_list.append(site.site_id)
 
+        # TODO(claudiu) Use the memcache.
         candidates = model.SliverTool.gql(
             "WHERE tool_id = :tool_id "
             "AND status_ipv4 = :status "
@@ -417,26 +419,15 @@ class CountryResolver(ResolverBase):
             return None
         return random.choice(country_candidates)
 
-class Resolver:
-    def __init__(self, query):
-        self.resolver = None
-        self.query = query
 
-        if query.policy == message.POLICY_GEO:
-            self.resolver =  GeoResolver()
-        elif query.policy == message.POLICY_METRO:
-            self.resolver = MetroResolver()
-        elif query.policy == message.POLICY_RANDOM:
-            self.resolver = RandomResolver()
-        elif query.policy == message.POLICY_COUNTRY:
-            self.resolver = CountryResolver()
-
-    def answer_query(self):
-        if self.resolver:
-            return self.resolver.answer_query(self.query)
-        return None
-
-    def get_candidates(self):
-        if self.resolver:
-            return self.resolver.get_candidates(self.query)
-        return None
+def new_resolver(policy):
+    if policy == message.POLICY_GEO:
+        return GeoResolver()
+    elif policy == message.POLICY_METRO:
+        return MetroResolver()
+    elif policy == message.POLICY_RANDOM:
+        return RandomResolver()
+    elif policy == message.POLICY_COUNTRY:
+        return CountryResolver()
+    else:
+        return RandomResolver()
