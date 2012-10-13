@@ -149,7 +149,7 @@ class LookupHandler(webapp.RequestHandler):
         # For web-based tools set this to the URL.
         if sliver_tool.http_port:
             url = ''.join([
-                'http://', fqdn, ':', sliver_tool.http_port])
+                'http://', destination_fqdn, ':', sliver_tool.http_port])
             destination_info = ''.join([
                 '<a class="footer" href=', url, '>', url, '</a>'])
 
