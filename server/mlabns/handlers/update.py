@@ -51,17 +51,17 @@ class NagiosUpdateHandler(webapp.RequestHandler):
         """Updates the sliver tools identified by 'fqdn'.
 
         Args:
-            tool_id: A string representing a tool id.
-            fqdn: A string representing the fqdn that resolves
+            slice_status: A dict that contains the status of the
+                slivers in the slice {key=fqdn, status:online|offline}
+
+            tool_id: A string representing the fqdn that resolves
                 to an IP address.
             address_family: Addres family, 'ipv4' or 'ipv6'.
-            status: A string describing the status: 'online' or 'offline'.
         """
-        # Set to 'fqdn_ipv4', 'status_ipv4' if address_family is 'ipv4'
-        # or to 'fqdn_ipv6', 'status_ipv6' if address_family if 'ipv6'.
+        # Set to 'status_ipv4' if address_family is 'ipv4'
+        # or to 'status_ipv6' if address_family if 'ipv6'.
         status_field = 'status_' + address_family
 
-        logging.info('Getting sliver tools list for %s', tool_id)
         sliver_tools_gql = model.SliverTool.gql(
             'WHERE tool_id=:tool_id', tool_id=tool_id)
 
@@ -70,6 +70,7 @@ class NagiosUpdateHandler(webapp.RequestHandler):
             batch_size=constants.GQL_BATCH_SIZE):
             for sliver_fqdn in slice_status:
                 is_match = False
+
                 if sliver_tool.fqdn_ipv4 == sliver_fqdn:
                     sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
                     is_match = True
@@ -83,13 +84,17 @@ class NagiosUpdateHandler(webapp.RequestHandler):
                     try:
                         sliver_tool.put()
                         sliver_tool_list.append(sliver_tool)
+                        logging.info(
+                            'Updating %s: status is %s.',
+                            sliver_fqdn, slice_status[sliver_fqdn])
                     except TransactionFailedError:
                         # TODO(claudiu) Trigger an event/notification.
                         logging.error('Failed to write changes to db.')
 
-        logging.info(
-            'Updating memcache for %s with %s', tool_id, sliver_tool_list)
-        self.update_memcache(sliver_tool_list, tool_id)
+        # Never set the memcache to an empty list since it's more likely that
+        # this is a Nagios failure.
+        if sliver_tool_list:
+            self.update_memcache(sliver_tool_list, tool_id)
 
     def update_memcache(self, sliver_tool_list, tool_id):
         """Adds these sliver tools to the memcache.
