@@ -33,6 +33,20 @@ indexes:
 
 - kind: SliverTool
   properties:
+  - name: site_id
+  - name: status_ipv4
+  - name: tool_id
+  - name: update_request_timestamp
+
+- kind: SliverTool
+  properties:
+  - name: site_id
+  - name: status_ipv6
+  - name: tool_id
+  - name: update_request_timestamp
+
+- kind: SliverTool
+  properties:
   - name: status
   - name: tool_id
   - name: timestamp
@@ -48,3 +62,9 @@ indexes:
   - name: status
   - name: tool_id
   - name: when
+
+- kind: SliverTool
+  properties:
+  - name: status_ipv4
+  - name: tool_id
+  - name: update_request_timestamp
