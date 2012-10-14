@@ -40,15 +40,14 @@ class NagiosUpdateHandler(webapp.RequestHandler):
         for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
             logging.info('Slice is %s', item.tool_id)
             url = nagios.url + '?show_state=1&slice_name=' + item.tool_id
+
             slice_status = self.get_slice_status(url)
-            for sliver_fqdn in slice_status:
-                # TODO(claudiu) Ask Stephen to add IPv6 status.
-                self.update_sliver_tools_status(
-                    item.tool_id, sliver_fqdn,
-                    slice_status[sliver_fqdn], AF_IPV4)
+            # TODO(claudiu) Ask Stephen to add IPv6 status.
+            self.update_sliver_tools_status(
+                slice_status, item.tool_id, AF_IPV4)
 
     def update_sliver_tools_status(
-        self, tool_id, fqdn, status, address_family=AF_IPV4):
+        self, slice_status, tool_id, address_family):
         """Updates the sliver tools identified by 'fqdn'.
 
         Args:
@@ -60,29 +59,36 @@ class NagiosUpdateHandler(webapp.RequestHandler):
         """
         # Set to 'fqdn_ipv4', 'status_ipv4' if address_family is 'ipv4'
         # or to 'fqdn_ipv6', 'status_ipv6' if address_family if 'ipv6'.
-        fqdn_field = 'fqdn_' + address_family
         status_field = 'status_' + address_family
 
-        logging.info('Updating %s to %s', fqdn, status)
+        logging.info('Getting sliver tools list for %s', tool_id)
         sliver_tools_gql = model.SliverTool.gql(
-            'WHERE ' + fqdn_field +' = :fqdn', fqdn=fqdn)
+            'WHERE tool_id=:tool_id', tool_id=tool_id)
 
-        # We need to loop through the results, since the fqdn alone does
-        # not necessarily identifies only one sliver tool (e.g., multiple
-        # tools might run on the same sliver).
         sliver_tool_list = []
         for sliver_tool in sliver_tools_gql.run(
-                batch_size=constants.GQL_BATCH_SIZE):
-            sliver_tool.__dict__[status_field] = status
-            sliver_tool.update_request_timestamp = long(time.time())
-             # Write changes to db.
-            try:
-                sliver_tool.put()
-                sliver_tool_list.append(sliver_tool)
-            except TransactionFailedError:
-                # TODO(claudiu) Trigger an event/notification.
-                logging.error('Failed to write changes to db.')
+            batch_size=constants.GQL_BATCH_SIZE):
+            for sliver_fqdn in slice_status:
+                is_match = False
+                if sliver_tool.fqdn_ipv4 == sliver_fqdn:
+                    sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
+                    is_match = True
+                elif sliver_tool.fqdn_ipv6 == sliver_fqdn:
+                    sliver_tool.status_ipv6 = slice_status[sliver_fqdn]
+                    is_match = True
 
+                if is_match:
+                    sliver_tool.update_request_timestamp = long(time.time())
+                    # Write changes to db.
+                    try:
+                        sliver_tool.put()
+                        sliver_tool_list.append(sliver_tool)
+                    except TransactionFailedError:
+                        # TODO(claudiu) Trigger an event/notification.
+                        logging.error('Failed to write changes to db.')
+
+        logging.info(
+            'Updating memcache for %s with %s', tool_id, sliver_tool_list)
         self.update_memcache(sliver_tool_list, tool_id)
 
     def update_memcache(self, sliver_tool_list, tool_id):
@@ -107,7 +113,7 @@ class NagiosUpdateHandler(webapp.RequestHandler):
 
         Returns:
             A dict that contains the status of the slivers in this
-            slice.
+            slice {key=fqdn, status:online|offline}
         """
         status = {}
         try:

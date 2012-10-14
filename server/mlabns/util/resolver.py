@@ -168,19 +168,23 @@ class ResolverBase:
     def _get_candidates(self, query, address_family=AF_IPV4):
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(query.tool_id)
-        status_field = 'status_' + address_family
-        if sliver_tools is not None:
+        if sliver_tools:
             logging.info(
                 'Sliver tools found in memcache (%s results).',
                 len(sliver_tools))
             candidates = []
             for sliver_tool in sliver_tools:
-                if (sliver_tool.__dict__[status_field] == message.STATUS_ONLINE):
+                if  ((address_family == AF_IPV4 and
+                    sliver_tool.status_ipv4 == message.STATUS_ONLINE) or
+                     (address_family == AF_IPV6 and
+                    sliver_tool.status_ipv6 == message.STATUS_ONLINE)):
                     candidates.append(sliver_tool)
+
             return candidates
 
         logging.info('Sliver tools not found in memcache.')
         # Get the sliver tools from from datastore.
+        status_field = 'status_' + address_family
         candidates = model.SliverTool.gql(
             'WHERE tool_id = :tool_id '
             'AND ' + status_field + ' = :status',
