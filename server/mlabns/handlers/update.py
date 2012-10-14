@@ -48,12 +48,11 @@ class NagiosUpdateHandler(webapp.RequestHandler):
 
     def update_sliver_tools_status(
         self, slice_status, tool_id, address_family):
-        """Updates the sliver tools identified by 'fqdn'.
+        """Updates sliver tools status.
 
         Args:
             slice_status: A dict that contains the status of the
                 slivers in the slice {key=fqdn, status:online|offline}
-
             tool_id: A string representing the fqdn that resolves
                 to an IP address.
             address_family: Addres family, 'ipv4' or 'ipv6'.
