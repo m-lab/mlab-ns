@@ -15,7 +15,7 @@ class SiteRegistrationMessageTestCase(unittest2.TestCase):
                 self.assertIsNone(site_registration_message.__dict__[var])
 
     def testInitializeFromDictionaryValid(self):
-        site_registration_message =
+        site_registration_message = \
             registration_message.SiteRegistrationMessage()
         
         # Without timestamp.
@@ -37,7 +37,7 @@ class SiteRegistrationMessageTestCase(unittest2.TestCase):
     def testInitializeFromDictionaryMissingFields(self):
         input_dictionary = {}
         input_dictionary[message.ENTITY] = 'fake_entity'
-        site_registration_message =
+        site_registration_message = \
             registration_message.SiteRegistrationMessage()
         self.assertRaises(
             message.FormatError,
@@ -45,7 +45,7 @@ class SiteRegistrationMessageTestCase(unittest2.TestCase):
             input_dictionary)
 
     def testToDictionaryValid(self):
-        site_registration_message =
+        site_registration_message = \
             registration_message.SiteRegistrationMessage()
         expected_dictionary = {}
         for message_field in site_registration_message.required_fields:
@@ -68,7 +68,7 @@ class SliverToolRegistrationMessageTestCase(unittest2.TestCase):
                     sliver_tool_registration_message.__dict__[var])
 
     def testInitializeFromDictionaryValid(self):
-        sliver_tool_registration_message =
+        sliver_tool_registration_message = \
             registration_message.SliverToolRegistrationMessage()
         
         # Without timestamp.
@@ -93,7 +93,7 @@ class SliverToolRegistrationMessageTestCase(unittest2.TestCase):
     def testInitializeFromDictionaryMissingFields(self):
         input_dictionary = {}
         input_dictionary[message.ENTITY] = 'fake_entity'
-        sliver_tool_registration_message =
+        sliver_tool_registration_message = \
             registration_message.SliverToolRegistrationMessage()
         self.assertRaises(
             message.FormatError,
@@ -101,11 +101,11 @@ class SliverToolRegistrationMessageTestCase(unittest2.TestCase):
             input_dictionary)
 
     def testToDictionaryValid(self):
-        sliver_tool_registration_message =
+        sliver_tool_registration_message = \
             registration_message.SliverToolRegistrationMessage()
         expected_dictionary = {}
         for message_field in sliver_tool_registration_message.required_fields:
-            sliver_tool_registration_message.__dict__[message_field] =
+            sliver_tool_registration_message.__dict__[message_field] = \
                  message_field
             expected_dictionary[message_field] = message_field
         expected_dictionary[message.TIMESTAMP] = None
