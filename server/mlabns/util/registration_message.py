@@ -9,6 +9,7 @@ class SiteRegistrationMessage(message.Message):
         self.country = None
         self.lat_long = None
         self.metro = None
+        self.timestamp = None
 
         self.required_fields = set([
             message.ENTITY,
