@@ -165,7 +165,7 @@ class ResolverBase:
             return self._get_candidates(query, AF_IPV6)
         return self._get_candidates(query, AF_IPV4)
 
-    def _get_candidates(self, query, address_family=AF_IPV4):
+    def _get_candidates(self, query, address_family):
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(query.tool_id)
         if sliver_tools:
