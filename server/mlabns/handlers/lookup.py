@@ -33,8 +33,8 @@ class LookupHandler(webapp.RequestHandler):
         query = resolver.LookupQuery()
         query.initialize_from_http_request(self.request)
 
-        lookup_resolver = resolver.new_resolver(query.policy)
         logging.info('Policy is %s', query.policy)
+        lookup_resolver = resolver.new_resolver(query.policy)
         sliver_tool = lookup_resolver.answer_query(query)
         if sliver_tool is None:
             return util.send_not_found(self, query.response_format)
@@ -133,6 +133,8 @@ class LookupHandler(webapp.RequestHandler):
                 sliver tool are displayed in an info window associated to the
                 sliver_tool's site marker.
             query: A LookupQuery instance.
+            candidates: A list of SliverTool entities that match the
+                 requirements specified in 'query'.
         """
         destination_site_dict = {}
         destination_site_dict['site_id'] = sliver_tool.site_id
