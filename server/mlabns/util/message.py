@@ -83,7 +83,7 @@ class Message():
                 initialize this Message.
 
         Raises:
-            FormatError: An error occured if the input dictionary does
+            FormatError: An error occurred if the input dictionary does
                 not contain one or more required fields.
         """
         pass
@@ -101,22 +101,27 @@ class Message():
 
         Args:
             key: A string representing the cryptographic key used to
-                compute the signature.
+                compute the signature. Key must not be None.
 
         Returns
             A string representing the signature.
-        """
-        dictionary = self.to_dictionary()
 
+        Raises
+            ValueError, if secret_key is None.
+        """
+        if secret_key is None:
+            raise ValueError
+        # Encode the key as ASCII and ignore non ASCII characters.
+        key = bytes(secret_key)
+
+        dictionary = self.to_dictionary()
         value_list = []
         for item in sorted(dictionary.iterkeys()):
             logging.debug(
                 'data[%s] = %s', item, dictionary[item])
             value_list.append(dictionary[item])
+        values_str = ''.join([str(x) for x in value_list])
 
-        # Encode the key as ASCII and ignore non ASCII characters.
-        key = bytes(secret_key)
-        values_str = ''.join(value_list)
         digest = hmac.new(key, values_str, hashlib.sha1).digest()
         signature = base64.encodestring(digest).strip()
 
@@ -128,8 +133,15 @@ class Message():
         Args:
             key: A string representing the key that is used to compute
                 the signature.
+
+        Raises
+            ValueError, if secret_key is None or 
+                        if secret_key is not 16, 24, or 32 bytes long.
         """
+        if secret_key is None:
+            raise ValueError
         key = bytes(secret_key)
+
         plaintext = json.dumps(self.to_dictionary())
         self.ciphertext = self._encrypt_AES(
             plaintext, key, self.block_size, self.padding)
@@ -146,14 +158,20 @@ class Message():
                 signature.
             key: A string representing the cryptographic key that
                 is used to verify and decrypt the data.
+
+        Raises
+            DecryptionError, if 'data' does not have SIGNATURE or CIPHERTEXT
+                fields.
+            ValueError, if secret_key is None.
         """
+        if secret_key is None:
+            raise ValueError
+        # Datastore stores strings as unicode.
+        key = bytes(secret_key)
         if SIGNATURE not in data:
             raise DecryptionError('Missing signature.')
         if CIPHERTEXT not in data:
             raise DecryptionError('Missing encrypted payload.')
-
-        # Datastore stores strings as unicode.
-        key = bytes(secret_key)
 
         digest = hmac.new(
             key, data[CIPHERTEXT], hashlib.sha1).digest()
