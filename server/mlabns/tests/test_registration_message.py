@@ -15,7 +15,8 @@ class SiteRegistrationMessageTestCase(unittest2.TestCase):
                 self.assertIsNone(site_registration_message.__dict__[var])
 
     def testInitializeFromDictionaryValid(self):
-        site_registration_message = registration_message.SiteRegistrationMessage()
+        site_registration_message =
+            registration_message.SiteRegistrationMessage()
         
         # Without timestamp.
         input_dictionary = {}
@@ -36,14 +37,16 @@ class SiteRegistrationMessageTestCase(unittest2.TestCase):
     def testInitializeFromDictionaryMissingFields(self):
         input_dictionary = {}
         input_dictionary[message.ENTITY] = 'fake_entity'
-        site_registration_message = registration_message.SiteRegistrationMessage()
+        site_registration_message =
+            registration_message.SiteRegistrationMessage()
         self.assertRaises(
             message.FormatError,
             site_registration_message.initialize_from_dictionary,
             input_dictionary)
 
     def testToDictionaryValid(self):
-        site_registration_message = registration_message.SiteRegistrationMessage()
+        site_registration_message =
+            registration_message.SiteRegistrationMessage()
         expected_dictionary = {}
         for message_field in site_registration_message.required_fields:
             site_registration_message.__dict__[message_field] =  message_field
@@ -61,45 +64,54 @@ class SliverToolRegistrationMessageTestCase(unittest2.TestCase):
                 self.assertEqual(message.ENTITY_SLIVER_TOOL, 
                                  sliver_tool_registration_message.__dict__[var])
             else:
-                self.assertIsNone(sliver_tool_registration_message.__dict__[var])
+                self.assertIsNone(
+                    sliver_tool_registration_message.__dict__[var])
 
     def testInitializeFromDictionaryValid(self):
-        sliver_tool_registration_message = registration_message.SliverToolRegistrationMessage()
+        sliver_tool_registration_message =
+            registration_message.SliverToolRegistrationMessage()
         
         # Without timestamp.
         input_dictionary = {}
         for message_field in sliver_tool_registration_message.required_fields:
             input_dictionary[message_field] = message_field
-        sliver_tool_registration_message.initialize_from_dictionary(input_dictionary)
+        sliver_tool_registration_message.initialize_from_dictionary(
+            input_dictionary)
         for message_field in sliver_tool_registration_message.required_fields:
-	    self.assertEqual(input_dictionary[message_field],
-	                     sliver_tool_registration_message.__dict__[message_field]) 
+	    self.assertEqual(
+                input_dictionary[message_field],
+	        sliver_tool_registration_message.__dict__[message_field]) 
         self.assertIsNone(sliver_tool_registration_message.timestamp)
 
         # With timestamp.
         input_dictionary[message.TIMESTAMP] = message.TIMESTAMP
-        sliver_tool_registration_message.initialize_from_dictionary(input_dictionary)  
+        sliver_tool_registration_message.initialize_from_dictionary(
+            input_dictionary)  
         self.assertEqual(input_dictionary[message.TIMESTAMP],
                          sliver_tool_registration_message.timestamp) 
       
     def testInitializeFromDictionaryMissingFields(self):
         input_dictionary = {}
         input_dictionary[message.ENTITY] = 'fake_entity'
-        sliver_tool_registration_message = registration_message.SliverToolRegistrationMessage()
+        sliver_tool_registration_message =
+            registration_message.SliverToolRegistrationMessage()
         self.assertRaises(
             message.FormatError,
             sliver_tool_registration_message.initialize_from_dictionary,
             input_dictionary)
 
     def testToDictionaryValid(self):
-        sliver_tool_registration_message = registration_message.SliverToolRegistrationMessage()
+        sliver_tool_registration_message =
+            registration_message.SliverToolRegistrationMessage()
         expected_dictionary = {}
         for message_field in sliver_tool_registration_message.required_fields:
-            sliver_tool_registration_message.__dict__[message_field] =  message_field
+            sliver_tool_registration_message.__dict__[message_field] =
+                 message_field
             expected_dictionary[message_field] = message_field
         expected_dictionary[message.TIMESTAMP] = None
         self.assertDictEqual(
-            expected_dictionary, sliver_tool_registration_message.to_dictionary()) 
+            expected_dictionary,
+            sliver_tool_registration_message.to_dictionary()) 
 
 
 if __name__ == '__main__':
