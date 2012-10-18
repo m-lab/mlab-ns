@@ -139,5 +139,9 @@ def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
     Returns:
         A string representing the key that uniquely identifies a
         SliverTool.
+        It returns None is any of the input values are None.
     """
-    return '-'.join([tool_id, slice_id, server_id, site_id])
+    try:
+        return '-'.join([tool_id, slice_id, server_id, site_id])
+    except TypeError:
+        return None
