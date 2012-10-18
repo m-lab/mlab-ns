@@ -114,6 +114,7 @@ def get_ipv6_geolocation(remote_addr,
         logging.error('IP not found in the Maxmind database.')
         return geo_record
 
+    geo_record.city = constants.UNKNOWN_CITY
     geo_record.country = geo_city_block_v6.country
     geo_record.latitude = geo_city_block_v6.latitude
     geo_record.longitude = geo_city_block_v6.longitude
@@ -122,7 +123,7 @@ def get_ipv6_geolocation(remote_addr,
         geo_record.country, geo_record.latitude, geo_record.longitude)
     return geo_record
 
-def get_country_geolocation(country):
+def get_country_geolocation(country, country_table=model.CountryCode):
     """Returns the geolocation data associated with a country code.
 
     Args:
@@ -134,8 +135,8 @@ def get_country_geolocation(country):
     """
     geo_record = GeoRecord()
 
-    logging.info("Retrieving geolocation info for %s.", country)
-    location = model.CountryCode.get_by_key_name(country)
+    logging.info('Retrieving geolocation info for country %s.', country)
+    location = country_table.get_by_key_name(country)
     if location:
         geo_record.city = constants.UNKNOWN_CITY
         geo_record.country = location.alpha2_code
@@ -143,7 +144,7 @@ def get_country_geolocation(country):
         geo_record.longitude = location.longitude
     return geo_record
 
-def get_city_geolocation(city, country):
+def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
     """Returns the geolocation data associated with a city and country code.
 
     Args:
@@ -156,14 +157,15 @@ def get_city_geolocation(city, country):
     """
     geo_record = GeoRecord()
 
-    logging.info("Retrieving geolocation info for %s, %s.", city,country)
-    location = model.MaxmindCityLocation.gql(
+    logging.info('Retrieving geolocation info for country %s, city %s.',
+                 city, country)
+    location = city_table.gql(
         'WHERE city = :city AND country = :country',
         city=city,country=country).get()
     if not location:
         logging.error(
-            '%s,%s not found in the database.', city, country)
-        return get_country_geolocation(country)
+            '%s, %s not found in the database.', city, country)
+        return geo_record
 
     geo_record.city = location.city
     geo_record.country = location.country

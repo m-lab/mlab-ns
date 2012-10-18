@@ -115,8 +115,8 @@ class LookupQuery:
         if input_country and input_city:
             geo_record = maxmind.get_city_geolocation(
                 input_city, input_country)
-        elif input_city:
-            geo_record = maxmind.get_country_geolocation(input_city)
+        if input_country and not geo_record.city:
+            geo_record = maxmind.get_country_geolocation(input_country)
         else:
             geo_record = maxmind.get_ip_geolocation(input_ip_address)
         self.city = geo_record.city

@@ -2,6 +2,7 @@ import socket
 import unittest2
 
 from mlabns.third_party import ipaddr
+from mlabns.util import constants
 from mlabns.util import maxmind
 
 
@@ -26,7 +27,8 @@ class MaxmindTestClass(unittest2.TestCase):
             if not gql_obj:
                 self.gql_obj = MaxmindTestClass.GqlMockup()
             self.location = location
-        def gql(self, unused_arg, ip_num='unused_value'):
+        def gql(self, unused_arg, ip_num='unused_value', city='unused_value',
+                country='unused_value'):
             return self.gql_obj
         def get_by_key_name(self, unused_arg):
             return self.location
@@ -117,14 +119,22 @@ class MaxmindTestClass(unittest2.TestCase):
         class GqlResultMockup:
             def __init__(self):
                 self.end_ip_num = 16909061  # 1.2.3.5 
-                self.location_id = 'unused' 
-        location = maxmind.GeoRecord()
-        location.city = 'city'
-        location.country = 'country'
-        location.latitude = 'latitude'
-        location.longitude = 'longitude'
+                self.location_id = 'unused'
+        class Location:
+           def __init__(self): 
+               self.city = 'city'
+               self.country = 'country'
+               self.latitude = 'latitude'
+               self.longitude = 'longitude'
+        location = Location()
+        expected_geo_record = maxmind.GeoRecord()
+        expected_geo_record.city = location.city
+        expected_geo_record.country = location.country
+        expected_geo_record.latitude = location.latitude
+        expected_geo_record.longitude = location.longitude 
+
         self.assertGeoRecordEqual(
-            location,
+            expected_geo_record,
             maxmind.get_ipv4_geolocation(
                 '1.2.3.4',
                  ipv4_table=MaxmindTestClass.ModelMockup(
@@ -134,11 +144,6 @@ class MaxmindTestClass(unittest2.TestCase):
                      location=location)))
 
     def testGetIpv6GeolocationValidLocation(self):
-        location = maxmind.GeoRecord()
-        location.country = 'country'
-        location.latitude = 'latitude'
-        location.longitude = 'longitude'
-
         class GqlResultMockup:
             def __init__(self):
                 self.end_ip_num = 281483566841861  # 1:2:3:5::5 >> 64
@@ -146,14 +151,80 @@ class MaxmindTestClass(unittest2.TestCase):
                 self.latitude = location.latitude
                 self.longitude = location.longitude
 
+        class Location:
+           def __init__(self): 
+               self.country = 'country'
+               self.latitude = 'latitude'
+               self.longitude = 'longitude'
+        location = Location()
+        expected_geo_record = maxmind.GeoRecord()
+        expected_geo_record.city = constants.UNKNOWN_CITY
+        expected_geo_record.country = location.country
+        expected_geo_record.latitude = location.latitude
+        expected_geo_record.longitude = location.longitude 
+
         self.assertGeoRecordEqual(
-            location,
+            expected_geo_record,
             maxmind.get_ipv6_geolocation(
                 '1:2:3:4::5',
                  ipv6_table=MaxmindTestClass.ModelMockup(
                      gql_obj=MaxmindTestClass.GqlMockup(
                          result=GqlResultMockup()))))
 
-            
+    def testGetCountryGeolocationNoCountry(self):
+        self.assertNoneGeoRecord(
+            maxmind.get_country_geolocation(
+                'unused_country',
+                 country_table=MaxmindTestClass.ModelMockup()))
+        
+    def testGetCountryGeolocationYesCountry(self):
+        class Location:
+           def __init__(self): 
+               self.alpha2_code = 'country'
+               self.latitude = 'latitude'
+               self.longitude = 'longitude'
+        location = Location()
+        expected_geo_record = maxmind.GeoRecord()
+        expected_geo_record.city = constants.UNKNOWN_CITY
+        expected_geo_record.country = location.alpha2_code
+        expected_geo_record.latitude = location.latitude
+        expected_geo_record.longitude = location.longitude 
+
+        self.assertGeoRecordEqual(
+            expected_geo_record,
+            maxmind.get_country_geolocation(
+                'unused_country',
+                 country_table=MaxmindTestClass.ModelMockup(location=location)))
+       
+    def testGetCityGeolocationNoCity(self):
+        self.assertNoneGeoRecord(
+            maxmind.get_city_geolocation(
+                'unused_city',
+                'unused_country',
+                 city_table=MaxmindTestClass.ModelMockup(
+                     gql_obj=MaxmindTestClass.GqlMockup())))
+        
+    def testGetCityGeolocationYesCity(self):
+        class Location:
+           def __init__(self): 
+               self.city = 'city'
+               self.country = 'country'
+               self.latitude = 'latitude'
+               self.longitude = 'longitude'
+        location = Location()
+        expected_geo_record = maxmind.GeoRecord()
+        expected_geo_record.city = location.city
+        expected_geo_record.country = location.country
+        expected_geo_record.latitude = location.latitude
+        expected_geo_record.longitude = location.longitude 
+        self.assertGeoRecordEqual(
+            expected_geo_record,
+            maxmind.get_city_geolocation(
+                'unused_city',
+                'unused_country',
+                 city_table=MaxmindTestClass.ModelMockup(
+                     gql_obj=MaxmindTestClass.GqlMockup(result=location))))
+
+             
 if __name__ == '__main__':
-  unittest2.main()
+    unittest2.main()
