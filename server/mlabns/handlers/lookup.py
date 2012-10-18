@@ -36,6 +36,16 @@ class LookupHandler(webapp.RequestHandler):
         logging.info('Policy is %s', query.policy)
         lookup_resolver = resolver.new_resolver(query.policy)
         sliver_tool = lookup_resolver.answer_query(query)
+
+        # TODO(claudiu) This should not be used if the
+        # address_family=IPv6 is explicitly set in the query string.
+        if (sliver_tool is None and
+            query.address_family == message.ADDRESS_FAMILY_IPv6):
+            logging.warning(
+                'Trying IPv4 address family, no results were found for IPv6.')
+            query.address_family = message.ADDRESS_FAMILY_IPv4
+            sliver_tool = lookup_resolver.answer_query(query)
+
         if sliver_tool is None:
             return util.send_not_found(self, query.response_format)
 
