@@ -1,4 +1,3 @@
-import time
 import unittest2
 
 from mlabns.util import message

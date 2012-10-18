@@ -24,7 +24,7 @@ class SiteRegistrationMessageTestCase(unittest2.TestCase):
             input_dictionary[message_field] = message_field
         site_registration_message.initialize_from_dictionary(input_dictionary)
         for message_field in site_registration_message.required_fields:
-	    self.assertEqual(input_dictionary[message_field],
+             self.assertEqual(input_dictionary[message_field],
                              site_registration_message.__dict__[message_field]) 
         self.assertIsNone(site_registration_message.timestamp)
 
@@ -78,9 +78,9 @@ class SliverToolRegistrationMessageTestCase(unittest2.TestCase):
         sliver_tool_registration_message.initialize_from_dictionary(
             input_dictionary)
         for message_field in sliver_tool_registration_message.required_fields:
-	    self.assertEqual(
+            self.assertEqual(
                 input_dictionary[message_field],
-	        sliver_tool_registration_message.__dict__[message_field]) 
+         sliver_tool_registration_message.__dict__[message_field]) 
         self.assertIsNone(sliver_tool_registration_message.timestamp)
 
         # With timestamp.

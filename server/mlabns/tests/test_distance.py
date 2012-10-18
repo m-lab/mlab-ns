@@ -17,7 +17,7 @@ class DistanceTestCase(unittest2.TestCase):
         from numbers import Number
         dist = 0
         try:
-            dist = distance.distance(-700,1000,999,-5454)
+            dist = distance.distance(-700, 1000, 999, -5454)
         except Exception:
             self.fail("distance threw an exception on invalid entry")
         self.assertTrue(isinstance(dist, Number))

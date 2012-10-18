@@ -3,7 +3,6 @@ import hashlib
 import hmac
 import json
 import logging
-import string
 import time
 
 from Crypto.Cipher import AES

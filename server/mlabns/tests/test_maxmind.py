@@ -1,4 +1,3 @@
-import socket
 import unittest2
 
 from mlabns.third_party import ipaddr
@@ -121,11 +120,11 @@ class MaxmindTestClass(unittest2.TestCase):
                 self.end_ip_num = 16909061  # 1.2.3.5 
                 self.location_id = 'unused'
         class Location:
-           def __init__(self): 
-               self.city = 'city'
-               self.country = 'country'
-               self.latitude = 'latitude'
-               self.longitude = 'longitude'
+            def __init__(self): 
+                self.city = 'city'
+                self.country = 'country'
+                self.latitude = 'latitude'
+                self.longitude = 'longitude'
         location = Location()
         expected_geo_record = maxmind.GeoRecord()
         expected_geo_record.city = location.city
@@ -152,10 +151,10 @@ class MaxmindTestClass(unittest2.TestCase):
                 self.longitude = location.longitude
 
         class Location:
-           def __init__(self): 
-               self.country = 'country'
-               self.latitude = 'latitude'
-               self.longitude = 'longitude'
+            def __init__(self): 
+                self.country = 'country'
+                self.latitude = 'latitude'
+                self.longitude = 'longitude'
         location = Location()
         expected_geo_record = maxmind.GeoRecord()
         expected_geo_record.city = constants.UNKNOWN_CITY
@@ -179,10 +178,10 @@ class MaxmindTestClass(unittest2.TestCase):
         
     def testGetCountryGeolocationYesCountry(self):
         class Location:
-           def __init__(self): 
-               self.alpha2_code = 'country'
-               self.latitude = 'latitude'
-               self.longitude = 'longitude'
+            def __init__(self): 
+                self.alpha2_code = 'country'
+                self.latitude = 'latitude'
+                self.longitude = 'longitude'
         location = Location()
         expected_geo_record = maxmind.GeoRecord()
         expected_geo_record.city = constants.UNKNOWN_CITY
@@ -206,11 +205,11 @@ class MaxmindTestClass(unittest2.TestCase):
         
     def testGetCityGeolocationYesCity(self):
         class Location:
-           def __init__(self): 
-               self.city = 'city'
-               self.country = 'country'
-               self.latitude = 'latitude'
-               self.longitude = 'longitude'
+            def __init__(self): 
+                self.city = 'city'
+                self.country = 'country'
+                self.latitude = 'latitude'
+                self.longitude = 'longitude'
         location = Location()
         expected_geo_record = maxmind.GeoRecord()
         expected_geo_record.city = location.city
