@@ -180,6 +180,13 @@ class ResolverBase:
                     sliver_tool.status_ipv6 == message.STATUS_ONLINE)):
                     candidates.append(sliver_tool)
 
+            # If address_family is IPv6 but no IPv6 candidates were
+            # found switch to IPv4.
+            if not candidates and address_family == AF_IPV6:
+                for sliver_tool in sliver_tools:
+                    if  sliver_tool.status_ipv4 == message.STATUS_ONLINE:
+                        candidates.append(sliver_tool)
+
             return candidates
 
         logging.info('Sliver tools not found in memcache.')
@@ -193,6 +200,17 @@ class ResolverBase:
 
         logging.info(
             'Found (%s candidates)', candidates.count())
+
+        # If address_family is IPv6 but no IPv6 candidates were
+        # found switch to IPv4.
+        if not candidates.count() and address_family == AF_IPV6:
+            status_field = 'status_' + AF_IPV4
+            candidates = model.SliverTool.gql(
+                'WHERE tool_id = :tool_id '
+                'AND ' + status_field + ' = :status',
+                tool_id=query.tool_id,
+                status=message.STATUS_ONLINE)
+
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
 
     def answer_query(self, query):
