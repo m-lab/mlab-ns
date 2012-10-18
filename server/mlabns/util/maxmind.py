@@ -1,10 +1,12 @@
 from google.appengine.ext import db
 
 from mlabns.db import model
+from mlabns.third_party import ipaddr
 from mlabns.util import constants
 
 import logging
 import socket
+import string
 
 # For more details about the decimal representation of the IP addresses
 # used in the CVS files and the conversion algorithm see
@@ -17,51 +19,6 @@ class GeoRecord:
         self.latitude = None
         self.longitude = None
 
-def ipv6_to_long(ipv6_address):
-    """Converts an IPv6 address to a long.
-
-    Args:
-        ipv6_address: A string representing an IPv6 address.
-
-    Returns:
-        A long obtained by converting the IPv6 address in input to a
-        decimal representation, according to Maxmind's specifications.
-    """
-    try:
-        int_values = [ int(x,16) for x in ipv6_address.split(':') ]
-    except ValueError:
-        logging.error('Bad IPv6 address: %s', ipv6_address)
-        return None
-    exp = 7
-    result = 0
-    for value in int_values:
-        result = result + value * (2 ** (exp * 16))
-        exp = exp - 1
-
-    return result
-
-def ipv4_to_long(ipv4_address):
-    """Converts an IPv4 address to a long.
-
-    Args:
-        ipv6_address: A string representing an IPv4 address.
-
-    Returns:
-        A long obtained by converting the IPv4 address in input to a
-        decimal representation, according to Maxmind's specifications.
-    """
-    try:
-        int_values = [ int(x) for x in ipv4_address.split('.') ]
-    except ValueError:
-        logging.error('Bad IPv4 address: %s', ipv4_address)
-        return None
-    exp = 24
-    result = 0
-    for value in int_values:
-        result = result + value * (2 ** exp)
-        exp = exp - 8
-
-    return result
 
 def get_ip_geolocation(remote_addr):
     """Returns the geolocation data associated with an IP address.
@@ -74,22 +31,22 @@ def get_ip_geolocation(remote_addr):
         otherwise an empty GeoRecord.
     """
     try:
-        socket.inet_pton(socket.AF_INET, remote_addr)
         return get_ipv4_geolocation(remote_addr)
-    except socket.error:
+    except ipaddr.AddressValueError:
         pass
 
     try:
-        socket.inet_pton(socket.AF_INET6, remote_addr)
         return get_ipv6_geolocation(remote_addr)
-    except socket.error:
+    except ipaddr.AddressValueError:
         pass
 
     # Return an empty GeoRecord.
     logging.warning('Returning empty record')
     return GeoRecord()
 
-def get_ipv4_geolocation(remote_addr):
+def get_ipv4_geolocation(remote_addr,
+                         ipv4_table=model.MaxmindCityBlock,
+                         city_table=model.MaxmindCityLocation):
     """Returns the geolocation data associated with an IPv4 address.
 
     Args:
@@ -98,42 +55,39 @@ def get_ipv4_geolocation(remote_addr):
     Returns:
         A GeoRecord containing the geolocation data if is found in the db,
         otherwise an empty GeoRecord.
+
+    Raises:
+        ipaddr.AddressValueError, if 'remote_addr' is not a valid IPv4 address.
     """
     geo_record = GeoRecord()
-    ip_long = ipv4_to_long(remote_addr)
-    if not ip_long:
-        return geo_record
+    ip_num = int(ipaddr.IPv4Address(remote_addr))
+    logging.info('IP long is %s.', ip_num)
 
-    logging.info('IP long is %s.', ip_long)
-    geo_city_block = model.MaxmindCityBlock.gql(
+    geo_city_block = ipv4_table.gql(
         'WHERE start_ip_num <= :ip_num '
         'ORDER BY start_ip_num DESC',
-        ip_num=ip_long).get()
-
+        ip_num=ip_num).get()
     if not geo_city_block or geo_city_block.end_ip_num < ip_num:
-        logging.error("IP not found in the Maxmind database.")
+        logging.error('IP not found in the Maxmind database.')
         return geo_record
-
-    logging.info("Retrieving geolocation info for %s.", remote_addr)
-    location = model.MaxmindCityLocation.get_by_key_name(
-        geo_city_block.location_id)
+     
+    location = city_table.get_by_key_name(geo_city_block.location_id)
     if not location:
         logging.error(
-            "Location %s not found in the Maxmind database.", remote_addr)
+            'Location %s not found in the Maxmind database.', remote_addr)
         return geo_record
 
     geo_record.city = location.city
     geo_record.country = location.country
     geo_record.latitude = location.latitude
     geo_record.longitude = location.longitude
-
     logging.info(
         'City : %s, Country: %s, Latitude :%s, Longitude: %s',
-        location.city, location.country,
-        location.latitude, location.longitude)
+        location.city, location.country, location.latitude, location.longitude)
     return geo_record
 
-def get_ipv6_geolocation(remote_addr):
+def get_ipv6_geolocation(remote_addr,
+                         ipv6_table=model.MaxmindCityBlockv6):
     """Returns the geolocation data associated with an IPv6 address.
 
     Args:
@@ -142,30 +96,27 @@ def get_ipv6_geolocation(remote_addr):
     Returns:
         A GeoRecord containing the geolocation data if found,
         otherwise an empty GeoRecord.
+
+    Raises:
+        ipaddr.AddressValueError, if 'remote_addr' is not a valid IPv6 address.
     """
     geo_record = GeoRecord()
-    ip_num = ipv6_to_long(remote_addr)
-    if not ip_num:
-        return geo_record
-
+    ip_num = int(ipaddr.IPv6Address(remote_addr))
     # We currently keep only /64s in the MaxmindCityBlocksv6 db.
     ip_num = (ip_num >> 64)
-
     logging.info('IPv6 num is %s.', ip_num)
-    geo_city_block_v6 = model.MaxmindCityBlockv6.gql(
+
+    geo_city_block_v6 = ipv6_table.gql(
         'WHERE start_ip_num <= :ip_num '
         'ORDER BY start_ip_num DESC',
         ip_num=ip_num).get()
-
     if not geo_city_block_v6 or geo_city_block_v6.end_ip_num < ip_num:
-        logging.error("IP not found in the Maxmind database.")
+        logging.error('IP not found in the Maxmind database.')
         return geo_record
 
-    logging.info("Retrieving geolocation info for %s.", remote_addr)
     geo_record.country = geo_city_block_v6.country
     geo_record.latitude = geo_city_block_v6.latitude
     geo_record.longitude = geo_city_block_v6.longitude
-
     logging.info(
         'Country: %s, Latitude :%s, Longitude: %s',
         geo_record.country, geo_record.latitude, geo_record.longitude)
