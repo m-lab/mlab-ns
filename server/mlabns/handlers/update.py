@@ -125,10 +125,10 @@ class NagiosUpdateHandler(webapp.RequestHandler):
             for line in lines:
                 # See the design doc for a description of the file format.
                 fqdn,state,state_type = line.split(' ')
-                status[fqdn] = message.STATUS_ONLINE
                 slice_fqdn, tool_id = fqdn.split('/')  
-                if state == '1':
-                    status[slice_fqdn] = message.STATUS_OFFLINE
+                status[sliver_fqdn] = message.STATUS_ONLINE
+                if state != '0':
+                    status[sliver_fqdn] = message.STATUS_OFFLINE
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot connect to nagios monitoring system.')
