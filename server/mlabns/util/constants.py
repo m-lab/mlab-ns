@@ -13,6 +13,13 @@ GEOLOCATION_USER_DEFINED = 'user_defined'
 # Maximum number of entities fetched from datastore in a single query.
 MAX_FETCHED_RESULTS = 500
 
+# Service state status values from Nagios:
+# OK            0
+# WARNING       1
+# CRITICAL      2
+# UNKNOWN       3
+NAGIOS_SERVICE_STATUS_OK = '0'
+
 # Maximum number of entities fetched from datastore in a single query.
 GQL_BATCH_SIZE = 1000
 

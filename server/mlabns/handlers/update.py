@@ -124,10 +124,10 @@ class NagiosUpdateHandler(webapp.RequestHandler):
             lines = urllib2.urlopen(url).read().strip('\n').split('\n')
             for line in lines:
                 # See the design doc for a description of the file format.
-                fqdn,state,state_type = line.split(' ')
-                slice_fqdn, tool_id = fqdn.split('/')  
+                slice_fqdn,state,state_type = line.split(' ')
+                sliver_fqdn, tool_id = slice_fqdn.split('/')
                 status[sliver_fqdn] = message.STATUS_ONLINE
-                if state != '0':
+                if state != constants.NAGIOS_SERVICE_STATUS_OK:
                     status[sliver_fqdn] = message.STATUS_OFFLINE
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
