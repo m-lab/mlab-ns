@@ -37,7 +37,7 @@ class ResolverBase:
             for sliver_tool in sliver_tools:
                 if (address_family == message.ADDRESS_FAMILY_IPv4 and
                     sliver_tool.status_ipv4 == message.STATUS_ONLINE) or \
-                    (address_family == ADDRESS_FAMILY_IPv6 and
+                    (address_family == message.ADDRESS_FAMILY_IPv6 and
                     sliver_tool.status_ipv6 == message.STATUS_ONLINE):
                     candidates.append(sliver_tool)
             return candidates
