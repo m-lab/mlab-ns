@@ -22,9 +22,19 @@ class ResolverBase:
             A list of SliverTool entities that match the requirements
             specified in the 'query'.
         """
+        candidates = []
         if query.address_family:
-            return self._get_candidates(query, query.address_family)
-        return []
+            candidates = self._get_candidates(query, query.address_family)
+        # If no candidates with this address family and if this address family
+        # was not user-defined, try the other address family.
+        if not candidates and query.address_family != self.user_defined_af:
+            if query.address_family == message.ADDRESS_FAMILY_IPv4:
+                candidates = self._get_candidates(query,
+                                                  message.ADDRESS_FAMILY_IPv6)
+            elif query.address_family == message.ADDRESS_FAMILY_IPv6:
+                candidates = self._get_candidates(query,
+                                                  message.ADDRESS_FAMILY_IPv4)
+        return candidates
 
     def _get_candidates(self, query, address_family):
         # First try to get the sliver tools from the cache.
