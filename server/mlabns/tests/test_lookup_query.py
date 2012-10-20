@@ -13,6 +13,12 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertIsNone(query.metro)
         self.assertIsNone(query.geolocation_type)
         self.assertIsNone(query.response_format)
+        self.assertIsNone(query.ip_address)
+        self.assertIsNone(query.address_family)
+        self.assertIsNone(query.city)
+        self.assertIsNone(query.country)
+        self.assertIsNone(query.latitude)
+        self.assertIsNone(query.longitude)
         self.assertIsNone(query.gae_ip)
         self.assertIsNone(query.gae_af)
         self.assertIsNone(query.user_defined_ip)
@@ -340,16 +346,77 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(valid_ipv6, query.gae_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.gae_af)
 
+    def testSetIpAddressAndAddressFamilyUserDefined(self):
+
+        class RequestMockup: pass
+
+        class LookupQueryMockup(lookup_query.LookupQuery):
+            def __init__(self):
+                self.user_defined_ip = 'user_defined_ip'
+                self.user_defined_af = 'user_defined_af'
+                self.gae_ip = 'gae_ip'
+                self.gae_af = 'gae_af'
+            def set_user_defined_ip_and_af(self, unused_arg): pass
+            def set_gae_ip_and_af(self, unused_arg): pass
+        
+        query = LookupQueryMockup()
+        query.set_ip_address_and_address_family(RequestMockup())
+        self.assertEqual('user_defined_ip', query.ip_address)
+        self.assertEqual('user_defined_af', query.address_family)
+
+    def testSetIpAddressAndAddressFamilyGAE(self):
+
+        class RequestMockup: pass
+
+        class LookupQueryMockup(lookup_query.LookupQuery):
+            def __init__(self):
+                self.user_defined_ip = None
+                self.user_defined_af = None
+                self.gae_ip = 'gae_ip'
+                self.gae_af = 'gae_af'
+            def set_user_defined_ip_and_af(self, unused_arg): pass
+            def set_gae_ip_and_af(self, unused_arg): pass
+        
+        query = LookupQueryMockup()
+        query.set_ip_address_and_address_family(RequestMockup())
+        self.assertEqual('gae_ip', query.ip_address)
+        self.assertEqual('gae_af', query.address_family)
+
+    def testSetIpAddressAndAddressFamilyMixed(self):
+
+        class RequestMockup: pass
+
+        class LookupQueryMockup(lookup_query.LookupQuery):
+            def __init__(self):
+                self.user_defined_ip = 'user_defined_ip'
+                self.user_defined_af = None
+                self.gae_ip = 'gae_ip'
+                self.gae_af = None
+                self.address_family = None
+            def set_user_defined_ip_and_af(self, unused_arg): pass
+            def set_gae_ip_and_af(self, unused_arg): pass
+        
+        query = LookupQueryMockup()
+        query.set_ip_address_and_address_family(RequestMockup())
+        self.assertEqual('user_defined_ip', query.ip_address)
+        self.assertIsNone(query.address_family)
+
     def testSetGeoLocationUsedDefinedValidLatLong(self):
-        valid_lat = 0.0        
-        valid_long = 4.3        
+        lat = 0.0        
+        lon = 4.3
+        city = 'valid_city'        
+        country = None 
 
         class RequestMockup:
             def get(self, arg):
                 if arg == message.LATITUDE:
-                    return valid_lat
+                    return lat
                 if arg == message.LONGITUDE:
-                    return valid_long
+                    return lon
+                if arg == message.CITY:
+                    return city
+                if arg == message.COUNTRY:
+                    return country
                 return None
 
         class LookupQueryMockup(lookup_query.LookupQuery):
@@ -357,17 +424,34 @@ class LookupQueryTestCase(unittest2.TestCase):
         
         query = LookupQueryMockup()
         query.set_geolocation(RequestMockup())
-        self.assertEqual(valid_lat, query.user_defined_latitude)
-        self.assertEqual(valid_long, query.user_defined_longitude)
         self.assertEqual(constants.GEOLOCATION_USER_DEFINED,
                          query.geolocation_type)
+        self.assertEqual(lat, query.user_defined_latitude)
+        self.assertEqual(lon, query.user_defined_longitude)
+        self.assertEqual(city, query.user_defined_city)
+        self.assertEqual(country, query.user_defined_country)
+
+        self.assertEqual(query.user_defined_latitude, query.latitude)
+        self.assertEqual(query.user_defined_longitude, query.longitude)
+        self.assertEqual(query.user_defined_city, query.city)
+        self.assertEqual(query.user_defined_country, query.country)
      
-    def testSetGeoLocationUsedDefinedNoValidLatLongNoMaxmind(self):
+    def testSetGeoLocationUsedDefinedNoValidLatLong(self):
+        lat = 'non_valid_lat'        
+        lon = 'non_valid_lon'
+        city = 'valid_city'        
+        country = None 
 
         class RequestMockup:
             def get(self, arg):
                 if arg == message.LATITUDE:
-                    return 'non_valid_lat'
+                    return lat
+                if arg == message.LONGITUDE:
+                    return lon
+                if arg == message.CITY:
+                    return city
+                if arg == message.COUNTRY:
+                    return country
                 return None
 
         class LookupQueryMockup(lookup_query.LookupQuery):
@@ -375,95 +459,151 @@ class LookupQueryTestCase(unittest2.TestCase):
         
         query = LookupQueryMockup()
         query.set_geolocation(RequestMockup())
+        self.assertEqual(constants.GEOLOCATION_USER_DEFINED,
+                         query.geolocation_type)
         self.assertIsNone(query.user_defined_latitude)
         self.assertIsNone(query.user_defined_longitude)
-        self.assertIsNone(query.geolocation_type)
+        self.assertEqual(city, query.user_defined_city)
+        self.assertEqual(country, query.user_defined_country)
 
-    def testSetGeoLocationUsedDefinedNoValidLatLongMaxmind(self):
+        self.assertEqual(query.user_defined_latitude, query.latitude)
+        self.assertEqual(query.user_defined_longitude, query.longitude)
+        self.assertEqual(query.user_defined_city, query.city)
+        self.assertEqual(query.user_defined_country, query.country)
+
+    def testSetGeoLocationUsedDefinedIpOrCountryAndMaxmind(self):
+        lat = 'maxmind_latitude'        
+        lon = 'maxmind_logitude'
+        city = None        
+        country = 'maxmind_country' 
 
         class RequestMockup:
+            def __init__(self):
+                self.country = None
             def get(self, arg):
-                if arg == message.LATITUDE:
-                    return 'non_valid_lat'
-                if arg == message.LONGITUDE:
-                    return 'non_valid_lat'
                 if arg == message.COUNTRY:
-                    return 'valid_country'
+                    return self.country
                 return None
 
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg): pass
             def set_maxmind_geolocation(
-                self, unused_arg1, unused_arg2, unused_arg3): pass
+                self, unused_arg1, unused_arg2, unused_arg3):
+                self.maxmind_latitude = lat
+                self.maxmind_longitude = lon
+                self.maxmind_city = city
+                self.maxmind_country = country
         
         query = LookupQueryMockup()
         query.user_defined_ip = 'valid_ip'
         query.set_geolocation(RequestMockup())
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
+        self.assertEqual(lat, query.maxmind_latitude)
+        self.assertEqual(lon, query.maxmind_longitude)
+        self.assertEqual(city, query.maxmind_city)
+        self.assertEqual(country, query.maxmind_country)
 
-        query = LookupQueryMockup()
-        query.set_geolocation(RequestMockup())
+        self.assertEqual(query.maxmind_latitude, query.latitude)
+        self.assertEqual(query.maxmind_longitude, query.longitude)
+        self.assertEqual(query.maxmind_city, query.city)
+        self.assertEqual(query.maxmind_country, query.country)
+
+        request = RequestMockup()
+        request.country = 'valid_country'  
+        query.set_geolocation(request)
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
+        self.assertEqual(lat, query.maxmind_latitude)
+        self.assertEqual(lon, query.maxmind_longitude)
+        self.assertEqual(city, query.maxmind_city)
+        self.assertEqual(country, query.maxmind_country)
 
-    def testSetGeoLocationUsedDefinedIpOrCountryPlusMaxmind(self):
-
-        class RequestMockup:
-            def get(self, arg):
-                if arg == message.COUNTRY:
-                    return 'valid_country'
-                return None
-
-        class LookupQueryMockup(lookup_query.LookupQuery):
-            def set_appengine_geolocation(self, unused_arg): pass
-            def set_maxmind_geolocation(
-                self, unused_arg1, unused_arg2, unused_arg3): pass
-        
-        query = LookupQueryMockup()
-        query.user_defined_ip = 'valid_ip'
-        query.set_geolocation(RequestMockup())
-        self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
-
-        query = LookupQueryMockup()
-        query.set_geolocation(RequestMockup())
-        self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
+        self.assertEqual(query.maxmind_latitude, query.latitude)
+        self.assertEqual(query.maxmind_longitude, query.longitude)
+        self.assertEqual(query.maxmind_city, query.city)
+        self.assertEqual(query.maxmind_country, query.country)
 
     def testSetGeoLocationGAELatLong(self):
+        lat = 'gae_latitude'        
+        lon = 'gae_logitude'
+        city = None        
+        country = 'gae_country' 
         
         class RequestMockup:
             def get(self, unused_arg):
                 return None
 
         class LookupQueryMockup(lookup_query.LookupQuery):
-            def set_appengine_geolocation(self, unused_arg): pass
-        
+            def set_appengine_geolocation(self, unused_arg):
+                self.gae_latitude = lat
+                self.gae_longitude = lon
+                self.gae_city = city
+                self.gae_country = country
+                
         query = LookupQueryMockup()
-        query.gae_latitude = 'gae_latitude' 
-        query.gae_longitude = 'gae_longitude' 
         query.set_geolocation(RequestMockup())
         self.assertEqual(constants.GEOLOCATION_APP_ENGINE,
                          query.geolocation_type)
+        self.assertEqual(lat, query.gae_latitude)
+        self.assertEqual(lon, query.gae_longitude)
+        self.assertEqual(city, query.gae_city)
+        self.assertEqual(country, query.gae_country)
+
+        self.assertEqual(query.gae_latitude, query.latitude)
+        self.assertEqual(query.gae_longitude, query.longitude)
+        self.assertEqual(query.gae_city, query.city)
+        self.assertEqual(query.gae_country, query.country)
     
-    def testSetGeoLocationGAEIpOrCountryPlusMaxmind(self):
+    def testSetGeoLocationGAEIpOrCountryAndMaxmind(self):
+        lat = 'maxmind_latitude'        
+        lon = 'maxmind_logitude'
+        city = None        
+        country = 'maxmind_country' 
 
         class RequestMockup:
+            def __init__(self):
+                self.country = None
             def get(self, arg):
                 if arg == message.COUNTRY:
-                    return 'valid_country'
+                    return self.country
                 return None
 
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg): pass
             def set_maxmind_geolocation(
-                self, unused_arg1, unused_arg2, unused_arg3): pass
-        
-        query = LookupQueryMockup()
-        query.gae_ip = 'valid_ip'
-        query.set_geolocation(RequestMockup())
-        self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
+                self, unused_arg1, unused_arg2, unused_arg3):
+                self.maxmind_latitude = lat
+                self.maxmind_longitude = lon
+                self.maxmind_city = city
+                self.maxmind_country = country
 
         query = LookupQueryMockup()
+        query.user_defined_ip = 'valid_ip'
         query.set_geolocation(RequestMockup())
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
+        self.assertEqual(lat, query.maxmind_latitude)
+        self.assertEqual(lon, query.maxmind_longitude)
+        self.assertEqual(city, query.maxmind_city)
+        self.assertEqual(country, query.maxmind_country)
+
+        self.assertEqual(query.maxmind_latitude, query.latitude)
+        self.assertEqual(query.maxmind_longitude, query.longitude)
+        self.assertEqual(query.maxmind_city, query.city)
+        self.assertEqual(query.maxmind_country, query.country)
+
+        query = LookupQueryMockup()
+        request = RequestMockup()
+        request.country = 'valid_country'  
+        query.set_geolocation(request)
+        self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
+        self.assertEqual(lat, query.maxmind_latitude)
+        self.assertEqual(lon, query.maxmind_longitude)
+        self.assertEqual(city, query.maxmind_city)
+        self.assertEqual(country, query.maxmind_country)
+
+        self.assertEqual(query.maxmind_latitude, query.latitude)
+        self.assertEqual(query.maxmind_longitude, query.longitude)
+        self.assertEqual(query.maxmind_city, query.city)
+        self.assertEqual(query.maxmind_country, query.country)
 
     def testSetMaxmindGeolocationNone(self):
         query = lookup_query.LookupQuery()
@@ -587,12 +727,8 @@ class LookupQueryTestCase(unittest2.TestCase):
                 return message.POLICY_GEO
 
         query = lookup_query.LookupQuery()
-        query.user_defined_latitude = 'valid_lat'
-        query.user_defined_longitude = None
-        query.gae_latitude = None
-        query.gae_longitude = 'valid_long'
-        query.maxmind_latitude = 'valid_lat'
-        query.maxmind_longitude = None
+        query.latitude = 'valid_lat'
+        query.longitude = None
         query.set_policy(RequestMockup())
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 

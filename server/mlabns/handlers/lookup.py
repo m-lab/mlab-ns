@@ -7,6 +7,7 @@ from google.appengine.ext.webapp import template
 from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import message
+from mlabns.util import lookup_query
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -30,7 +31,7 @@ class LookupHandler(webapp.RequestHandler):
         For more information about the URL and the supported arguments
         in the query string, see the design doc at http://goo.gl/48S22.
         """
-        query = resolver.LookupQuery()
+        query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
 
         logging.info('Policy is %s', query.policy)

@@ -13,10 +13,16 @@ class LookupQuery:
         self.metro = None
         self.response_format = None
         self.geolocation_type = None
-        self.user_defined_ip = None
-        self.user_defined_af = None
+        self.ip_address = None
+        self.address_family = None
+        self.city = None
+        self.country = None
+        self.latitude = None
+        self.longitude = None
         self.gae_ip = None
+        self.user_defined_ip = None
         self.gae_af = None
+        self.user_defined_af = None
         self.user_defined_city = None
         self.user_defined_country = None
         self.user_defined_latitude = None
@@ -38,8 +44,7 @@ class LookupQuery:
         """
         self.tool_id = request.path.strip('/').split('/')[0]
         self.set_response_format(request)
-        self.set_user_defined_ip_and_af(request)
-        self.set_gae_ip_and_af(request)
+        self.set_ip_address_and_address_family(request)
         self.set_geolocation(request)
         self.metro = request.get(message.METRO)
         self.set_policy(request)
@@ -51,6 +56,21 @@ class LookupQuery:
             logging.warning('Non valid response format %s.',
                             self.response_format) 
             self.response_format = message.DEFAULT_RESPONSE_FORMAT
+
+    def set_ip_address_and_address_family(self, request):
+        self.set_user_defined_ip_and_af(request)
+        self.set_gae_ip_and_af(request)
+
+        # User-defined args have precedence over args provided by GAE.
+        if self.user_defined_ip:
+            self.ip_address = self.user_defined_ip
+        elif self.gae_ip:
+            self.ip_address = self.gae_ip
+
+        if self.user_defined_af:
+            self.address_family = self.user_defined_af
+        elif self.gae_af:
+            self.address_family = self.gae_af
 
     def set_user_defined_ip_and_af(self, request):
         self.user_defined_ip = request.get(message.REMOTE_ADDRESS)
@@ -81,7 +101,7 @@ class LookupQuery:
                     'IP address is IPv4, but address family is %s.',
                     self.__dict__[af_field])
                 # The IP address has precedence over the address family.
-                self.__dict__[af_field] = message.ADDRESS_FAMILY_IPv4
+            self.__dict__[af_field] = message.ADDRESS_FAMILY_IPv4
             return
         except ipaddr.AddressValueError:
             pass
@@ -94,7 +114,7 @@ class LookupQuery:
                     'IP address is IPv6, but address family is %s.',
                     self.__dict__[af_field])
                 # The IP address has precedence over the address family.
-                self.__dict__[af_field] = message.ADDRESS_FAMILY_IPv6
+            self.__dict__[af_field] = message.ADDRESS_FAMILY_IPv6
             return
         except ipaddr.AddressValueError:
             pass
@@ -114,24 +134,35 @@ class LookupQuery:
             try:
                 self.user_defined_latitude = float(input_latitude)
                 self.user_defined_longitude = float(input_longitude)
-                return
             except ValueError:
                 logging.error('Non valid user-defined lat, long (%s, %s).',
                                input_latitude, input_longitude)
-                if not self.user_defined_ip and not self.user_defined_country:
-                    return
-        if self.user_defined_ip or self.user_defined_country:
+        elif self.user_defined_ip or self.user_defined_country:
             self.geolocation_type = constants.GEOLOCATION_MAXMIND
             self.set_maxmind_geolocation(self.user_defined_ip,
-                                    self.user_defined_country,
-                    self.user_defined_city)
-            return
+                                         self.user_defined_country,
+                                         self.user_defined_city)
         elif self.gae_latitude and self.gae_longitude:
             self.geolocation_type = constants.GEOLOCATION_APP_ENGINE
-            return
         elif self.gae_ip or self.gae_country:
             self.set_maxmind_geolocation(self.gae_ip, self.gae_country,
                                          self.gae_city)
+
+        if self.geolocation_type == constants.GEOLOCATION_USER_DEFINED:
+            self.city = self.user_defined_city
+            self.country = self.user_defined_country
+            self.latitude = self.user_defined_latitude
+            self.longitude = self.user_defined_longitude
+        elif self.geolocation_type == constants.GEOLOCATION_MAXMIND:
+            self.city = self.maxmind_city
+            self.country = self.maxmind_country
+            self.latitude = self.maxmind_latitude
+            self.longitude = self.maxmind_longitude
+        elif self.geolocation_type == constants.GEOLOCATION_APP_ENGINE:
+            self.city = self.gae_city
+            self.country = self.gae_country
+            self.latitude = self.gae_latitude
+            self.longitude = self.gae_longitude
 
     def set_maxmind_geolocation(self, ip_address, country, city):
         geo_record = maxmind.GeoRecord()    
@@ -190,7 +221,7 @@ class LookupQuery:
                 self.policy = message.POLICY_METRO
             return
         if self.policy == message.POLICY_GEO:
-            if not self._are_lat_long_set():
+            if not self.latitude or not self.longitude:
                 logging.warning('Policy geo, but no geo args defined.')
                 self.policy = message.POLICY_RANDOM
             return
@@ -209,12 +240,7 @@ class LookupQuery:
         logging.warning('Non valid policy %s.', self.policy) 
         self.policy = self._get_default_policy()
 
-    def _are_lat_long_set(self):
-        return (self.user_defined_latitude and self.user_defined_longitude) or\
-               (self.maxmind_latitude and self.maxmind_longitude) or\
-               (self.gae_latitude and self.gae_longitude)
-        
     def _get_default_policy(self):
-        if self._are_lat_long_set():
+        if self.latitude and self.longitude:
             return message.POLICY_GEO
         return message.POLICY_RANDOM

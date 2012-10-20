@@ -22,10 +22,8 @@ class ResolverBase:
             A list of SliverTool entities that match the requirements
             specified in the 'query'.
         """
-        if query.user_defined_af:
-            return self._get_candidates(query, query.user_defined_af)
-        if query.gae_af:
-            return self._get_candidates(query, query.gae_af)
+        if query.address_family:
+            return self._get_candidates(query, query.address_family)
         return []
 
     def _get_candidates(self, query, address_family):
@@ -79,16 +77,7 @@ class GeoResolver(ResolverBase):
             logging.error('No results found for %s.', query.tool_id)
             return None
 
-        if query.geolocation_type == constants.GEOLOCATION_USER_DEFINED:
-            latitude = query.user_defined_latitude
-            longitude = query.user_defined_longitude
-        elif query.geolocation_type == constants.GEOLOCATION_MAXMIND:
-            latitude = query.maxmind_latitude
-            longitude = query.maxmind_longitude
-        elif query.geolocation_type == constants.GEOLOCATION_APP_ENGINE:
-            latitude = query.gae_latitude
-            longitude = query.gae_longitude
-        if not latitude or not longitude:
+        if not query.latitude or not query.longitude:
             logging.warning(
                 'No geolocation info, returning a random sliver tool')
             return random.choice(candidates)
@@ -109,8 +98,8 @@ class GeoResolver(ResolverBase):
                 current_distance = distances[sliver_tool.site_id]
             else:
                 current_distance = distance.distance(
-                    latitude,
-                    longitude,
+                    query.latitude,
+                    query.longitude,
                     sliver_tool.latitude,
                     sliver_tool.longitude)
 
