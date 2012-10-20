@@ -12,16 +12,22 @@ from Crypto.Cipher import AES
 ADDRESS_FAMILY  = 'address_family'
 ADDRESS_FAMILY_IPv4  = 'ipv4'
 ADDRESS_FAMILY_IPv6  = 'ipv6'
+
 CIPHERTEXT      = 'ciphertext'
 CITY            = 'city'
 COUNTRY         = 'country'
 ENTITY          = 'entity'
 ENTITY_SITE     = 'site'
 ENTITY_SLIVER_TOOL = 'sliver_tool'
+
+RESPONSE_FORMAT = 'format'
 FORMAT_HTML     = 'html'
 FORMAT_JSON     = 'json'
 FORMAT_MAP      = 'map'
 FORMAT_REDIRECT = 'redirect'
+VALID_FORMATS = [FORMAT_HTML, FORMAT_JSON, FORMAT_MAP, FORMAT_REDIRECT]
+DEFAULT_RESPONSE_FORMAT = FORMAT_JSON
+
 FQDN_IPv4       = 'fqdn_ipv4'
 FQDN_IPv6       = 'fqdn_ipv6'
 HEADER_CITY     = 'X-AppEngine-City'
@@ -32,13 +38,14 @@ LAT_LONG        = 'lat_long'
 LATITUDE        = 'lat'
 LONGITUDE       = 'lon'
 METRO           = 'metro'
+
 POLICY          = 'policy'
 POLICY_GEO      = 'geo'
 POLICY_METRO    = 'metro'
 POLICY_RANDOM   = 'random'
 POLICY_COUNTRY  = 'country'
+ 
 REMOTE_ADDRESS  = 'ip'
-RESPONSE_FORMAT = 'format'
 SERVER_ID       = 'server_id'
 SERVER_PORT     = 'server_port'
 SIGNATURE       = 'sign'
