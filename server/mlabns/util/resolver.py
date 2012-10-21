@@ -40,9 +40,8 @@ class ResolverBase:
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(query.tool_id)
         if sliver_tools:
-            logging.info(
-                'Sliver tools found in memcache (%s results).',
-                len(sliver_tools))
+            logging.info('Sliver tools found in memcache (%s results).',
+                         len(sliver_tools))
             candidates = []
             for sliver_tool in sliver_tools:
                 if (address_family == message.ADDRESS_FAMILY_IPv4 and
@@ -51,22 +50,33 @@ class ResolverBase:
                     sliver_tool.status_ipv6 == message.STATUS_ONLINE):
                     candidates.append(sliver_tool)
             return candidates
-
         logging.info('Sliver tools not found in memcache.')
-        # Get the sliver tools from from datastore.
+
+        # Get the sliver tools from datastore.
         status_field = 'status_' + address_family
         candidates = model.SliverTool.gql(
             'WHERE tool_id = :tool_id '
             'AND ' + status_field + ' = :status',
             tool_id=query.tool_id,
             status=message.STATUS_ONLINE)
-
-        logging.info(
-            'Found (%s candidates)', candidates.count())
+        logging.info('Found (%s candidates)', candidates.count())
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
 
     def answer_query(self, query):
-        pass
+        """Selects a random sliver tool among the available candidates.
+
+        Args:
+            query: A LookupQuery instance.
+
+        Returns:
+            A SliverTool entity if any available, None otherwise.
+        """
+        candidates = self.get_candidates(query)
+        if not candidates:
+            logging.error('No results found for %s.', query.tool_id)
+            return None
+
+        return random.choice(candidates)
 
 
 class GeoResolver(ResolverBase):
@@ -88,8 +98,7 @@ class GeoResolver(ResolverBase):
             return None
 
         if not query.latitude or not query.longitude:
-            logging.warning(
-                'No geolocation info, returning a random sliver tool')
+            logging.warning('No latide/longitude, return a random sliver tool.')
             return random.choice(candidates)
 
         logging.info('Found %s candidates.', len(candidates))
@@ -97,14 +106,12 @@ class GeoResolver(ResolverBase):
         closest_sliver_tools = []
         distances = {}
 
-        # Compute for each SliverTool the distance and add the SliverTool
-        # to the 'closest_sliver_tools' list if the computed  distance is
-        # less (or equal) than the current minimum.
-        # To avoid computing the distances twice, cache the results in
-        # a dict.
+        # Compute for each SliverTool the distance and add keep in the
+        # 'closest_sliver_tools' list only the SliverTools whose distance is
+        # less or equal than the current minimum.
         for sliver_tool in candidates:
-            # Check if we already computed this distance.
-            if (distances.has_key(sliver_tool.site_id)):
+            # Check if we already computed the distance of this site.
+            if distances.has_key(sliver_tool.site_id):
                 current_distance = distances[sliver_tool.site_id]
             else:
                 current_distance = distance.distance(
@@ -113,27 +120,18 @@ class GeoResolver(ResolverBase):
                     sliver_tool.latitude,
                     sliver_tool.longitude)
 
-                # Update the dict.
-                if sliver_tool.site_id not in distances:
-                    distances[sliver_tool.site_id] = current_distance
+                distances[sliver_tool.site_id] = current_distance
 
             # Update the min distance and add the SliverTool to the list.
-            if (current_distance <= min_distance):
+            if current_distance < min_distance:
                 min_distance = current_distance
-                closest_sliver_tools.insert(0, sliver_tool)
+                closest_sliver_tools = sliver_tool
+            elif current_distance == min_distance:
+                closest_sliver_tools.insert(sliver_tool)
 
-        # Sort the 'closest_sliver_tools' list by distance and select only
-        # those within an acceptable range. Then return one of these,
-        # chosen randomly.
-        best_sliver_tools = []
-        distance_range = min_distance
-        for sliver_tool in closest_sliver_tools:
-            if  distances[sliver_tool.site_id] <= distance_range:
-                best_sliver_tools.append(sliver_tool)
-            else:
-                break
+        # Choose randomly among candidates with the same, minimum distance.
+        return random.choice(closest_sliver_tools)
 
-        return random.choice(best_sliver_tools)
 
 class MetroResolver(ResolverBase):
     """Implements the metro policy."""
@@ -166,41 +164,10 @@ class MetroResolver(ResolverBase):
 
         return candidates
 
-    def answer_query(self, query):
-        """Selects randomly a sliver tool that matches the 'metro'.
-
-        Args:
-            query: A LookupQuery instance.
-
-        Returns:
-            A SliverTool entity that matches the 'metro' if available,
-            and None otherwise.
-        """
-        candidates = self.get_candidates(query)
-        if not candidates:
-            logging.error('No results found for %s.', query.tool_id)
-            return None
-
-        return random.choice(candidates)
 
 class RandomResolver(ResolverBase):
     """Returns a server chosen randomly."""
-
-    def answer_query(self, query):
-        """Returns a randomly chosen SliverTool.
-
-        Args:
-            query: A LookupQuery instance.
-
-        Returns:
-            A SliverTool entity if available, None otherwise.
-        """
-        candidates = self.get_candidates(query)
-        if not candidates:
-            logging.error('No results found for %s.', query.tool_id)
-            return None
-
-        return random.choice(candidates)
+    pass
 
 
 class CountryResolver(ResolverBase):
