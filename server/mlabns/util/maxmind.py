@@ -106,7 +106,7 @@ def get_ipv6_geolocation(remote_addr,
         'ORDER BY start_ip_num DESC',
         ip_num=ip_num).get()
     if geo_city_block_v6 is None or geo_city_block_v6.end_ip_num < ip_num:
-        logging.error('IP %s not found in the Maxmind database.', str(ipnum))
+        logging.error('IP %s not found in the Maxmind database.', str(ip_num))
         return geo_record
 
     geo_record.city = constants.UNKNOWN_CITY
