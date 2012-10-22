@@ -32,7 +32,7 @@ class RegistrationHandler(webapp.RequestHandler):
         """
         dictionary = {}
         for argument in self.request.arguments():
-            dictionary[argument] = self.request.get(argument)
+            dictionary[argument] = self.request.get(argument, default_value=None)
             logging.info('data[%s] = %s',
                 argument, dictionary[argument])
 
@@ -42,7 +42,7 @@ class RegistrationHandler(webapp.RequestHandler):
             logging.error('Registration key not found.')
             return util.send_not_found(self)
 
-        entity = self.request.get(message.ENTITY)
+        entity = self.request.get(message.ENTITY, default_value=None)
         if entity == message.ENTITY_SITE:
             return self.register_site(
                 dictionary, key_entry.encryption_key)

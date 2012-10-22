@@ -46,11 +46,12 @@ class LookupQuery:
         self.set_response_format(request)
         self.set_ip_address_and_address_family(request)
         self.set_geolocation(request)
-        self.metro = request.get(message.METRO)
+        self.metro = request.get(message.METRO, default_value=None)
         self.set_policy(request)
 
     def set_response_format(self, request):
-        self.response_format = request.get(message.RESPONSE_FORMAT)
+        self.response_format = request.get(message.RESPONSE_FORMAT,
+                                           default_value=None)
         if self.response_format is None or \
             self.response_format not in message.VALID_FORMATS:
             logging.warning('Non valid response format %s.',
@@ -73,9 +74,11 @@ class LookupQuery:
             self.address_family = self.gae_af
 
     def set_user_defined_ip_and_af(self, request):
-        self.user_defined_ip = request.get(message.REMOTE_ADDRESS)
-        self.user_defined_af = request.get(message.ADDRESS_FAMILY)
-        if self.user_defined_ip:
+        self.user_defined_ip = request.get(message.REMOTE_ADDRESS,
+                                           default_value=None)
+        self.user_defined_af = request.get(message.ADDRESS_FAMILY,
+                                           default_value=None)
+        if self.user_defined_ip is not None:
             self._set_ip_and_af('user_defined_ip', 'user_defined_af')
 
         if self.user_defined_ip is None and self.user_defined_af is not None:
@@ -124,10 +127,11 @@ class LookupQuery:
  
     def set_geolocation(self, request):
         self.set_appengine_geolocation(request)
-        self.user_defined_city = request.get(message.CITY)
-        self.user_defined_country = request.get(message.COUNTRY)
-        input_latitude = request.get(message.LATITUDE)
-        input_longitude = request.get(message.LONGITUDE)
+        self.user_defined_city = request.get(message.CITY, default_value=None)
+        self.user_defined_country = request.get(message.COUNTRY,
+                                                default_value=None)
+        input_latitude = request.get(message.LATITUDE, default_value=None)
+        input_longitude = request.get(message.LONGITUDE, default_value=None)
 
         if input_latitude is not None and input_longitude is not None:
             self.geolocation_type = constants.GEOLOCATION_USER_DEFINED
@@ -200,7 +204,7 @@ class LookupQuery:
                 logging.error('GAE provided bad lat/long %s.', lat_long)
 
     def set_policy(self, request):
-        self.policy = request.get(message.POLICY)
+        self.policy = request.get(message.POLICY, default_value=None)
         if (self.user_defined_latitude is not None and \
             self.user_defined_longitude is not None) or \
             self.user_defined_ip is not None:
