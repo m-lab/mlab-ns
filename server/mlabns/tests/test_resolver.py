@@ -16,8 +16,6 @@ class ResolverBaseTestCase(unittest2.TestCase):
                 return []
 
         base_resolver = ResolverBaseMockup()
-        query = QueryMockup()
-        query.address_family = message.ADDRESS_FAMILY_IPv6
         
         # Case 1) List is not empty for the input address family.
         query = QueryMockup()
@@ -45,26 +43,32 @@ class ResolverBaseTestCase(unittest2.TestCase):
         query.user_defined_af = message.ADDRESS_FAMILY_IPv6
         self.assertGreater(len(base_resolver.get_candidates(query)), 0)
         
-    def testAnswerQuery(self):
+    def testAnswerQueryEmptyResult(self):
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'tool_id'
             
         class ResolverBaseMockup(resolver.ResolverBase):
-            def __init__(self):
-                self.result = None
             def get_candidates(self, unused_arg):
-                return self.result
+                return []
         
-        # Case 1) Empty result.
         base_resolver = ResolverBaseMockup()
-        base_resolver.result = []
         query = QueryMockup()
         self.assertIsNone(base_resolver.answer_query(query))
         
-        # Case 1) Non empty result.
-        base_resolver.result = ['candidate']
+    def testAnswerQueryNonEmptyResult(self):
+        class QueryMockup:
+            def __init__(self):
+                self.tool_id = 'tool_id'
+            
+        class ResolverBaseMockup(resolver.ResolverBase):
+            def get_candidates(self, unused_arg):
+                return ['candidate']
+        
+        base_resolver = ResolverBaseMockup()
+        query = QueryMockup()
         self.assertGreater(len(base_resolver.answer_query(query)), 0)
+
 
 class ResolverTestCase(unittest2.TestCase):
     def testNewResolver(self):
