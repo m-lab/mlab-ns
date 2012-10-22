@@ -42,7 +42,7 @@ class ResolverBase:
 
         # First try to get the sliver tools from the memcache.
         sliver_tools = memcache.get(
-            query.tool_id, namespace=MEMCACHE_NAMESPACE_TOOLS)
+            query.tool_id, namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
         if sliver_tools is not None:
             logging.info('Sliver tools found in memcache (%s results).',
                          len(sliver_tools))
@@ -71,7 +71,7 @@ class ResolverBase:
 
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(
-            query.tool_id, namespace=MEMCACHE_NAMESPACE_TOOLS)
+            query.tool_id, namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
         if sliver_tools is not None:
             logging.info('Sliver tools found in memcache (%s results).',
                          len(sliver_tools))
