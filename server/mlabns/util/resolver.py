@@ -87,6 +87,7 @@ class ResolverBase:
         logging.info('Sliver tools not found in memcache.')
 
         # Get the sliver tools from datastore.
+        status_field = 'status_' + address_family
         candidates = model.SliverTool.gql(
             'WHERE tool_id = :tool_id '
             'AND ' + status_field + ' = :status '
