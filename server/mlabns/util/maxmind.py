@@ -61,14 +61,13 @@ def get_ipv4_geolocation(remote_addr,
     """
     geo_record = GeoRecord()
     ip_num = int(ipaddr.IPv4Address(remote_addr))
-    logging.info('IP long is %s.', ip_num)
 
     geo_city_block = ipv4_table.gql(
         'WHERE start_ip_num <= :ip_num '
         'ORDER BY start_ip_num DESC',
         ip_num=ip_num).get()
     if geo_city_block is None or geo_city_block.end_ip_num < ip_num:
-        logging.error('IP not found in the Maxmind database.')
+        logging.error('IP %s not found in the Maxmind database.', str(ip_num))
         return geo_record
      
     location = city_table.get_by_key_name(geo_city_block.location_id)
@@ -81,9 +80,6 @@ def get_ipv4_geolocation(remote_addr,
     geo_record.country = location.country
     geo_record.latitude = location.latitude
     geo_record.longitude = location.longitude
-    logging.info(
-        'City : %s, Country: %s, Latitude :%s, Longitude: %s',
-        location.city, location.country, location.latitude, location.longitude)
     return geo_record
 
 def get_ipv6_geolocation(remote_addr,
@@ -104,23 +100,19 @@ def get_ipv6_geolocation(remote_addr,
     ip_num = int(ipaddr.IPv6Address(remote_addr))
     # We currently keep only /64s in the MaxmindCityBlocksv6 db.
     ip_num = (ip_num >> 64)
-    logging.info('IPv6 num is %s.', ip_num)
 
     geo_city_block_v6 = ipv6_table.gql(
         'WHERE start_ip_num <= :ip_num '
         'ORDER BY start_ip_num DESC',
         ip_num=ip_num).get()
     if geo_city_block_v6 is None or geo_city_block_v6.end_ip_num < ip_num:
-        logging.error('IP not found in the Maxmind database.')
+        logging.error('IP %s not found in the Maxmind database.', str(ipnum))
         return geo_record
 
     geo_record.city = constants.UNKNOWN_CITY
     geo_record.country = geo_city_block_v6.country
     geo_record.latitude = geo_city_block_v6.latitude
     geo_record.longitude = geo_city_block_v6.longitude
-    logging.info(
-        'Country: %s, Latitude :%s, Longitude: %s',
-        geo_record.country, geo_record.latitude, geo_record.longitude)
     return geo_record
 
 def get_country_geolocation(country, country_table=model.CountryCode):
@@ -171,6 +163,5 @@ def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
     geo_record.country = location.country
     geo_record.latitude = location.latitude
     geo_record.longitude = location.longitude
-
     return geo_record
 

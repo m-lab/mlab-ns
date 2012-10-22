@@ -218,11 +218,11 @@ class LookupHandler(webapp.RequestHandler):
         # The list of these fields must be consistent with the BigQuery
         # table schema described in server/config.py.
         # TODO(claudiu) Replace with json and update log2bq.py accordingly.
-        logging.debug(
-            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
-            '[lookup]',
-            query.tool_id, query.policy, query.ip_address, is_ipv6,
-            query.city, query.country, query.latitude, query.longitude,
-            sliver_tool.slice_id, sliver_tool.server_id, ip, fqdn,
-            sliver_tool.site_id, sliver_tool.city, sliver_tool.country,
-            sliver_tool.latitude, sliver_tool.longitude, long(time.time()))
+        # logging.debug(
+        #    '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
+        #    '[lookup]',
+        #    query.tool_id, query.policy, query.ip_address, is_ipv6,
+        #    query.city, query.country, query.latitude, query.longitude,
+        #    sliver_tool.slice_id, sliver_tool.server_id, ip, fqdn,
+        #    sliver_tool.site_id, sliver_tool.city, sliver_tool.country,
+        #    sliver_tool.latitude, sliver_tool.longitude, long(time.time()))

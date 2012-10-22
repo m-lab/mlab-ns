@@ -60,23 +60,6 @@ class Site(db.Model):
     # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
 
-class Lookup(db.Model):
-    tool_id = db.StringProperty()
-    policy = db.StringProperty()
-    user_ip = db.StringProperty()
-    user_city = db.StringProperty()
-    user_country = db.StringProperty()
-    user_latitude = db.FloatProperty()
-    user_longitude = db.FloatProperty()
-    slice_id=db.StringProperty()
-    server_id = db.StringProperty()
-    site_id=db.StringProperty()
-    site_city = db.StringProperty()
-    site_country = db.StringProperty()
-    site_latitude = db.FloatProperty()
-    site_longitude = db.FloatProperty()
-    when = db.DateTimeProperty(auto_now=True)
-
 class MaxmindCityLocation(db.Model):
     location_id = db.StringProperty()
     country = db.StringProperty()
