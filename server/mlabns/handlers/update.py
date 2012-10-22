@@ -55,7 +55,7 @@ class NagiosUpdateHandler(webapp.RequestHandler):
                 slivers in the slice {key=fqdn, status:online|offline}
             tool_id: A string representing the fqdn that resolves
                 to an IP address.
-            address_family: Addres family, 'ipv4' or 'ipv6'.
+            address_family: Address family, 'ipv4' or 'ipv6'.
         """
         # Set to 'status_ipv4' if address_family is 'ipv4'
         # or to 'status_ipv6' if address_family if 'ipv6'.
@@ -93,21 +93,9 @@ class NagiosUpdateHandler(webapp.RequestHandler):
         # Never set the memcache to an empty list since it's more likely that
         # this is a Nagios failure.
         if sliver_tool_list:
-            self.update_memcache(sliver_tool_list, tool_id)
-
-    def update_memcache(self, sliver_tool_list, tool_id):
-        """Adds these sliver tools to the memcache.
-
-        For each tool, there is a memcache entry containing a list with
-        all the sliver tools.
-
-        Args:
-            sliver_tool_list: A list of SliverTool instances to be added to the
-                memcache.
-            tool_id: A string representing a tool id.
-        """
-        if not memcache.set(tool_id, sliver_tool_list):
-            logging.error('Memcache set failed')
+            if not memcache.set(tool_id, sliver_tool_list,
+                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                logging.error('Memcache set failed')
 
     def get_slice_status(self, url):
         """Read slice status from Nagios.

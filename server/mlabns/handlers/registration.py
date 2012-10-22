@@ -90,6 +90,17 @@ class RegistrationHandler(webapp.RequestHandler):
             logging.error('Failed to write changes to db.')
             return util.send_server_error(self)
 
+        # Update memcache with map: metro -> site IDs.
+        for metro in registration.metro.split(','):
+            sites = memcache.get(
+                metro, namespace=constants.MEMCACHE_NAMESPACE_METROS)
+            if sites is None:
+                sites = []
+            sites.append(registration.site_id)
+            if not memcache.set(metro, sites,
+                                namespace=constants.MEMCACHE_NAMESPACE_METROS):
+                logging.error('Memcache set failed')
+
         return util.send_success(self)
 
     def register_sliver_tool(self, dictionary, encryption_key):

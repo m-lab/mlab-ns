@@ -40,8 +40,9 @@ class ResolverBase:
     def _get_candidates(self, query, address_family):
         """Returns a (possibly empty) list of available candidates."""
 
-        # First try to get the sliver tools from the cache.
-        sliver_tools = memcache.get(query.tool_id)
+        # First try to get the sliver tools from the memcache.
+        sliver_tools = memcache.get(
+            query.tool_id, namespace=MEMCACHE_NAMESPACE_TOOLS)
         if sliver_tools is not None:
             logging.info('Sliver tools found in memcache (%s results).',
                          len(sliver_tools))
@@ -62,6 +63,37 @@ class ResolverBase:
             'AND ' + status_field + ' = :status',
             tool_id=query.tool_id,
             status=message.STATUS_ONLINE)
+        logging.info('Found (%s candidates)', candidates.count())
+        return candidates.fetch(constants.MAX_FETCHED_RESULTS)
+
+    def _get_candidates_from_sites(self, query, address_family, site_ids):
+        """Returns a (possibly empty) list of available candidates."""
+
+        # First try to get the sliver tools from the cache.
+        sliver_tools = memcache.get(
+            query.tool_id, namespace=MEMCACHE_NAMESPACE_TOOLS)
+        if sliver_tools is not None:
+            logging.info('Sliver tools found in memcache (%s results).',
+                         len(sliver_tools))
+            candidates = []
+            for sliver_tool in sliver_tools:
+                if sliver_tool.site_id in site_ids and \
+                    ((address_family == message.ADDRESS_FAMILY_IPv4 and
+                    sliver_tool.status_ipv4 == message.STATUS_ONLINE) or
+                    (address_family == message.ADDRESS_FAMILY_IPv6 and
+                    sliver_tool.status_ipv6 == message.STATUS_ONLINE)):
+                    candidates.append(sliver_tool)
+            return candidates
+        logging.info('Sliver tools not found in memcache.')
+
+        # Get the sliver tools from datastore.
+        candidates = model.SliverTool.gql(
+            'WHERE tool_id = :tool_id '
+            'AND ' + status_field + ' = :status '
+            'AND site_id in :site_id_list',
+            tool_id=query.tool_id,
+            status=message.STATUS_ONLINE,
+            site_id_list=site_id_list)
         logging.info('Found (%s candidates)', candidates.count())
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
 
@@ -139,13 +171,17 @@ class MetroResolver(ResolverBase):
     """Implements the metro policy."""
 
     def _get_candidates(self, query, address_family):
-        # TODO(claudiu) Test whether the following query works as expected:
-        # sites = model.Site.gql("WHERE metro = :metro", metro=query.metro)
-        sites = model.Site.all().filter("metro =", query.metro).fetch(
-            constants.MAX_FETCHED_RESULTS)
-
-        logging.info(
-            'Found %s results for metro %s.', len(sites), query.metro)
+        # 1) Get the sites in the user-defined metro.
+        # 1.1) Try the memcache first.
+        candidate_sites = memcache.get(
+            query.metro, namespace=constants.MEMCACHE_NAMESPACE_METROS)        
+        if candidate_sites is None:
+            # 1.2) Query db.        
+            # TODO(claudiu) Test whether the following query is better.
+            # sites = model.Site.gql("WHERE metro = :metro", metro=query.metro)
+            sites = model.Site.all().filter("metro =", query.metro).fetch(
+                constants.MAX_FETCHED_RESULTS)
+        logging.info('Found %s results for metro %s.', len(sites), query.metro)
         if len(sites) == 0:
             logging.info('No results found for metro %s.', query.metro)
             return None
@@ -154,17 +190,9 @@ class MetroResolver(ResolverBase):
         for site in sites:
             site_id_list.append(site.site_id)
 
-        status_field = 'status_' + address_family
-        # TODO(claudiu) Use the memcache.
-        candidates = model.SliverTool.gql(
-            'WHERE tool_id = :tool_id '
-            'AND ' + status_field + ' = :status '
-            'AND site_id in :site_id_list',
-            tool_id=query.tool_id,
-            status=message.STATUS_ONLINE,
-            site_id_list=site_id_list).fetch(constants.MAX_FETCHED_RESULTS)
-
-        return candidates
+        # 2) Get sliver tools in the candidate sites.
+        return self._get_candidates_from_sites(
+            query, address_family, site_id_list)
 
 
 class RandomResolver(ResolverBase):
