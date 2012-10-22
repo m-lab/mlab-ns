@@ -20,15 +20,17 @@ class ResolverBaseTestCase(unittest2.TestCase):
         # Case 1) List is not empty for the input address family.
         query = QueryMockup()
         query.address_family = message.ADDRESS_FAMILY_IPv6
-        self.assertGreater(len(base_resolver.get_candidates(query)), 0)
+        self.assertListEqual(['valid_candidate'],
+                             base_resolver.get_candidates(query))
         
         # Case 2) List is empty for input address_family and there is no
         #         user-defined address family.
         query = QueryMockup()
         query.address_family = message.ADDRESS_FAMILY_IPv4
         query.user_defined_af = None        
-        self.assertGreater(len(base_resolver.get_candidates(query)), 0)
-        
+        self.assertListEqual(['valid_candidate'],
+                             base_resolver.get_candidates(query))
+                
         # Case 3) List is empty for input address_family and user-defined
         #         address family == input address family.
         query = QueryMockup()
@@ -41,8 +43,9 @@ class ResolverBaseTestCase(unittest2.TestCase):
         query = QueryMockup()
         query.address_family = message.ADDRESS_FAMILY_IPv4
         query.user_defined_af = message.ADDRESS_FAMILY_IPv6
-        self.assertGreater(len(base_resolver.get_candidates(query)), 0)
-        
+        self.assertListEqual(['valid_candidate'],
+                             base_resolver.get_candidates(query))
+                
     def testAnswerQueryEmptyResult(self):
         class QueryMockup:
             def __init__(self):
@@ -63,11 +66,13 @@ class ResolverBaseTestCase(unittest2.TestCase):
             
         class ResolverBaseMockup(resolver.ResolverBase):
             def get_candidates(self, unused_arg):
-                return ['candidate']
+                return ['valid_candidate']
         
         base_resolver = ResolverBaseMockup()
         query = QueryMockup()
-        self.assertGreater(len(base_resolver.answer_query(query)), 0)
+        self.assertListEqual(['valid_candidate'],
+                             base_resolver.get_candidates(query))
+
 
 class CountryResolverTestCase(unittest2.TestCase):
     def testAnswerQueryNoUserDefinedCountry(self):
@@ -135,6 +140,105 @@ class CountryResolverTestCase(unittest2.TestCase):
         result = country_resolver.answer_query(QueryMockup())
         self.assertEqual('valid_country', result.country)
 
+
+class GeoResolverTestCase(unittest2.TestCase):
+    def testAnswerQueryNoCandidates(self):
+        
+        class QueryMockup:
+            def __init__(self):
+                self.tool_id = 'valid_tool_id'
+            
+        class GeoResolverMockup(resolver.GeoResolver):
+            def get_candidates(self, unused_arg):
+                return []
+
+        geo_resolver = GeoResolverMockup()
+        self.assertIsNone(geo_resolver.answer_query(QueryMockup()))
+
+    def testAnswerQueryNoLatLon(self): 
+       
+        class QueryMockup:
+            def __init__(self):
+                self.latitude = None
+                self.longitude = None
+             
+        class GeoResolverMockup(resolver.GeoResolver):
+            def get_candidates(self, unused_arg):
+                return ['valid_candidate']
+
+        geo_resolver = GeoResolverMockup()
+        self.assertEqual('valid_candidate',
+                         geo_resolver.answer_query(QueryMockup()))
+
+    def testAnswerQueryAllCandidatesSameSite(self): 
+       
+        class QueryMockup:
+            def __init__(self):
+                self.latitude = 0.0
+                self.longitude = 0.0
+             
+        class SliverToolMockup:
+            def __init__(self):
+                self.site_id = 'valid_site_id'
+                self.latitude = 2.0
+                self.longitude = 1.0
+                
+        class GeoResolverMockup(resolver.GeoResolver):
+            def get_candidates(self, unused_arg):
+                return [SliverToolMockup(), SliverToolMockup()]
+                        
+        geo_resolver = GeoResolverMockup()
+        result = geo_resolver.answer_query(QueryMockup())
+        self.assertEqual(2.0, result.latitude)
+        self.assertEqual(1.0, result.longitude)
+
+    def testAnswerQueryAllCandidatesDifferentSitesOneClosest(self): 
+       
+        class QueryMockup:
+            def __init__(self):
+                self.latitude = 0.0
+                self.longitude = 0.0
+             
+        class SliverToolMockup:
+            def __init__(self, site, lat, lon):
+                self.site_id = site
+                self.latitude = lat
+                self.longitude = lon
+                
+        class GeoResolverMockup(resolver.GeoResolver):
+            def get_candidates(self, unused_arg):
+                return [SliverToolMockup('a', 2.0, 1.0),
+                        SliverToolMockup('b', 20.0, 34.9)]
+                        
+        geo_resolver = GeoResolverMockup()
+        result = geo_resolver.answer_query(QueryMockup())
+        self.assertEqual(2.0, result.latitude)
+        self.assertEqual(1.0, result.longitude)
+
+    def testAnswerQueryAllCandidatesDifferentSitesMultipleClosest(self): 
+       
+        class QueryMockup:
+            def __init__(self):
+                self.latitude = 0.0
+                self.longitude = 0.0
+             
+        class SliverToolMockup:
+            def __init__(self, site, lat, lon):
+                self.site_id = site
+                self.latitude = lat
+                self.longitude = lon
+                
+        class GeoResolverMockup(resolver.GeoResolver):
+            def get_candidates(self, unused_arg):
+                return [SliverToolMockup('a', 2.0, 1.0),
+                        SliverToolMockup('b', 20.0, 34.9),
+                        SliverToolMockup('c', 2.0, 1.0)]
+                        
+        geo_resolver = GeoResolverMockup()
+        result = geo_resolver.answer_query(QueryMockup())
+        self.assertEqual(2.0, result.latitude)
+        self.assertEqual(1.0, result.longitude)
+        
 
 class ResolverTestCase(unittest2.TestCase):
     def testNewResolver(self):

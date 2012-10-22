@@ -23,7 +23,7 @@ class ResolverBase:
             specified in the 'query'.
         """
         candidates = []
-        if query.address_family:
+        if query.address_family is not None:
             candidates = self._get_candidates(query, query.address_family)
         # If no candidates with this address family and if this address family
         # was not user-defined, try the other address family.
@@ -42,7 +42,7 @@ class ResolverBase:
 
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(query.tool_id)
-        if sliver_tools:
+        if sliver_tools is not None:
             logging.info('Sliver tools found in memcache (%s results).',
                          len(sliver_tools))
             candidates = []
@@ -75,7 +75,7 @@ class ResolverBase:
             A SliverTool entity if any available, None otherwise.
         """
         candidates = self.get_candidates(query)
-        if not candidates:
+        if len(candidates) == 0:
             logging.error('No results found for %s.', query.tool_id)
             return None
 
@@ -96,15 +96,14 @@ class GeoResolver(ResolverBase):
             SliverTool available that matches the query.
         """
         candidates = self.get_candidates(query)
-        if not candidates:
+        if len(candidates) == 0:
             logging.error('No results found for %s.', query.tool_id)
             return None
 
-        if not query.latitude or not query.longitude:
+        if (query.latitude is None) or (query.longitude is None):
             logging.warning('No latide/longitude, return a random sliver tool.')
             return random.choice(candidates)
 
-        logging.info('Found %s candidates.', len(candidates))
         min_distance = float('+inf')
         closest_sliver_tools = []
         distances = {}
@@ -128,9 +127,9 @@ class GeoResolver(ResolverBase):
             # Update the min distance and add the SliverTool to the list.
             if current_distance < min_distance:
                 min_distance = current_distance
-                closest_sliver_tools = sliver_tool
+                closest_sliver_tools = [sliver_tool]
             elif current_distance == min_distance:
-                closest_sliver_tools.insert(sliver_tool)
+                closest_sliver_tools.append(sliver_tool)
 
         # Choose randomly among candidates with the same, minimum distance.
         return random.choice(closest_sliver_tools)
@@ -147,7 +146,7 @@ class MetroResolver(ResolverBase):
 
         logging.info(
             'Found %s results for metro %s.', len(sites), query.metro)
-        if not sites:
+        if len(sites) == 0:
             logging.info('No results found for metro %s.', query.metro)
             return None
 
@@ -185,11 +184,11 @@ class CountryResolver(ResolverBase):
         Returns:
             A SliverTool entity if available, None otherwise.
         """
-        if not query.user_defined_country:
+        if query.user_defined_country is None:
             return None
 
         candidates = self.get_candidates(query)
-        if not candidates:
+        if len(candidates) == 0:
             logging.error('No results found for %s.', query.tool_id)
             return None
 
@@ -198,7 +197,7 @@ class CountryResolver(ResolverBase):
             if candidate.country == query.user_defined_country:
                 country_candidates.append(candidate)
 
-        if not country_candidates:
+        if len(country_candidates) == 0:
             return None
         return random.choice(country_candidates)
 
