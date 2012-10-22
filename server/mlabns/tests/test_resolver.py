@@ -66,6 +66,19 @@ class ResolverBaseTestCase(unittest2.TestCase):
         base_resolver.result = ['candidate']
         self.assertGreater(len(base_resolver.answer_query(query)), 0)
 
+class ResolverTestCase(unittest2.TestCase):
+    def testNewResolver(self):
+        self.assertIsInstance(resolver.new_resolver(message.POLICY_GEO),
+                              resolver.GeoResolver)
+        self.assertIsInstance(resolver.new_resolver(message.POLICY_METRO),
+                              resolver.MetroResolver)
+        self.assertIsInstance(resolver.new_resolver(message.POLICY_RANDOM),
+                              resolver.RandomResolver)
+        self.assertIsInstance(resolver.new_resolver(message.POLICY_COUNTRY),
+                              resolver.CountryResolver)
+        self.assertIsInstance(resolver.new_resolver('another_policy'),
+                              resolver.RandomResolver)
+
 
 if __name__ == '__main__':
     unittest2.main()
