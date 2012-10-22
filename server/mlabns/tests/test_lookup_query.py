@@ -39,7 +39,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetResponseFormatNoneFormat(self):
 
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return None
         
         query = lookup_query.LookupQuery()
@@ -50,7 +50,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetResponseFormatNonValidFormat(self):
 
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return 'non_Valid_format'
         
         query = lookup_query.LookupQuery()
@@ -61,7 +61,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetResponseFormatValidFormat(self):
 
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return message.FORMAT_HTML
         
         query = lookup_query.LookupQuery()
@@ -71,7 +71,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetUserDefinedIpAndAfNoIpNoAf(self):
 
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return None
         
         query = lookup_query.LookupQuery()
@@ -82,7 +82,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetUserDefinedIpAndAfNoIpNonValidAf(self):
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.ADDRESS_FAMILY:
                     return 'non_valid_af'
                 return None
@@ -95,7 +95,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetUserDefinedIpAndAfNoIpValidAf4(self):
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv4
                 return None
@@ -108,7 +108,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetUserDefinedIpAndAfNoIpValidAf6(self):
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv6
                 return None
@@ -120,7 +120,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetUserDefinedIpAndAfNonValidIpNoAf(self):
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return 'non_valid_ip'
                 return None
@@ -133,7 +133,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetUserDefinedIpAndAfNonValidIpNonValidAf(self):
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return 'non_valid_ip'
                 if arg == message.ADDRESS_FAMILY:
@@ -148,7 +148,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetUserDefinedIpAndAfNonValidIpValidAf4(self):
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return 'non_valid_ip'
                 if arg == message.ADDRESS_FAMILY:
@@ -163,7 +163,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetUserDefinedIpAndAfNonValidIpValidAf6(self):
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return 'non_valid_ip'
                 if arg == message.ADDRESS_FAMILY:
@@ -179,7 +179,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_ipv4 = '1.2.3.4'
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv4
                 return None
@@ -193,7 +193,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_ipv6 = '1:2:3::4'
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv6
                 return None
@@ -208,7 +208,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_ipv4 = '1.2.3.4'
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv4
                 if arg == message.ADDRESS_FAMILY:
@@ -224,7 +224,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_ipv6 = '1:2:3::4'
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv6
                 if arg == message.ADDRESS_FAMILY:
@@ -240,7 +240,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_ipv4 = '1.2.3.4'
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv4
                 if arg == message.ADDRESS_FAMILY:
@@ -256,7 +256,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_ipv4 = '1.2.3.4'
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv4
                 if arg == message.ADDRESS_FAMILY:
@@ -272,7 +272,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_ipv6 = '1:2:3::4'
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv6
                 if arg == message.ADDRESS_FAMILY:
@@ -288,7 +288,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_ipv6 = '1:2:3::4'
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv6
                 if arg == message.ADDRESS_FAMILY:
@@ -408,7 +408,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         country = None 
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.LATITUDE:
                     return lat
                 if arg == message.LONGITUDE:
@@ -443,7 +443,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         country = None 
 
         class RequestMockup:
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.LATITUDE:
                     return lat
                 if arg == message.LONGITUDE:
@@ -480,7 +480,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def __init__(self):
                 self.country = None
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.COUNTRY:
                     return self.country
                 return None
@@ -529,7 +529,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         country = 'gae_country' 
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return None
 
         class LookupQueryMockup(lookup_query.LookupQuery):
@@ -562,7 +562,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def __init__(self):
                 self.country = None
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.COUNTRY:
                     return self.country
                 return None
@@ -634,7 +634,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyUserDefinedGeoPolicyGeo(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return message.POLICY_GEO
 
         query = lookup_query.LookupQuery()
@@ -651,7 +651,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyUserDefinedGeoPolicyNoGeo(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return 'no_geo_policy'
 
         query = lookup_query.LookupQuery()
@@ -668,7 +668,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyUserDefinedCountryPolicyCountry(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return message.POLICY_COUNTRY
 
         query = lookup_query.LookupQuery()
@@ -679,7 +679,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyUserDefinedCountryPolicyGeo(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return message.POLICY_GEO
 
         query = lookup_query.LookupQuery()
@@ -690,7 +690,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyUserDefinedCountryPolicyNoGeoNoCountry(self):
 
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return 'no_geo_no_country_policy'
 
         query = lookup_query.LookupQuery()
@@ -701,7 +701,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyUserDefinedMetroPolicyMetro(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return message.POLICY_METRO
 
         query = lookup_query.LookupQuery()
@@ -712,7 +712,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyUserDefinedMetroPolicyNoMetro(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return 'no_metro_policy'
 
         query = lookup_query.LookupQuery()
@@ -723,7 +723,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyGeoPolicyNoGeo(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return message.POLICY_GEO
 
         query = lookup_query.LookupQuery()
@@ -735,7 +735,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyCountryPolicyNoUserDefinedCountry(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return message.POLICY_COUNTRY
 
         query = lookup_query.LookupQuery()
@@ -746,7 +746,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyMetroPolicyNoMetro(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return message.POLICY_METRO
 
         query = lookup_query.LookupQuery()
@@ -757,8 +757,8 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyPolicyRandom(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
-                return message.POLICY_RANDOM
+	    def get(self, unused_arg, default_value=None):
+		return message.POLICY_RANDOM
 
         query = lookup_query.LookupQuery()
         query.set_policy(RequestMockup())
@@ -767,7 +767,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyNoPolicy(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return None
 
         query = lookup_query.LookupQuery()
@@ -777,7 +777,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testSetPolicyNonValidPolicy(self):
         
         class RequestMockup:
-            def get(self, unused_arg):
+            def get(self, unused_arg, default_value=None):
                 return 'non_valid_policy'
 
         query = lookup_query.LookupQuery()
@@ -793,7 +793,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 self.path = valid_tool + '/xyz/'
                 self.remote_addr = None  
                 self.headers = {}  
-            def get(self, arg):
+            def get(self, arg, default_value=None):
                 if arg == message.METRO:
                     return valid_metro
 
