@@ -173,18 +173,19 @@ class MetroResolver(ResolverBase):
     def _get_candidates(self, query, address_family):
         # 1) Get the sites in the user-defined metro.
         # 1.1) Try the memcache first.
-        candidate_sites = memcache.get(
+        sites = memcache.get(
             query.metro, namespace=constants.MEMCACHE_NAMESPACE_METROS)        
-        if candidate_sites is None:
+        if sites is None:
             # 1.2) Query db.        
             # TODO(claudiu) Test whether the following query is better.
             # sites = model.Site.gql("WHERE metro = :metro", metro=query.metro)
             sites = model.Site.all().filter("metro =", query.metro).fetch(
                 constants.MAX_FETCHED_RESULTS)
-        logging.info('Found %s results for metro %s.', len(sites), query.metro)
-        if len(sites) == 0:
-            logging.info('No results found for metro %s.', query.metro)
-            return None
+            logging.info(
+                'Found %s results for metro %s.', len(sites),query.metro)
+            if len(sites) == 0:
+                logging.info('No results found for metro %s.', query.metro)
+                return None
 
         site_id_list = []
         for site in sites:
