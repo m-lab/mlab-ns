@@ -66,7 +66,7 @@ class ResolverBase:
         logging.info('Found (%s candidates)', candidates.count())
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
 
-    def _get_candidates_from_sites(self, query, address_family, site_ids):
+    def _get_candidates_from_sites(self, query, address_family, site_id_list):
         """Returns a (possibly empty) list of available candidates."""
 
         # First try to get the sliver tools from the cache.
@@ -77,7 +77,7 @@ class ResolverBase:
                          len(sliver_tools))
             candidates = []
             for sliver_tool in sliver_tools:
-                if sliver_tool.site_id in site_ids and \
+                if sliver_tool.site_id in site_id_list and \
                     ((address_family == message.ADDRESS_FAMILY_IPv4 and
                     sliver_tool.status_ipv4 == message.STATUS_ONLINE) or
                     (address_family == message.ADDRESS_FAMILY_IPv6 and
