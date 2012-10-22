@@ -186,7 +186,7 @@ class MetroResolver(ResolverBase):
                 'Found %s results for metro %s.', len(sites),query.metro)
             if len(sites) == 0:
                 logging.info('No results found for metro %s.', query.metro)
-                return None
+                return []
 
         site_id_list = []
         for site in sites:
