@@ -67,12 +67,12 @@ def get_ipv4_geolocation(remote_addr,
         'WHERE start_ip_num <= :ip_num '
         'ORDER BY start_ip_num DESC',
         ip_num=ip_num).get()
-    if not geo_city_block or geo_city_block.end_ip_num < ip_num:
+    if geo_city_block is None or geo_city_block.end_ip_num < ip_num:
         logging.error('IP not found in the Maxmind database.')
         return geo_record
      
     location = city_table.get_by_key_name(geo_city_block.location_id)
-    if not location:
+    if location is None:
         logging.error(
             'Location %s not found in the Maxmind database.', remote_addr)
         return geo_record
@@ -110,7 +110,7 @@ def get_ipv6_geolocation(remote_addr,
         'WHERE start_ip_num <= :ip_num '
         'ORDER BY start_ip_num DESC',
         ip_num=ip_num).get()
-    if not geo_city_block_v6 or geo_city_block_v6.end_ip_num < ip_num:
+    if geo_city_block_v6 is None or geo_city_block_v6.end_ip_num < ip_num:
         logging.error('IP not found in the Maxmind database.')
         return geo_record
 
@@ -137,7 +137,7 @@ def get_country_geolocation(country, country_table=model.CountryCode):
 
     logging.info('Retrieving geolocation info for country %s.', country)
     location = country_table.get_by_key_name(country)
-    if location:
+    if location is not None:
         geo_record.city = constants.UNKNOWN_CITY
         geo_record.country = location.alpha2_code
         geo_record.latitude = location.latitude
@@ -162,7 +162,7 @@ def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
     location = city_table.gql(
         'WHERE city = :city AND country = :country',
         city=city,country=country).get()
-    if not location:
+    if location is None:
         logging.error(
             '%s, %s not found in the database.', city, country)
         return geo_record

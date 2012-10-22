@@ -51,7 +51,7 @@ class LookupQuery:
 
     def set_response_format(self, request):
         self.response_format = request.get(message.RESPONSE_FORMAT)
-        if not self.response_format or \
+        if self.response_format is None or \
             self.response_format not in message.VALID_FORMATS:
             logging.warning('Non valid response format %s.',
                             self.response_format) 
@@ -62,14 +62,14 @@ class LookupQuery:
         self.set_gae_ip_and_af(request)
 
         # User-defined args have precedence over args provided by GAE.
-        if self.user_defined_ip:
+        if self.user_defined_ip is not None:
             self.ip_address = self.user_defined_ip
-        elif self.gae_ip:
+        elif self.gae_ip is not None:
             self.ip_address = self.gae_ip
 
-        if self.user_defined_af:
+        if self.user_defined_af is not None:
             self.address_family = self.user_defined_af
-        elif self.gae_af:
+        elif self.gae_af is not None:
             self.address_family = self.gae_af
 
     def set_user_defined_ip_and_af(self, request):
@@ -78,7 +78,7 @@ class LookupQuery:
         if self.user_defined_ip:
             self._set_ip_and_af('user_defined_ip', 'user_defined_af')
 
-        if not self.user_defined_ip and self.user_defined_af:
+        if self.user_defined_ip is None and self.user_defined_af is not None:
             # Non valid user-defined IP or IP not user-defined.
             # Verify user-defined address family.
             if self.user_defined_af != message.ADDRESS_FAMILY_IPv4 \
@@ -89,13 +89,13 @@ class LookupQuery:
 
     def set_gae_ip_and_af(self, request):
         self.gae_ip = request.remote_addr
-        if self.gae_ip:
+        if self.gae_ip is not None:
             self._set_ip_and_af('gae_ip', 'gae_af')
 
     def _set_ip_and_af(self, ip_field, af_field):
         try:
             ipaddr.IPv4Address(self.__dict__[ip_field])
-            if self.__dict__[af_field] and \
+            if self.__dict__[af_field] is not None and \
                 self.__dict__[af_field] != message.ADDRESS_FAMILY_IPv4:
                 logging.warning(
                     'IP address is IPv4, but address family is %s.',
@@ -108,7 +108,7 @@ class LookupQuery:
 
         try:
             ipaddr.IPv6Address(self.__dict__[ip_field])
-            if self.__dict__[af_field] and \
+            if self.__dict__[af_field] is not None and \
                 self.__dict__[af_field] != message.ADDRESS_FAMILY_IPv6:
                 logging.warning(
                     'IP address is IPv6, but address family is %s.',
@@ -137,14 +137,15 @@ class LookupQuery:
             except ValueError:
                 logging.error('Non valid user-defined lat, long (%s, %s).',
                                input_latitude, input_longitude)
-        elif self.user_defined_ip or self.user_defined_country:
+        elif self.user_defined_ip is not None or \
+            self.user_defined_country is not None:
             self.geolocation_type = constants.GEOLOCATION_MAXMIND
             self.set_maxmind_geolocation(self.user_defined_ip,
                                          self.user_defined_country,
                                          self.user_defined_city)
-        elif self.gae_latitude and self.gae_longitude:
+        elif self.gae_latitude is not None and self.gae_longitude is not None:
             self.geolocation_type = constants.GEOLOCATION_APP_ENGINE
-        elif self.gae_ip or self.gae_country:
+        elif self.gae_ip is not None or self.gae_country is not None:
             self.set_maxmind_geolocation(self.gae_ip, self.gae_country,
                                          self.gae_city)
 
@@ -166,11 +167,11 @@ class LookupQuery:
 
     def set_maxmind_geolocation(self, ip_address, country, city):
         geo_record = maxmind.GeoRecord()    
-        if ip_address:
+        if ip_address is not None:
             geo_record = maxmind.get_ip_geolocation(ip_address)
-        elif city and country:
+        elif city is not None and country is not None:
             geo_record = maxmind.get_city_geolocation(city, country)
-        elif country:
+        elif country is not None:
             geo_record = maxmind.get_country_geolocation(country)
         self.maxmind_city = geo_record.city
         self.maxmind_country = geo_record.country
@@ -200,38 +201,39 @@ class LookupQuery:
 
     def set_policy(self, request):
         self.policy = request.get(message.POLICY)
-        if (self.user_defined_latitude and self.user_defined_longitude) or \
-            self.user_defined_ip:
+        if (self.user_defined_latitude is not None and \
+            self.user_defined_longitude is not None) or \
+            self.user_defined_ip is not None:
             if self.policy != message.POLICY_GEO:  
                 logging.warning(
                     'Lat/longs user-defined, but policy is %s.', self.policy)
                 self.policy = message.POLICY_GEO
             return
-        if self.user_defined_country:
+        if self.user_defined_country is not None:
             if self.policy != message.POLICY_COUNTRY and \
                 self.policy != message.POLICY_GEO:  
                 logging.warning(
                     'Country user-defined, but policy is %s.', self.policy)
                 self.policy = message.POLICY_GEO
             return
-        if self.metro:
+        if self.metro is not None:
             if self.policy != message.POLICY_METRO:
                 logging.warning(
                      'Metro defined, but policy is %s', self.policy)
                 self.policy = message.POLICY_METRO
             return
         if self.policy == message.POLICY_GEO:
-            if not self.latitude or not self.longitude:
+            if self.latitude is None or self.longitude is None:
                 logging.warning('Policy geo, but no geo args defined.')
                 self.policy = message.POLICY_RANDOM
             return
         if self.policy == message.POLICY_COUNTRY:
-            if not self.user_defined_country:
+            if self.user_defined_country is None:
                 logging.warning('Policy country, but arg country not defined.')
                 self.policy = self._get_default_policy()
             return
         if self.policy == message.POLICY_METRO:
-            if not self.metro:
+            if self.metro is None:
                 logging.warning('Policy metro, but arg metro not defined.')
                 self.policy = self._get_default_policy()
             return
@@ -241,6 +243,6 @@ class LookupQuery:
         self.policy = self._get_default_policy()
 
     def _get_default_policy(self):
-        if self.latitude and self.longitude:
+        if self.latitude is not None and self.longitude is not None:
             return message.POLICY_GEO
         return message.POLICY_RANDOM
