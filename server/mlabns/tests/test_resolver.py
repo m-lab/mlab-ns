@@ -69,6 +69,72 @@ class ResolverBaseTestCase(unittest2.TestCase):
         query = QueryMockup()
         self.assertGreater(len(base_resolver.answer_query(query)), 0)
 
+class CountryResolverTestCase(unittest2.TestCase):
+    def testAnswerQueryNoUserDefinedCountry(self):
+        
+        class QueryMockup:
+            def __init__(self):
+                self.user_defined_country = None
+            
+        class CountryResolverMockup(resolver.CountryResolver):
+            pass
+
+        country_resolver = CountryResolverMockup()
+        self.assertIsNone(country_resolver.answer_query(QueryMockup()))
+        
+    def testAnswerQueryNoCandidates(self):
+        
+        class QueryMockup:
+            def __init__(self):
+                self.user_defined_country = 'valid_country'
+                self.tool_id = 'valid_tool_id'
+            
+        class CountryResolverMockup(resolver.CountryResolver):
+            def get_candidates(self, unused_arg):
+                return []
+
+        country_resolver = CountryResolverMockup()
+        self.assertIsNone(country_resolver.answer_query(QueryMockup()))
+
+    def testAnswerQueryNoCandidatesInUserDefinedCountry(self): 
+       
+        class QueryMockup:
+            def __init__(self):
+                self.user_defined_country = 'valid_country'
+                self.tool_id = 'valid_tool_id'
+            
+        class SliverToolMockup:
+            def __init__(self, country):
+                self.country = country
+                
+        class CountryResolverMockup(resolver.CountryResolver):
+            def get_candidates(self, unused_arg):
+                return [SliverToolMockup('valid_country1'),
+                        SliverToolMockup('valid_country2')]
+
+        country_resolver = CountryResolverMockup()
+        self.assertIsNone(country_resolver.answer_query(QueryMockup()))
+
+    def testAnswerQueryCandidatesInUserDefinedCountry(self): 
+       
+        class QueryMockup:
+            def __init__(self):
+                self.user_defined_country = 'valid_country'
+                self.tool_id = 'valid_tool_id'
+            
+        class SliverToolMockup:
+            def __init__(self, country):
+                self.country = country
+                
+        class CountryResolverMockup(resolver.CountryResolver):
+            def get_candidates(self, unused_arg):
+                return [SliverToolMockup('valid_country'),
+                        SliverToolMockup('valid_country2')]
+
+        country_resolver = CountryResolverMockup()
+        result = country_resolver.answer_query(QueryMockup())
+        self.assertEqual('valid_country', result.country)
+
 
 class ResolverTestCase(unittest2.TestCase):
     def testNewResolver(self):
