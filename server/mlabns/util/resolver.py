@@ -172,27 +172,20 @@ class MetroResolver(ResolverBase):
     """Implements the metro policy."""
 
     def _get_candidates(self, query, address_family):
-        # 1) Get the sites in the user-defined metro.
-        # 1.1) Try the memcache first.
-        sites = memcache.get(
-            query.metro, namespace=constants.MEMCACHE_NAMESPACE_METROS)        
-        if sites is None:
-            # 1.2) Query db.        
-            # TODO(claudiu) Test whether the following query is better.
-            # sites = model.Site.gql("WHERE metro = :metro", metro=query.metro)
-            sites = model.Site.all().filter("metro =", query.metro).fetch(
-                constants.MAX_FETCHED_RESULTS)
-            logging.info(
-                'Found %s results for metro %s.', len(sites),query.metro)
-            if len(sites) == 0:
-                logging.info('No results found for metro %s.', query.metro)
-                return []
+        # TODO(claudiu) Test whether the following query is better.
+        # sites = model.Site.gql("WHERE metro = :metro", metro=query.metro)
+        sites = model.Site.all().filter("metro =", query.metro).fetch(
+            constants.MAX_FETCHED_RESULTS)
+        logging.info(
+            'Found %s results for metro %s.', len(sites), query.metro)
+        if len(sites) == 0:
+            logging.info('No results found for metro %s.', query.metro)
+            return []
 
         site_id_list = []
         for site in sites:
             site_id_list.append(site.site_id)
 
-        # 2) Get sliver tools in the candidate sites.
         return self._get_candidates_from_sites(
             query, address_family, site_id_list)
 

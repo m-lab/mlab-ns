@@ -13,8 +13,6 @@ GEOLOCATION_USER_DEFINED = 'user_defined'
 # Maximum number of entities fetched from datastore in a single query.
 MAX_FETCHED_RESULTS = 500
 
-# Memcache namespace for map: metro -> list of sites.
-MEMCACHE_NAMESPACE_METROS = 'memcache_metros'
 # Memcache namespace for map: tool_id -> list of sliver_tools.
 MEMCACHE_NAMESPACE_TOOLS = 'memcache_tools'
 
