@@ -17,6 +17,13 @@ class SliverToolMockup:
         self.status_ipv6 = status_ipv6
 
 
+class SliverToolSiteMockup:
+    def __init__(self, site_id, status_ipv4, status_ipv6):
+        self.site_id = site_id
+        self.status_ipv4 = status_ipv4
+        self.status_ipv6 = status_ipv6
+
+
 class ResolverBaseTestCase(unittest2.TestCase):
     def testGetCandidates(self):
         
@@ -216,7 +223,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         
         sliver_tool_list = [
             SliverToolMockup(message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
-        memcache.set('valid_tool_id', sliver_tool_list,
+        memcache.set('tool_id2', sliver_tool_list,
                      namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
 
         root = TestEntityGroupRoot(key_name='root')
@@ -236,7 +243,203 @@ class ResolverBaseTestCase(unittest2.TestCase):
                 
         # Tear down stub.
         self.testbed.deactivate()
+
+    def testGetCandidatesFromSitesYesMemcache(self):
                 
+        # Set up memcache stub.
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_memcache_stub()
+        sliver_tool_list = [
+            SliverToolSiteMockup(
+                's1', message.STATUS_ONLINE, message.STATUS_OFFLINE),
+            SliverToolSiteMockup(
+                's1', message.STATUS_OFFLINE, message.STATUS_ONLINE),
+            SliverToolSiteMockup(
+                's1', message.STATUS_OFFLINE, message.STATUS_ONLINE),
+            SliverToolSiteMockup(
+                's2', message.STATUS_ONLINE, message.STATUS_ONLINE),
+            SliverToolSiteMockup(
+                's1', message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
+        memcache.set('valid_tool_id', sliver_tool_list,
+                     namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
+            
+        class QueryMockup:
+            def __init__(self):
+                self.tool_id = 'valid_tool_id'
+            
+        base_resolver = resolver.ResolverBase()
+        self.assertEqual(
+            1, len(base_resolver._get_candidates_from_sites(
+                QueryMockup(), message.ADDRESS_FAMILY_IPv4, ['s1'])))
+        self.assertEqual(
+            2, len(base_resolver._get_candidates_from_sites(
+                QueryMockup(), message.ADDRESS_FAMILY_IPv6, ['s1'])))
+                
+        # Tear down stub.
+        self.testbed.deactivate()
+        
+    def testGetCandidatesFromSitesYesMemcacheButOffline(self):
+
+        class QueryMockup:
+            def __init__(self):
+                self.tool_id = 'valid_tool_id'
+    
+        class SliverTool(db.Model):
+            tool_id = db.StringProperty()
+            site_id = db.StringProperty()
+            status_ipv4 = db.StringProperty()
+            status_ipv6 = db.StringProperty()
+
+        class TestEntityGroupRoot(db.Model):
+            """Entity group root"""
+            pass
+               
+        # Set up datastore and memcache stubs.
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_datastore_v3_stub()
+        self.testbed.init_memcache_stub()
+        
+        sliver_tool_list = [
+            SliverToolSiteMockup(
+                's2', message.STATUS_ONLINE, message.STATUS_ONLINE),
+            SliverToolSiteMockup(
+                's1', message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
+        memcache.set('valid_tool_id', sliver_tool_list,
+                     namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
+
+        root = TestEntityGroupRoot(key_name='root')
+        st1 = SliverTool(parent=root.key())
+        st1.site_id = 's1'
+        st1.tool_id = 'valid_tool_id'
+        st1.status_ipv4 = message.STATUS_ONLINE
+        st1.status_ipv6 = message.STATUS_ONLINE
+        st1.put()
+                        
+        base_resolver = resolver.ResolverBase()
+        self.assertEqual(
+            0, len(base_resolver._get_candidates_from_sites(
+                QueryMockup(), message.ADDRESS_FAMILY_IPv4, ['s1'])))
+        self.assertEqual(
+            0, len(base_resolver._get_candidates_from_sites(
+                QueryMockup(), message.ADDRESS_FAMILY_IPv6, ['s1'])))
+                
+        # Tear down stub.
+        self.testbed.deactivate()
+
+    def testGetCandidatesFromSitesNoMemcacheYesDatastore(self):
+
+        class QueryMockup:
+            def __init__(self):
+                self.tool_id = 'valid_tool_id'
+    
+        class SliverTool(db.Model):
+            tool_id = db.StringProperty()
+            site_id = db.StringProperty()
+            status_ipv4 = db.StringProperty()
+            status_ipv6 = db.StringProperty()
+
+        class TestEntityGroupRoot(db.Model):
+            """Entity group root"""
+            pass
+               
+        # Set up datastore and memcache stubs.
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_datastore_v3_stub()
+        self.testbed.init_memcache_stub()
+        
+        root = TestEntityGroupRoot(key_name='root')
+        st1 = SliverTool(parent=root.key())
+        st1.tool_id = 'valid_tool_id'
+        st1.site_id = 's1'
+        st1.status_ipv4 = message.STATUS_ONLINE
+        st1.status_ipv6 = message.STATUS_ONLINE
+        st1.put()
+        st2 = SliverTool(parent=root.key())
+        st2.tool_id = 'valid_tool_id'
+        st2.site_id = 's1'
+        st2.status_ipv4 = message.STATUS_ONLINE
+        st2.status_ipv6 = message.STATUS_OFFLINE
+        st2.put()
+        st3 = SliverTool(parent=root.key())
+        st3.tool_id = 'valid_tool_id'
+        st3.site_id = 's1'
+        st3.status_ipv4 = message.STATUS_OFFLINE
+        st3.status_ipv6 = message.STATUS_ONLINE
+        st3.put()
+        st4 = SliverTool(parent=root.key())
+        st4.tool_id = 'valid_tool_id'
+        st4.site_id = 's2'
+        st4.status_ipv4 = message.STATUS_OFFLINE
+        st4.status_ipv6 = message.STATUS_ONLINE
+        st4.put()
+        st5 = SliverTool(parent=root.key())
+        st5.tool_id = 'valid_tool_id'
+        st5.site_id = 's1'
+        st5.status_ipv4 = message.STATUS_OFFLINE
+        st5.status_ipv6 = message.STATUS_OFFLINE
+        st5.put()
+                        
+        base_resolver = resolver.ResolverBase()
+        self.assertEqual(
+            2, len(base_resolver._get_candidates_from_sites(
+                QueryMockup(), message.ADDRESS_FAMILY_IPv4, ['s1'])))
+        self.assertEqual(
+            2, len(base_resolver._get_candidates_from_sites(
+                QueryMockup(), message.ADDRESS_FAMILY_IPv6, ['s1'])))
+                
+        # Tear down stub.
+        self.testbed.deactivate()
+
+    def testGetCandidatesFromSitesNoMemcacheNoDatastore(self):
+
+        class QueryMockup:
+            def __init__(self):
+                self.tool_id = 'valid_tool_id'
+    
+        class SliverTool(db.Model):
+            tool_id = db.StringProperty()
+            site_id = db.StringProperty()
+            status_ipv4 = db.StringProperty()
+            status_ipv6 = db.StringProperty()
+
+        class TestEntityGroupRoot(db.Model):
+            """Entity group root"""
+            pass
+               
+        # Set up datastore and memcache stubs.
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_datastore_v3_stub()
+        self.testbed.init_memcache_stub()
+        
+        sliver_tool_list = [
+            SliverToolSiteMockup(
+                's1', message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
+        memcache.set('tool_id2', sliver_tool_list,
+                     namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
+
+        root = TestEntityGroupRoot(key_name='root')
+        st1 = SliverTool(parent=root.key())
+        st1.tool_id = 'valid_tool_id'
+        st1.site_id = 's1'
+        st1.status_ipv4 = message.STATUS_OFFLINE
+        st1.status_ipv6 = message.STATUS_OFFLINE
+        st1.put()
+                        
+        base_resolver = resolver.ResolverBase()
+        self.assertEqual(
+            0, len(base_resolver._get_candidates_from_sites(
+                QueryMockup(), message.ADDRESS_FAMILY_IPv4, ['s1'])))
+        self.assertEqual(
+            0, len(base_resolver._get_candidates_from_sites(
+                QueryMockup(), message.ADDRESS_FAMILY_IPv6, ['s1'])))
+                
+        # Tear down stub.
+        self.testbed.deactivate()
+
     def testAnswerQueryEmptyResult(self):
         class QueryMockup:
             def __init__(self):
