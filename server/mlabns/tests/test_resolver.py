@@ -1,4 +1,3 @@
-import unittest
 import unittest2
 
 from google.appengine.api import memcache
@@ -22,6 +21,12 @@ class SliverToolSiteMockup:
         self.site_id = site_id
         self.status_ipv4 = status_ipv4
         self.status_ipv6 = status_ipv6
+
+
+class SiteMockup:
+    def __init__(self, site_id, metro):
+        self.site_id = site_id
+        self.metro = metro
 
 
 class ResolverBaseTestCase(unittest2.TestCase):
@@ -632,8 +637,87 @@ class CountryResolverTestCase(unittest2.TestCase):
         country_resolver = CountryResolverMockup()
         result = country_resolver.answer_query(QueryMockup())
         self.assertEqual('valid_country', result.country)
+
         
-        
+class MetroResolverTestCase(unittest2.TestCase):
+    def testGetCandidatesNoSites(self):    
+
+        class QueryMockup:
+            def __init__(self):
+                self.metro = 'metro1'
+    
+        class Site(db.Model):
+            site_id = db.StringProperty()
+            metro = db.StringListProperty()
+
+        class TestEntityGroupRoot(db.Model):
+            """Entity group root"""
+            pass
+               
+        # Set up datastore stub.
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_datastore_v3_stub()        
+
+        root = TestEntityGroupRoot(key_name='root')
+        st1 = Site(parent=root.key())
+        st1.site_id = 's1'
+        st1.metro = ['metro2']
+        st1.put()
+                        
+        metro_resolver = resolver.MetroResolver()
+        self.assertEqual(
+            0, len(metro_resolver._get_candidates(QueryMockup(), 'unused_arg')))
+                
+        # Tear down stub.
+        self.testbed.deactivate()
+
+    def testGetCandidatesYesSites(self):    
+
+        class QueryMockup:
+            def __init__(self):
+                self.metro = 'metro1'
+    
+        class Site(db.Model):
+            site_id = db.StringProperty()
+            metro = db.StringListProperty(default=None)
+
+        class TestEntityGroupRoot(db.Model):
+            """Entity group root"""
+            pass
+               
+        # Set up datastore stub.
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_datastore_v3_stub()        
+
+        root = TestEntityGroupRoot(key_name='root')
+        st1 = Site(parent=root.key())
+        st1.site_id = 's1'
+        st1.metro = ['metro1']
+        st1.put()
+        st2 = Site(parent=root.key())
+        st2.site_id = 's2'
+        st2.metro = ['metro1', 'site1']
+        st2.put()
+        st3 = Site(parent=root.key())
+        st3.site_id = 's3'
+        st3.metro = ['metro2', 'site2']
+        st3.put()
+
+        class MetroResolverMockup(resolver.MetroResolver):
+            def _get_candidates_from_sites(self, unused_arg1, unused_arg2,
+                                           site_list):
+                return site_list
+
+        metro_resolver = MetroResolverMockup()
+        self.assertEqual(
+            2, len(metro_resolver._get_candidates(QueryMockup(), 'unused_arg')))
+                
+        # Tear down stub.
+        self.testbed.deactivate()
+
+
 class ResolverTestCase(unittest2.TestCase):
     def testNewResolver(self):
         self.assertIsInstance(resolver.new_resolver(message.POLICY_GEO),
