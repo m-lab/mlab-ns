@@ -138,10 +138,11 @@ class AdminHandler(webapp.RequestHandler):
 
         data = self.get_sites_info(sliver_tools, address_family)
         json_data = simplejson.dumps(data)
-        file_name = '' . join([
-            'mlabns/templates/',tool_id,'_map_view_',address_family,'.html'])
+        file_name = '' . join(['mlabns/templates/map_view.html'])
         self.response.out.write(
-            template.render(file_name, {'cities' : json_data}))
+            template.render(file_name, {'cities' : json_data,
+                                        'tool_id' : tool_id,
+                                        'address_family' : address_family}))
 
     def get_sites_info(self, sliver_tools, address_family):
         """Returns info about the sites.
@@ -202,5 +203,3 @@ class AdminHandler(webapp.RequestHandler):
             sites_per_city[city].append(site_dict[item])
 
         return sites_per_city
-
-

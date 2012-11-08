@@ -1,295 +1,262 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>
-        {% block title %}mlab-ns (MLab Naming Service){% endblock %}
+      {% ifequal tool_id "all" %}mlab-ns (MLab Naming Service)
+      {% else %}{{tool_id|title}} {{address_family}}
+      {% endifequal %}
     </title>
 
-    <meta
-        name="viewport"
-        content="width=device-width initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width initial-scale=1.0, user-scalable=no" />
 
-     <link  type="text/css"
-            rel="stylesheet"
-            href="/stylesheets/main.css" />
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
 
-{% block javascript %}
-<script type="text/javascript"
- src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuvQuQGxqdohwnwDzElYPEAvESZSsK1Nc&sensor=false">
+    <script
+      type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuvQuQGxqdohwnwDzElYPEAvESZSsK1Nc&sensor=false">
     </script>
 
     <script type="text/javascript">
+      var map;
+      var green = '81F781';
+      var red = 'FF0000';
+      var white = 'FFFFFF';
+      var blue = '0000FF';
+      var black = '000000';
+      var warningColor = 'FF8000';
+      var userColor = '00BFFF';
+      var defaultColor = green;
+      var errorColor = red;
 
-        var map;
-        var green = "81F781";
-        var red = "FF0000";
-        var white = "FFFFFF";
-        var blue = "0000FF";
-        var black = "000000";
-        var warningColor = "FF8000";
-        var defaultColor = green;
-        var errorColor = red;
+      var markersArray = [];
+      var onlineMarkersArray = [];
+      var offlineMarkersArray = [];
+      var errorMarkersArray = [];
 
-        var markersArray = [];
-        var onlineMarkersArray = [];
-        var offlineMarkersArray = [];
-        var errorMarkersArray = [];
+      function initialize() {
+        var mapOptions = {
+          center: new google.maps.LatLng(41.9000, 12.500),
+          zoom: 8,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
 
-        function initialize() {
-            var mapOptions = {
-                center: new google.maps.LatLng(41.9000, 12.500),
-                zoom: 8,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
-            };
+        map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
 
-            map = new google.maps.Map(
-                document.getElementById("map_canvas"),
-                mapOptions);
+        var cities = {{cities|safe}};
+        for (i in cities) {
+          var cityName = '';
+          var countryName = '';
+          var markerStyle = 'default';
+          var statusCount = { 'online': 0, 'offline': 0, 'init': 0 };
+          var geo = {};
 
-            var cities = {{cities|safe}};
-            for (i in cities) {
-                var cityName = "";
-                var countryName = "";
-                var markerStyle = "default";
-                var statusCount = {};
-                statusCount['online'] = 0;
-                statusCount['offline'] = 0;
-                statusCount['init'] = 0;
-                var geo = {};
+          var htmlSitesInfo = '';
+          for (site in cities[i]) {
+            var _site = cities[i][site];
+            cityName = _site['city'];
+            countryName = _site['country'];
 
-                var htmlSitesInfo = "";
-                for (site in cities[i]) {
-                    cityName = cities[i][site]['city'];
-                    countryName = cities[i][site]['country'];
+            var htmlSiteInfo = '<h3>' + _site.site_id + '<h3/>';
+            geo['latitude'] = _site['latitude'];
+            geo['longitude'] = _site['longitude'];
+            geo['city'] = _site['city'];
+            geo['country'] = _site['country'];
 
-                    var htmlSiteInfo = "<h3>" +
-                        cities[i][site].site_id + "<h3/>";
-                    geo['latitude'] = cities[i][site]['latitude'];
-                    geo['longitude'] = cities[i][site]['longitude'];
-                    geo['city'] = cities[i][site]['city'];
-                    geo['country'] = cities[i][site]['country'];
-
-                    htmlSiteInfo += '<table>' +
-                    '<tr>' +
-                    '<th> </th>' +
-                    '<th> </th>' +
-                    '<th> </th>' +
-                    '<th> </th>' +
-                    '<th> </th>' +
-                    '</tr>';
-                    for (var j in cities[i][site].sliver_tools) {
-                        var status = cities[i][site].sliver_tools[j].status;
-                        statusCount[status] += 1;
-                        htmlSiteInfo += '<tr>' +
-                            '<td>' +
-                            cities[i][site].sliver_tools[j].slice_id +
-                            '</td>' +
-                            '<td>' +
-                            cities[i][site].sliver_tools[j].tool_id +
-                            '</td>' +
-                            '<td>' +
-                            cities[i][site].sliver_tools[j].server_id +
-                            '</td>' +
-                            '<td ' +
-                            'class="' + status +'">' +
-                            cities[i][site].sliver_tools[j].status +
-                            '</td>' +
-                            '<td>' +
-                            cities[i][site].sliver_tools[j].timestamp +
-                            '</td>' +
-                            '</tr>';
-
-                    }
-                    htmlSiteInfo += '</table>';
-                    htmlSitesInfo += htmlSiteInfo;
-                }
-                var htmlInfo = '<div id="siteinfo">' +
-                    '<h2>' + cityName + ',' + countryName + '</h2>' +
-                    htmlSitesInfo + '</div>';
-
-                if (statusCount['offline'] > 0) {
-                    markerStyle = 'warning';
-                }
-
-                if (statusCount['offline'] > 2) {
-                    markerStyle = 'error';
-                }
-
-                if (statusCount['init'] > 2) {
-                    markerStyle = 'error';
-                }
-
-                var markerIcon = makeIcon(markerStyle, statusCount['offline']);
-                var marker = makeMarker(geo, markerIcon);
-                marker['html'] = htmlInfo;
-                markersArray.push(marker);
-
-                var infowindow = new google.maps.InfoWindow({});
-                infowindow.setOptions({maxWidth:700});
-
-                google.maps.event.addListener(
-                    marker, "click", function() {
-                        infowindow.setContent(this.html);
-                        infowindow.open(map, this); });
+            htmlSiteInfo += '<table>' +
+              '<tr>' +
+              '<th> </th>' +
+              '<th> </th>' +
+              '<th> </th>' +
+              '<th> </th>' +
+              '<th> </th>' +
+              '</tr>';
+            for (var j in _site.sliver_tools) {
+              var sliver_tool = _site.sliver_tools[j];
+              var status = sliver_tool.status;
+              statusCount[status] += 1;
+              htmlSiteInfo += '<tr>' +
+                '<td>' + sliver_tool.slice_id + '</td>' +
+                '<td>' + sliver_tool.tool_id + '</td>' +
+                '<td>' + sliver_tool.server_id + '</td>' +
+                '<td class="' + status +'">' + status + '</td>' +
+                '<td>' + sliver_tool.timestamp + '</td>' +
+                '</tr>';
             }
-            showMarkers();
+            htmlSiteInfo += '</table>';
+            htmlSitesInfo += htmlSiteInfo;
+          }
+          var htmlInfo = '<div id="siteinfo">' +
+            '<h2>' + cityName + ',' + countryName + '</h2>' +
+            htmlSitesInfo + '</div>';
+
+          if (statusCount['offline'] > 0) {
+            markerStyle = 'warning';
+          }
+
+          if (statusCount['offline'] > 2) {
+            markerStyle = 'error';
+          }
+
+          if (statusCount['init'] > 2) {
+            markerStyle = 'error';
+          }
+
+          var markerIcon = makeIcon(markerStyle, statusCount['offline']);
+          var marker = makeMarker(geo, markerIcon);
+          marker['html'] = htmlInfo;
+          markersArray.push(marker);
+
+          var infowindow = new google.maps.InfoWindow({});
+          infowindow.setOptions({maxWidth:700});
+
+          google.maps.event.addListener(
+              marker, 'click', function() {
+              infowindow.setContent(this.html);
+              infowindow.open(map, this); });
+        }
+        showMarkers();
+      }
+
+      function addMarkerListener(marker) { }
+
+      function makeMarker(data, icon) {
+        var position = new google.maps.LatLng(data['latitude'], data['longitude'] );
+        var title = data['city'] + ',' + data['country'];
+        var marker = new google.maps.Marker({
+          position: position,
+          title: title,
+          icon: icon,
+          map: map
+        });
+        return marker;
+      }
+
+      function makeIcon(style, letter) {
+        var size_x = 21;
+        var size_y = 34;
+        var apiURL = 'http://chart.apis.google.com/chart?';
+
+        var chst = 'd_map_pin_letter';
+        var chld = letter;
+        var color1 = '';
+        var color2 = '';
+
+        if (style == 'error') {
+          color1 = color2 = errorColor;
+        } else if (style == 'warning') {
+          color1 = color2 = warningColor;
+        } else if (style == 'info') {
+          chld = 'x';
+          color1 = green;
+          color2 = black;
+        } else if (style == 'init') {
+          chld = 'x';
+          color1 = color2 = black;
+        } else if (style == 'user') {
+          chst = 'd_map_pin_icon';
+          chld = 'glyphish_user';
+          color1 = color2 = userColor;
         }
 
-        function addMarkerListener(marker) {
+        var query_string = 'chst=' + chst + '&' + 'chld=' + chld + '|' + color1 + '|' + color2;
+
+        var icon = new google.maps.MarkerImage(
+            apiURL + query_string,
+            new google.maps.Size(size_x, size_y),
+            new google.maps.Point(0,0),
+            null,
+            new google.maps.Size(size_x, size_y));
+        return icon;
+      }
+
+      function clearOverlays() {
+        if (markersArray) {
+          for (var i = 0; i < markersArray.length; ++i) {
+            markersArray[i].setMap(null);
+          }
         }
+      }
 
-        function makeMarker(data, icon) {
-            var position = new google.maps.LatLng(
-                data["latitude"], data["longitude"] );
-            var title = data["city"] + "," + data["country"];
-            var marker = new google.maps.Marker({
-                position: position,
-                title: title,
-                icon: icon,
-                map: map
-            });
-            return marker;
+      function showMarkers() {
+        if (markersArray) {
+          for (var i = 0; i < markersArray.length; ++i) {
+            markersArray[i].setMap(map);
+          }
+          var bounds = new google.maps.LatLngBounds();
+          for (var i = 0; i < markersArray.length; ++i) {
+            bounds.extend(markersArray[i].position);
+          }
+          map.fitBounds(bounds)
         }
+      }
 
-        function makeIcon(style, letter) {
-            var size_x = 21
-            var size_y = 34
-            var apiURL = "http://chart.apis.google.com/chart?";
-            var query_string =  "chst=d_map_pin_letter&" +
-                "chld=" + letter + "|" + green + "|" + green;
-
-            if (style == "error") {
-                query_string =  "chst=d_map_pin_letter&" +
-                    "chld=" + letter + "|" + red + "|" + red;
-            }
-
-            if (style == "warning") {
-                query_string =  "chst=d_map_pin_letter&" +
-                    "chld=" + letter + "|" +
-                    warningColor + "|" + warningColor;
-            }
-
-            if (style == "info") {
-                query_string =  "chst=d_map_pin_letter&" +
-                    "chld=x|" + green + "|" + black;
-            }
-
-            if (style == "init") {
-                query_string =  "chst=d_map_pin_letter&" +
-                    "chld=x|" + black + "|" + black;
-            }
-
-
-            if (style == "user") {
-                query_string =  "chst=d_map_pin_icon&" +
-                    "chld=glyphish_user|" + "00BFFF";
-            }
-
-            var icon = new google.maps.MarkerImage(
-                apiURL + query_string,
-                new google.maps.Size(size_x, size_y),
-                new google.maps.Point(0,0),
-                null,
-                new google.maps.Size(size_x, size_y));
-            return icon;
-        }
-
-        function clearOverlayes() {
-            if (markersArray) {
-                for (i in markersArray) {
-                    markersArray[i].setMap(null);
-                }
-            }
-        }
-
-        function showMarkers() {
-            if (markersArray) {
-                for (i in markersArray) {
-                    markersArray[i].setMap(map);
-                }
-                var bounds = new google.maps.LatLngBounds ();
-                for (i in markersArray) {
-                    bounds.extend(markersArray[i].position);
-                }
-                map.fitBounds(bounds)
-            }
-        }
-
-        google.maps.event.addDomListener(window, 'load', initialize);
+      google.maps.event.addDomListener(window, 'load', initialize);
     </script>
-{% endblock %}
-</head>
+  </head>
 
-{% block tag_body %}
-<body onload="inizialize()">
-{% endblock %}
-    <div id="container">
-        {% block header %}
-        <div id="header">
-            <ul class="navigation">
-                {% block logo %}
-                <img src="/images/mlab-logo.png" align=left hspace="4"/>
-                {% endblock %}
+<body onload="initialize()">
+  <div id="container">
+    <div id="header">
+      <ul class="navigation">
+        <img src="/images/mlab-logo.png" align=left hspace="4"/>
 
-                {%block MenuSites %}
-                <li>
-                    <a  href="/admin/sites"
-                        class="header">Sites</a>
-                </li>
-                {% endblock %}
+        <li>
+          <a href="/admin/sites" class="header">Sites</a>
+        </li>
 
-                {%block MenuSliverTools %}
-                <li>
-                    <a  href="/admin/sliver_tools"
-                        class ="header">Sliver Tools</a>
-                </li>
-                {% endblock %}
+        <li>
+          <a href="/admin/sliver_tools" class ="header">Sliver Tools</a>
+        </li>
 
-                {%block MenuLookup %}
-                <!--
-                <li>
-                    <a  href="/admin/lookup"
-                        class="header">Lookup</a>
-                </li>
-                -->
-                {% endblock %}
+        <!--
+        <li>
+          <a href="/admin/lookup" class="header">Lookup</a>
+        </li>
+        -->
 
-                {%block MenuMapIPv4 %}
-                <li>
-                    <a  href="/admin/map/ipv4"
-                        class="header">Map IPv4</a>
+        {% with 'all glasnost ndt neubot npad' as tool_list %} 
+        <li>
+          {% ifequal address_family "ipv6" %}
+            <a href="/admin/map/ipv4" class="header">Map IPv4</a>
+          {% else %}
+            {% ifequal tool_id "all" %}
+              <a href="/admin/map/ipv4" class="header">Map IPv4</a>
+            {% else %}
+              <a href="/admin/map/ipv4/{{ tool_id }}" class="header">{{ tool_id|title }} IPv4</a>
+            {% endifequal %}
+          {% endifequal %}
 
-                    <ul>
-                        <li><a href="/admin/map/ipv4/neubot">Neubot</a></li>
-			            <li><a href="/admin/map/ipv4/npad">Npad</a></li>
-			            <li><a href="/admin/map/ipv4/ndt">Ndt</a></li>
-                        <li><a href="/admin/map/ipv4/glasnost">Glasnost</a></li>
-		            </ul>
-                </li>
-                {% endblock %}
+          <ul>
+            {% for tool in tool_list.split %}
+              {% if address_family == "ipv6" or tool_id != tool %}
+                <li><a href="/admin/map/ipv4/{{ tool }}">{{ tool|title }}</a></li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </li>
 
-                {%block MenuMapIPv6 %}
-                <li>
-                    <a  href="/admin/map/ipv6"
-                        class="header">Map IPv6</a>
+        <li>
+          {% ifequal address_family "ipv4" %}
+            <a href="/admin/map/ipv6" class="header">Map IPv6</a>
+          {% else %}
+            {% ifequal tool_id "all" %}
+              <a href="/admin/map/ipv6" class="header">Map IPv6</a>
+            {% else %}
+              <a href="/admin/map/ipv6/{{ tool_id }}" class="header">{{ tool_id|title }} IPv6</a>
+            {% endifequal %}
+          {% endifequal %}
 
-                    <ul>
-                        <li><a href="/admin/map/ipv6/neubot">Neubot</a></li>
-			            <li><a href="/admin/map/ipv6/npad">Npad</a></li>
-			            <li><a href="/admin/map/ipv6/ndt">Ndt</a></li>
-                        <li><a href="/admin/map/ipv6/glasnost">Glasnost</a></li>
-		            </ul>
-                </li>
-                {% endblock %}
+          <ul>
+            {% for tool in tool_list.split %}
+              {% if address_family == "ipv4" or tool_id != tool %}
+                <li><a href="/admin/map/ipv6/{{ tool }}">{{ tool|title }}</a></li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </li>
 
-
-            </ul>
-        </div>
-        {% endblock %}
-        <div id="map_canvas">
-        </div>
-    <div>
-</body>
-
+      </ul>
+    </div>
+    <div id="map_canvas"></div>
+  </body>
 </html>
