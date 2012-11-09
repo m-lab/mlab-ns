@@ -110,6 +110,14 @@ class Nagios(db.Model):
     password = db.StringProperty()
     url = db.StringProperty()
 
+# A single query. TODO(dominic) Add the result location?
+class Ping(db.Model):
+    latitude = db.FloatProperty(required=True, indexed=False)
+    longitude = db.FloatProperty(required=True, indexed=False)
+    tool_id = db.StringProperty(required=True)
+    address_family = db.StringProperty(required=True)
+    time = db.FloatProperty(required=True)
+
 def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
     """Creates the SliverTool id from an UpdateMessage.
 

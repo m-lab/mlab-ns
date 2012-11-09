@@ -213,6 +213,14 @@ class LookupHandler(webapp.RequestHandler):
             ip = sliver_tool.sliver_ipv6
             fqdn = sliver_tool.fqdn_ipv6
 
+        ping = model.Ping(latitude = query.latitude,
+                          longitude = query.longitude,
+                          tool_id = query.tool_id,
+                          address_family = query.address_family,
+                          time = time.time())
+        ping.put()
+
+
         # TODO(claudiu) This might change based on the privacy doc
         # (see http://goo.gl/KYPQW).
         # The list of these fields must be consistent with the BigQuery
