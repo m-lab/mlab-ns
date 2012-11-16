@@ -31,8 +31,9 @@ handlers:
   script: main.app
 
 builtins:
-- remote_api: on
 - appstats: on
+- deferred: on
+- remote_api: on
 
 libraries:
 - name: pycrypto
