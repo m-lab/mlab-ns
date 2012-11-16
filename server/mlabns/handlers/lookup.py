@@ -1,6 +1,7 @@
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 from google.appengine.ext import db
+from google.appengine.ext import deferred
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
@@ -14,6 +15,14 @@ from mlabns.util import util
 import json
 import logging
 import time
+
+def put_ping(query, time):
+    ping = model.Ping(latitude = round(query.latitude, 2),
+                      longitude = round(query.longitude, 2),
+                      tool_id = query.tool_id,
+                      address_family = query.address_family,
+                      time = time)
+    ping.put()
 
 class LookupHandler(webapp.RequestHandler):
     """Routes GET requests to the appropriate SliverTools."""
@@ -213,13 +222,7 @@ class LookupHandler(webapp.RequestHandler):
             ip = sliver_tool.sliver_ipv6
             fqdn = sliver_tool.fqdn_ipv6
 
-        ping = model.Ping(latitude = query.latitude,
-                          longitude = query.longitude,
-                          tool_id = query.tool_id,
-                          address_family = query.address_family,
-                          time = time.time())
-        ping.put()
-
+        deferred.defer(put_ping, query, time.time())
 
         # TODO(claudiu) This might change based on the privacy doc
         # (see http://goo.gl/KYPQW).

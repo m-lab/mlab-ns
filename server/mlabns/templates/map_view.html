@@ -35,6 +35,18 @@
 
       var realtimePings = [];
       var lastPingTime = Math.round((new Date()).getTime() / 1000);
+      var pingLifetime = 60 * 5.5;
+      var pingCircleOptions = {
+        clickable: false,
+        editable: false,
+        fillColor: '#FF0000',
+        fillOpacity: 0.8,
+        strokeWeight: 2,
+        strokeColor: black,
+        strokeOpacity: 0.9
+      };
+      var pingOpacityFadeFactor = 0.98;
+      var pingRadiusIncrement = 2000;
 
       window.requestAnimFrame = (function() {
         return window.requestAnimationFrame ||
@@ -58,7 +70,7 @@
           // Response is a JSON array
           var newPings = JSON.parse(xhr.responseText);
           for (var i = 0; i < newPings.length; ++i) {
-            newPings[i].lifetime = 60 * 8;
+            newPings[i].lifetime = pingLifetime;
           }
           realtimePings.push.apply(realtimePings, newPings);
         }
@@ -150,6 +162,7 @@
         (function update() {
           window.requestAnimFrame(update);
 
+              console.log(map.getZoom());
           // If we don't have any pings, set the lastPingTime to the current
           // time as a UNIX timestamp
           if (realtimePings.length > 0)
@@ -159,23 +172,16 @@
           for (var i = realtimePings.length - 1; i >= 0; --i) {
             var ping = realtimePings[i];
             if (typeof ping.circle === 'undefined') {
-              // TODO(dominic): Move these initial values into a predefined var.
-              ping.circle = new google.maps.Circle({
-                center: new google.maps.LatLng(ping.latitude,
-                                               ping.longitude),
-                radius: 10000,
-                strokeColor: '#FFAA00',
-                strokeOpacity: 0.9,
-                strokeWeight: 2,
-                fillColor: '#FF00AA',
-                fillOpacity: 0.7,
-                map: map
-              });
+              ping.circle = new google.maps.Circle(pingCircleOptions);
+              ping.circle.setCenter(new google.maps.LatLng(ping.latitude, ping.longitude));
+              // TODO(dominic): Set radius based on zoom/bounds.
+              ping.circle.setRadius(perZoomRadius());
+              ping.circle.setMap(map);
             } else {
-              ping.circle.setRadius(ping.circle.radius + 1000);
+              ping.circle.setRadius(ping.circle.radius + perZoomRadius() / 10);
               ping.circle.setOptions({
-                fillOpacity: ping.circle.fillOpacity * 0.95,
-                strokeOpacity: ping.circle.strokeOpacity * 0.95
+                fillOpacity: ping.circle.fillOpacity * pingOpacityFadeFactor,
+                strokeOpacity: ping.circle.strokeOpacity * pingOpacityFadeFactor
               });
             }
             if (--ping.lifetime == 0) {
@@ -192,6 +198,10 @@
           xhr.open('GET', '/pings?tool_id={{tool_id}}&address_family={{address_family}}&last_time=' + lastPingTime, true);
           xhr.send();
         })();
+      }
+
+      function perZoomRadius() {
+        return (-900 * map.getZoom()) + 20000;
       }
 
       function addMarkerListener(marker) { }
