@@ -45,8 +45,8 @@
         strokeColor: black,
         strokeOpacity: 0.9
       };
-      var pingOpacityFadeFactor = 0.98;
-      var pingRadiusIncrement = 2000;
+      var PING_OPACITY_FADE_FACTOR = 0.98;
+      var MAX_PINGS_PER_FRAME = 10;
 
       window.requestAnimFrame = (function() {
         return window.requestAnimationFrame ||
@@ -169,19 +169,19 @@
             lastPingTime = realtimePings[realtimePings.length - 1].time
 
           // Update and draw existing pings
-          for (var i = realtimePings.length - 1; i >= 0; --i) {
+          var end = Math.min(realtimePings.length, MAX_PINGS_PER_FRAME);
+          for (var i = 0; i < end; ++i) {
             var ping = realtimePings[i];
             if (typeof ping.circle === 'undefined') {
               ping.circle = new google.maps.Circle(pingCircleOptions);
               ping.circle.setCenter(new google.maps.LatLng(ping.latitude, ping.longitude));
-              // TODO(dominic): Set radius based on zoom/bounds.
               ping.circle.setRadius(perZoomRadius());
               ping.circle.setMap(map);
             } else {
               ping.circle.setRadius(ping.circle.radius + perZoomRadius() / 10);
               ping.circle.setOptions({
-                fillOpacity: ping.circle.fillOpacity * pingOpacityFadeFactor,
-                strokeOpacity: ping.circle.strokeOpacity * pingOpacityFadeFactor
+                fillOpacity: ping.circle.fillOpacity * PING_OPACITY_FADE_FACTOR,
+                strokeOpacity: ping.circle.strokeOpacity * PING_OPACITY_FADE_FACTOR
               });
             }
             if (--ping.lifetime == 0) {
@@ -201,6 +201,7 @@
       }
 
       function perZoomRadius() {
+        // TODO(dominic): replace magic numbers with constants.
         return (-900 * map.getZoom()) + 20000;
       }
 
