@@ -162,7 +162,6 @@
         (function update() {
           window.requestAnimFrame(update);
 
-              console.log(map.getZoom());
           // If we don't have any pings, set the lastPingTime to the current
           // time as a UNIX timestamp
           if (realtimePings.length > 0)
@@ -226,8 +225,8 @@
 
         var chst = 'd_map_pin_letter';
         var chld = letter;
-        var color1 = '';
-        var color2 = '';
+        var color1 = green;
+        var color2 = green;
 
         if (style == 'error') {
           color1 = color2 = errorColor;
