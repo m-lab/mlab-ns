@@ -68,16 +68,27 @@ class LookupHandler(webapp.RequestHandler):
             query: A LookupQuery instance representing the user lookup request.
         """
         data = {}
-        ip = sliver_tool.sliver_ipv4
-        fqdn = sliver_tool.fqdn_ipv4
 
-        if query.address_family == message.ADDRESS_FAMILY_IPv6:
-            ip = sliver_tool.sliver_ipv6
-            fqdn = sliver_tool.fqdn_ipv6
+        # Default is to return both IP addresses in an array
+        ip = [sliver_tool.sliver_ipv4, sliver_tool.sliver_ipv6]
+        fqdn_annotation = ''
+
+        if query.address_family == message.ADDRESS_FAMILY_IPv4:
+            ip = [sliver_tool.sliver_ipv4]
+            fqdn_annotation = 'v4'
+        elif query.address_family == message.ADDRESS_FAMILY_IPv6:
+            ip = [sliver_tool.sliver_ipv6]
+            fqdn_annotation = 'v6'
+       
+        fqdn_parts = sliver_tool.fqdn.split('.')
+        fqdn_parts[3] += fqdn_annotation
+        fqdn = '.'.join(fqdn_parts)
+
+        print ip
+        print fqdn
 
         if sliver_tool.http_port:
-            data['url'] = ':'.join ([
-                'http://' + fqdn, sliver_tool.http_port])
+            data['url'] = 'http://' + fqdn + ':' + sliver_tool.http_port
 
         data['fqdn'] = fqdn
         data['ip'] = ip
@@ -118,7 +129,7 @@ class LookupHandler(webapp.RequestHandler):
         """
         if sliver_tool.http_port:
             url = '' .join([
-                'http://', sliver_tool.fqdn_ipv4, ':', sliver_tool.http_port])
+                'http://', sliver_tool.fqdn, ':', sliver_tool.http_port])
             return self.redirect(str(url))
 
         return util.send_not_found(self, 'html')
@@ -145,25 +156,27 @@ class LookupHandler(webapp.RequestHandler):
         destination_site_dict['latitude'] = sliver_tool.latitude
         destination_site_dict['longitude'] = sliver_tool.longitude
 
-        destination_fqdn = sliver_tool.fqdn_ipv4
-        if query.address_family == message.ADDRESS_FAMILY_IPv6:
-            destination_fqdn = sliver_tool.fqdn_ipv6
+        fqdn_annotation = ''
+
+        if query.address_family == message.ADDRESS_FAMILY_IPv4:
+            fqdn_annotation = 'v4'
+        elif query.address_family == message.ADDRESS_FAMILY_IPv6:
+            fqdn_annotation = 'v6'
+       
+        fqdn_parts = sliver_tool.fqdn.split('.')
+        fqdn_parts[3] += fqdn_annotation
+        destination_fqdn = '.'.join(fqdn_parts)
 
         destination_info = destination_fqdn
         # For web-based tools set this to the URL.
         if sliver_tool.http_port:
-            url = ''.join([
-                'http://', destination_fqdn, ':', sliver_tool.http_port])
-            destination_info = ''.join([
-                '<a class="footer" href=', url, '>', url, '</a>'])
+            url = 'http://' + destination_fqdn + ':' + sliver_tool.http_port
+            destination_info = '<a class="footer" href=' + url + '>' + \
+                               url + '</a>'
 
-        destination_site_dict['info'] = ''.join([
-            '<div id=siteShortInfo>',
-            '<h2>',
-            sliver_tool.city, ', ', sliver_tool.country,
-            '</h2>',
-            destination_info,
-            '</div>'])
+        destination_site_dict['info'] = \
+            '<div id=siteShortInfo><h2>%s, %s</h2>%s</div>' % \
+            (sliver_tool.city, sliver_tool.country, destination_info)
 
         candidate_site_list = []
         for candidate in candidates:
@@ -205,13 +218,15 @@ class LookupHandler(webapp.RequestHandler):
             # TODO(claudiu) Log also the error.
             return
 
-        is_ipv6 = 'False'
-        ip = sliver_tool.sliver_ipv4
-        fqdn = sliver_tool.fqdn_ipv4
-        if query.address_family == message.ADDRESS_FAMILY_IPv6:
-            is_ipv6 = 'True'
-            ip = sliver_tool.sliver_ipv6
-            fqdn = sliver_tool.fqdn_ipv6
+        # TODO(dominic) This should log explicit v4 and explicit v6 as separate
+        # to no option chosen
+        #is_ipv6 = 'False'
+        #ip = sliver_tool.sliver_ipv4
+        #fqdn = sliver_tool.fqdn_ipv4
+        #if query.address_family == message.ADDRESS_FAMILY_IPv6:
+        #    is_ipv6 = 'True'
+        #    ip = sliver_tool.sliver_ipv6
+        #    fqdn = sliver_tool.fqdn_ipv6
 
         # TODO(claudiu) This might change based on the privacy doc
         # (see http://goo.gl/KYPQW).

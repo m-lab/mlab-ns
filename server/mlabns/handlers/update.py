@@ -39,15 +39,14 @@ class NagiosUpdateHandler(webapp.RequestHandler):
         slices_gql = model.Slice.gql('ORDER by slice_id DESC')
         for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
             logging.info('Slice is %s', item.tool_id)
-            url = nagios.url + '?show_state=1&service_name=' + item.tool_id
+            for family in ['', '_ipv6']:
+              url = nagios.url + '?show_state=1&service_name=' + item.tool_id
 
-            slice_status = self.get_slice_status(url)
-            # TODO(claudiu) Ask Stephen to add IPv6 status.
-            self.update_sliver_tools_status(
-                slice_status, item.tool_id, AF_IPV4)
+              slice_status = self.get_slice_status(url)
+              self.update_sliver_tools_status(slice_status, item.tool_id,
+                                              family)
 
-    def update_sliver_tools_status(
-        self, slice_status, tool_id, address_family):
+    def update_sliver_tools_status(self, slice_status, tool_id, family):
         """Updates sliver tools status.
 
         Args:
@@ -55,14 +54,10 @@ class NagiosUpdateHandler(webapp.RequestHandler):
                 slivers in the slice {key=fqdn, status:online|offline}
             tool_id: A string representing the fqdn that resolves
                 to an IP address.
-            address_family: Address family, 'ipv4' or 'ipv6'.
         """
-        # Set to 'status_ipv4' if address_family is 'ipv4'
-        # or to 'status_ipv6' if address_family if 'ipv6'.
-        status_field = 'status_' + address_family
 
-        sliver_tools_gql = model.SliverTool.gql(
-            'WHERE tool_id=:tool_id', tool_id=tool_id)
+        sliver_tools_gql = model.SliverTool.gql('WHERE tool_id=:tool_id',
+                                                tool_id=tool_id)
 
         sliver_tool_list = []
         for sliver_tool in sliver_tools_gql.run(
@@ -70,12 +65,14 @@ class NagiosUpdateHandler(webapp.RequestHandler):
             for sliver_fqdn in slice_status:
                 is_match = False
 
-                if sliver_tool.fqdn_ipv4 == sliver_fqdn:
-                    sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
+                if sliver_tool.fqdn == sliver_fqdn:
                     is_match = True
-                elif sliver_tool.fqdn_ipv6 == sliver_fqdn:
-                    sliver_tool.status_ipv6 = slice_status[sliver_fqdn]
-                    is_match = True
+                    if family == '':
+                        sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
+                    elif family == '_ipv6':
+                        sliver_tool.status_ipv6 = slice_status[sliver_fqdn]
+                    else:
+                        logging.error('Unexpected family: %s', family)
 
                 if is_match:
                     sliver_tool.update_request_timestamp = long(time.time())
@@ -83,9 +80,8 @@ class NagiosUpdateHandler(webapp.RequestHandler):
                     try:
                         sliver_tool.put()
                         sliver_tool_list.append(sliver_tool)
-                        logging.info(
-                            'Updating %s: status is %s.',
-                            sliver_fqdn, slice_status[sliver_fqdn])
+                        logging.info('Updating %s: status is %s.',
+                                     sliver_fqdn, slice_status[sliver_fqdn])
                     except TransactionFailedError:
                         # TODO(claudiu) Trigger an event/notification.
                         logging.error('Failed to write changes to db.')

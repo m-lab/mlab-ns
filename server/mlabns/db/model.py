@@ -14,8 +14,10 @@ class SliverTool(db.Model):
     # redirected to: http://fqdn[ipv4|ipv6]:http_port
     http_port = db.StringProperty()
 
-    fqdn_ipv4 = db.StringProperty()
-    fqdn_ipv6 = db.StringProperty()
+    # Unannotated fqdn. v4 and v6 versions can be built if necessary.
+    fqdn = db.StringProperty()
+
+    # IP addresses. Can be 'off'
     sliver_ipv4 = db.StringProperty()
     sliver_ipv6 = db.StringProperty()
 

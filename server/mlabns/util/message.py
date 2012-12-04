@@ -28,8 +28,7 @@ FORMAT_REDIRECT = 'redirect'
 VALID_FORMATS = [FORMAT_HTML, FORMAT_JSON, FORMAT_MAP, FORMAT_REDIRECT]
 DEFAULT_RESPONSE_FORMAT = FORMAT_JSON
 
-FQDN_IPv4       = 'fqdn_ipv4'
-FQDN_IPv6       = 'fqdn_ipv6'
+FQDN            = 'fqdn'
 HEADER_CITY     = 'X-AppEngine-City'
 HEADER_COUNTRY  = 'X-AppEngine-Country'
 HEADER_LAT_LONG = 'X-AppEngine-CityLatLong'
