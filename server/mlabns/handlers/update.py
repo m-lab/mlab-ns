@@ -40,7 +40,8 @@ class NagiosUpdateHandler(webapp.RequestHandler):
         for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
             logging.info('Slice is %s', item.tool_id)
             for family in ['', '_ipv6']:
-              url = nagios.url + '?show_state=1&service_name=' + item.tool_id
+              url = nagios.url + '?show_state=1&service_name=' + \
+                    item.tool_id + family
 
               slice_status = self.get_slice_status(url)
               self.update_sliver_tools_status(slice_status, item.tool_id,
