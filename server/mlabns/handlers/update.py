@@ -69,8 +69,22 @@ class NagiosUpdateHandler(webapp.RequestHandler):
                 if sliver_tool.fqdn == sliver_fqdn:
                     is_match = True
                     if family == '':
+                        # Set offline if we don't have a valid IP address for
+                        # the slice.
+                        if sliver_tool.sliver_ipv4 == 'off':
+                            logging.warning('Setting IPv4 status for %s ' \
+                                'offline due to missing IP address.',
+                                sliver_fqdn)
+                            slice_status[sliver_fqdn] = message.STATUS_OFFLINE
                         sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
                     elif family == '_ipv6':
+                        # Set offline if we don't have a valid IP address for
+                        # the slice.
+                        if sliver_tool.sliver_ipv6 == 'off':
+                            logging.warning('Setting IPv6 status for %s ' \
+                                'offline due to missing IP address.',
+                                sliver_fqdn)
+                            slice_status[sliver_fqdn] = message.STATUS_OFFLINE
                         sliver_tool.status_ipv6 = slice_status[sliver_fqdn]
                     else:
                         logging.error('Unexpected family: %s', family)
@@ -108,6 +122,8 @@ class NagiosUpdateHandler(webapp.RequestHandler):
         try:
             lines = urllib2.urlopen(url).read().strip('\n').split('\n')
             for line in lines:
+                if len(line) == 0:
+                    continue
                 # See the design doc for a description of the file format.
                 slice_fqdn,state,state_type = line.split(' ')
                 sliver_fqdn, tool_id = slice_fqdn.split('/')
