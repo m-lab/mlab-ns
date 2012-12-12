@@ -6,3 +6,7 @@ cron:
 - description: Check sliver tools status
   url: /cron/check_status
   schedule: every 13 minutes
+
+- description: Clean up old pings
+  url: /cron/cleanup_pings
+  schedule: every 24 hours

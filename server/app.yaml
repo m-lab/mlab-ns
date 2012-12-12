@@ -26,9 +26,14 @@ handlers:
 - url: /.*
   script: main.app
 
+# Kept separate as I would like it to be only accessed via this domain.
+- url: /pings
+  script: main.app
+
 builtins:
-- remote_api: on
 - appstats: on
+- deferred: on
+- remote_api: on
 
 libraries:
 - name: pycrypto
