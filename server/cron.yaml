@@ -1,7 +1,7 @@
 cron:
-- description: Upload logs to BigQuery
-  url: /cron/process_logs
-  schedule: every 17 minutes
+#- description: Upload logs to BigQuery
+#  url: /cron/process_logs
+#  schedule: every 17 minutes
 
 - description: Check sliver tools status
   url: /cron/check_status

@@ -38,11 +38,10 @@ class PingsHandler(webapp.RequestHandler):
         if address_family == '':
           util.send_server_error(self.request)
           return
-        
-        last_time = float(self.request.get('last_time', 0))
 
-        logging.info('Getting pings for %s|%s from %f', tool_id, address_family,
-                     last_time)
+        last_time = float(self.request.get('last_time', 0))
+        logging.info('Getting pings for %s|%s from %f', tool_id,
+                      address_family, last_time)
 
         q = model.Ping.all()
         if tool_id != 'all':

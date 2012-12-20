@@ -89,15 +89,16 @@ class LookupHandler(webapp.RequestHandler):
             fqdn_annotation = 'v6'
         else:
             # Default is to return both valid IP addresses in an array.
-            # Although the update will only set the sliver as online if it has a
-            # valid IP address, the resolver still returns it as a candidate.
+            # Although the update will only set the sliver as online if it
+            # has a valid IP address, the resolver still returns it as
+            # a candidate.
             if sliver_tool.sliver_ipv4 != 'off':
                 ip.append(sliver_tool.sliver_ipv4)
             if sliver_tool.sliver_ipv6 != 'off':
                 ip.append(sliver_tool.sliver_ipv6)
 
         fqdn_parts = sliver_tool.fqdn.split('.')
-        fqdn_parts[3] += fqdn_annotation
+        fqdn_parts[2] += fqdn_annotation
         fqdn = '.'.join(fqdn_parts)
 
         if sliver_tool.http_port:
@@ -175,9 +176,9 @@ class LookupHandler(webapp.RequestHandler):
             fqdn_annotation = 'v4'
         elif query.address_family == message.ADDRESS_FAMILY_IPv6:
             fqdn_annotation = 'v6'
-       
+
         fqdn_parts = sliver_tool.fqdn.split('.')
-        fqdn_parts[3] += fqdn_annotation
+        fqdn_parts[2] += fqdn_annotation
         destination_fqdn = '.'.join(fqdn_parts)
 
         destination_info = destination_fqdn
