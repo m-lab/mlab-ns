@@ -81,6 +81,7 @@ class LookupHandler(webapp.RequestHandler):
         ip = []
         fqdn_annotation = ''
 
+        logging.info('user_defined_af = %s', query.user_defined_af)
         if query.user_defined_af == message.ADDRESS_FAMILY_IPv4:
             ip = [sliver_tool.sliver_ipv4]
             fqdn_annotation = 'v4'
@@ -88,13 +89,17 @@ class LookupHandler(webapp.RequestHandler):
             ip = [sliver_tool.sliver_ipv6]
             fqdn_annotation = 'v6'
         else:
-            # Default is to return both valid IP addresses in an array.
+            # If 'address_family' is not specified, the default is to
+            # return both valid IP addresses (if both 'status_ipv4' and
+            # 'status_ipv6' are 'online').
             # Although the update will only set the sliver as online if it
             # has a valid IP address, the resolver still returns it as
             # a candidate.
-            if sliver_tool.sliver_ipv4 != 'off':
+            if (sliver_tool.sliver_ipv4 != 'off' and
+                sliver_tool.status_ipv4 == message.STATUS_ONLINE):
                 ip.append(sliver_tool.sliver_ipv4)
-            if sliver_tool.sliver_ipv6 != 'off':
+            if (sliver_tool.sliver_ipv6 != 'off' and
+                sliver_tool.status_ipv6 == message.STATUS_ONLINE):
                 ip.append(sliver_tool.sliver_ipv6)
 
         fqdn_parts = sliver_tool.fqdn.split('.')
@@ -170,16 +175,10 @@ class LookupHandler(webapp.RequestHandler):
         destination_site_dict['latitude'] = sliver_tool.latitude
         destination_site_dict['longitude'] = sliver_tool.longitude
 
-        fqdn_annotation = ''
-
-        if query.address_family == message.ADDRESS_FAMILY_IPv4:
-            fqdn_annotation = 'v4'
-        elif query.address_family == message.ADDRESS_FAMILY_IPv6:
-            fqdn_annotation = 'v6'
-
-        fqdn_parts = sliver_tool.fqdn.split('.')
-        fqdn_parts[2] += fqdn_annotation
-        destination_fqdn = '.'.join(fqdn_parts)
+        destination_fqdn = sliver_tool.fqdn
+        if query.user_defined_af:
+            destination_fqdn = self._add_fqdn_annotation(query,
+                                                         sliver_tool.fqdn)
 
         destination_info = destination_fqdn
         # For web-based tools set this to the URL.
@@ -220,6 +219,33 @@ class LookupHandler(webapp.RequestHandler):
                 'user' : user_info_json,
                 'destination' : destination_site_json }))
 
+    def _add_fqdn_annotation(self, query, fqdn):
+        """Adds the v4/v6 only annotation to the fqdn.
+
+        Example:
+            fqdn:       'npad.iupui.mlab3.ath01.measurement-lab.org'
+            ipv4 only:  'npad.iupui.mlab3v4.ath01.measurement-lab.org'
+            ipv6 only:  'npad.iupui.mlab3v6.ath01.measurement-lab.org'
+
+        Args:
+            query: A LookupQuery instance.
+            fqdn: A string representing the fqdn.
+
+        Returns:
+            A string representing the IPV4/IPV6 only annotated fqdn.
+        """
+        fqdn_annotation = ''
+
+        if query.user_defined_af == message.ADDRESS_FAMILY_IPv4:
+            fqdn_annotation = 'v4'
+        elif query.user_defined_af == message.ADDRESS_FAMILY_IPv6:
+            fqdn_annotation = 'v6'
+
+        fqdn_parts = fqdn.split('.')
+        fqdn_parts[2] += fqdn_annotation
+
+        return '.'.join(fqdn_parts)
+
     def log_request(self, query, sliver_tool):
         """Logs the request. Each entry in the log is uploaded to BigQuery.
 
@@ -232,28 +258,50 @@ class LookupHandler(webapp.RequestHandler):
             # TODO(claudiu) Log also the error.
             return
 
-        # TODO(dominic) This should log explicit v4 and explicit v6 as separate
-        # to no option chosen
-        #is_ipv6 = 'False'
-        #ip = sliver_tool.sliver_ipv4
-        #fqdn = sliver_tool.fqdn_ipv4
-        #if query.address_family == message.ADDRESS_FAMILY_IPv6:
-        #    is_ipv6 = 'True'
-        #    ip = sliver_tool.sliver_ipv6
-        #    fqdn = sliver_tool.fqdn_ipv6
-
         deferred.defer(put_ping, query, time.time())
 
-        # TODO(claudiu) This might change based on the privacy doc
-        # (see http://goo.gl/KYPQW).
-        # The list of these fields must be consistent with the BigQuery
-        # table schema described in server/config.py.
-        # TODO(claudiu) Replace with json and update log2bq.py accordingly.
-        # logging.debug(
-        #    '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
-        #    '[lookup]',
-        #    query.tool_id, query.policy, query.ip_address, is_ipv6,
-        #    query.city, query.country, query.latitude, query.longitude,
-        #    sliver_tool.slice_id, sliver_tool.server_id, ip, fqdn,
-        #    sliver_tool.site_id, sliver_tool.city, sliver_tool.country,
-        #    sliver_tool.latitude, sliver_tool.longitude, long(time.time()))
+        fqdn = sliver_tool.fqdn
+        if query.user_defined_af:
+            fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
+
+        user_agent = ''
+        if 'User-Agent' in self.request.headers:
+            user_agent = self.request.headers['User-Agent']
+
+        # See the privacy doc at http://mlab-ns.appspot.com/privacy.
+        # The list of these fields is consistent with the BigQuery schema,
+        # except for the request latency field, that is added in the log2bq.py
+        # since it's automatically computed by GAE for every request and
+        # included in the request_log object.
+        logging.info(
+            '[lookup]'
+            '%s,%s,%s,%s,%s,%s,%s,'
+            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
+            '%s,%s,%s,%s,%s,%s',
+            # Info about the user:
+            query.user_defined_ip,
+            query.user_defined_af,
+            query.gae_ip,
+            query.gae_af,
+            query.ip_address,
+            query.address_family,
+            user_agent,
+            # Info about the server:
+            sliver_tool.slice_id,
+            sliver_tool.server_id,
+            sliver_tool.sliver_ipv4,
+            sliver_tool.sliver_ipv6,
+            sliver_tool.fqdn,
+            fqdn,
+            sliver_tool.site_id,
+            sliver_tool.city,
+            sliver_tool.country,
+            sliver_tool.latitude,
+            sliver_tool.longitude,
+            # Info about the request:
+            query.tool_id,
+            query.policy,
+            query.response_format,
+            query.geolocation_type,
+            query.metro,
+            str(time.time()))

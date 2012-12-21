@@ -49,7 +49,7 @@ class Log2Gs(base_handler.PipelineBase):
             "input_reader" : {
                 "start_time": start_time,
                 "end_time": end_time,
-                "minimum_log_level": logservice.LOG_LEVEL_DEBUG,
+                "minimum_log_level": logservice.LOG_LEVEL_INFO,
                 "version_ids": version_ids,
                 },
             "output_writer" : {
