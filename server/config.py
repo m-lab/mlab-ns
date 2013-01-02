@@ -89,6 +89,11 @@ bigquery_schema = [
         "mode":"REQUIRED",
     },
     {
+        "name":"distance",
+        "type":"FLOAT",
+        "mode":"REQUIRED",
+    },
+    {
         "name":"log_time",
         "type":"INTEGER",
         "mode":"REQUIRED",

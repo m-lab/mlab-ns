@@ -6,6 +6,7 @@ from mlabns.util import distance
 from mlabns.util import message
 
 import logging
+import math
 import random
 
 
@@ -163,6 +164,10 @@ class GeoResolver(ResolverBase):
                 closest_sliver_tools = [sliver_tool]
             elif current_distance == min_distance:
                 closest_sliver_tools.append(sliver_tool)
+
+        # Add the min_distance to the query so it can be logged later. Round to
+        # the next highest kilometre radius to remove precision.
+        query.distance = math.ceil(min_distance)
 
         # Choose randomly among candidates with the same, minimum distance.
         return random.choice(closest_sliver_tools)

@@ -277,7 +277,7 @@ class LookupHandler(webapp.RequestHandler):
             '[lookup]'
             '%s,%s,%s,%s,%s,%s,%s,'
             '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
-            '%s,%s,%s,%s,%s,%s',
+            '%s,%s,%s,%s,%s,%s,%s',
             # Info about the user:
             query.user_defined_ip,
             query.user_defined_af,
@@ -305,3 +305,5 @@ class LookupHandler(webapp.RequestHandler):
             query.geolocation_type,
             query.metro,
             str(time.time()))
+            # Calculated information about the lookup:
+            str(query.distance),

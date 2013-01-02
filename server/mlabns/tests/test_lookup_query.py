@@ -41,29 +41,29 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_response_format(RequestMockup())
         self.assertEqual(query.response_format,
                          message.DEFAULT_RESPONSE_FORMAT)
-       
+
     def testSetResponseFormatNonValidFormat(self):
 
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return 'non_Valid_format'
-        
+
         query = lookup_query.LookupQuery()
         query.set_response_format(RequestMockup())
         self.assertEqual(query.response_format,
                          message.DEFAULT_RESPONSE_FORMAT)
-       
+
     def testSetResponseFormatValidFormat(self):
 
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return message.FORMAT_HTML
-        
+
         query = lookup_query.LookupQuery()
         query.set_response_format(RequestMockup())
         self.assertEqual(query.response_format, message.FORMAT_HTML)
@@ -73,12 +73,12 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertIsNone(query.user_defined_ip)
         self.assertIsNone(query.user_defined_af)
-        
+
     def testSetUserDefinedIpAndAfNoIpNonValidAf(self):
 
         class RequestMockup:
@@ -86,7 +86,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return 'non_valid_af'
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertIsNone(query.user_defined_ip)
@@ -99,7 +99,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv4
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertIsNone(query.user_defined_ip)
@@ -112,7 +112,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv6
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertIsNone(query.user_defined_ip)
@@ -124,7 +124,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.REMOTE_ADDRESS:
                     return 'non_valid_ip'
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertIsNone(query.user_defined_ip)
@@ -139,7 +139,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return 'non_valid_af'
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertIsNone(query.user_defined_ip)
@@ -154,7 +154,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv4
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertIsNone(query.user_defined_ip)
@@ -169,7 +169,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv6
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertIsNone(query.user_defined_ip)
@@ -183,7 +183,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv4
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv4, query.user_defined_ip)
@@ -197,7 +197,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.REMOTE_ADDRESS:
                     return valid_ipv6
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv6, query.user_defined_ip)
@@ -214,7 +214,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return 'non_valid_af'
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv4, query.user_defined_ip)
@@ -230,7 +230,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return 'non_valid_af'
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv6, query.user_defined_ip)
@@ -246,7 +246,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv4
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv4, query.user_defined_ip)
@@ -262,12 +262,12 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv6
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv4, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
-        
+
     def testSetUserDefinedIpAndAfValidIpv6ValidAf4(self):
         valid_ipv6 = '1:2:3::4'
 
@@ -278,7 +278,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv4
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv6, query.user_defined_ip)
@@ -294,7 +294,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 if arg == message.ADDRESS_FAMILY:
                     return message.ADDRESS_FAMILY_IPv6
                 return None
-        
+
         query = lookup_query.LookupQuery()
         query.set_user_defined_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv6, query.user_defined_ip)
@@ -305,7 +305,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def __init__(self):
                 self.remote_addr = None
-        
+
         query = lookup_query.LookupQuery()
         query.set_gae_ip_and_af(RequestMockup())
         self.assertIsNone(query.gae_ip)
@@ -316,7 +316,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def __init__(self):
                 self.remote_addr = 'non_valid_ip'
-        
+
         query = lookup_query.LookupQuery()
         query.set_gae_ip_and_af(RequestMockup())
         self.assertIsNone(query.gae_ip)
@@ -328,7 +328,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def __init__(self):
                 self.remote_addr = valid_ipv4
-        
+
         query = lookup_query.LookupQuery()
         query.set_gae_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv4, query.gae_ip)
@@ -340,7 +340,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def __init__(self):
                 self.remote_addr = valid_ipv6
-        
+
         query = lookup_query.LookupQuery()
         query.set_gae_ip_and_af(RequestMockup())
         self.assertEqual(valid_ipv6, query.gae_ip)
@@ -358,7 +358,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 self.gae_af = 'gae_af'
             def set_user_defined_ip_and_af(self, unused_arg): pass
             def set_gae_ip_and_af(self, unused_arg): pass
-        
+
         query = LookupQueryMockup()
         query.set_ip_address_and_address_family(RequestMockup())
         self.assertEqual('user_defined_ip', query.ip_address)
@@ -376,7 +376,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 self.gae_af = 'gae_af'
             def set_user_defined_ip_and_af(self, unused_arg): pass
             def set_gae_ip_and_af(self, unused_arg): pass
-        
+
         query = LookupQueryMockup()
         query.set_ip_address_and_address_family(RequestMockup())
         self.assertEqual('gae_ip', query.ip_address)
@@ -395,17 +395,17 @@ class LookupQueryTestCase(unittest2.TestCase):
                 self.address_family = None
             def set_user_defined_ip_and_af(self, unused_arg): pass
             def set_gae_ip_and_af(self, unused_arg): pass
-        
+
         query = LookupQueryMockup()
         query.set_ip_address_and_address_family(RequestMockup())
         self.assertEqual('user_defined_ip', query.ip_address)
         self.assertIsNone(query.address_family)
 
     def testSetGeoLocationUsedDefinedValidLatLong(self):
-        lat = 0.0        
+        lat = 0.0
         lon = 4.3
-        city = 'valid_city'        
-        country = None 
+        city = 'valid_city'
+        country = None
 
         class RequestMockup:
             def get(self, arg, default_value=None):
@@ -421,7 +421,7 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg): pass
-        
+
         query = LookupQueryMockup()
         query.set_geolocation(RequestMockup())
         self.assertEqual(constants.GEOLOCATION_USER_DEFINED,
@@ -435,12 +435,12 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(query.user_defined_longitude, query.longitude)
         self.assertEqual(query.user_defined_city, query.city)
         self.assertEqual(query.user_defined_country, query.country)
-     
+
     def testSetGeoLocationUsedDefinedNoValidLatLong(self):
-        lat = 'non_valid_lat'        
+        lat = 'non_valid_lat'
         lon = 'non_valid_lon'
-        city = 'valid_city'        
-        country = None 
+        city = 'valid_city'
+        country = None
 
         class RequestMockup:
             def get(self, arg, default_value=None):
@@ -456,7 +456,7 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg): pass
-        
+
         query = LookupQueryMockup()
         query.set_geolocation(RequestMockup())
         self.assertEqual(constants.GEOLOCATION_USER_DEFINED,
@@ -472,10 +472,10 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(query.user_defined_country, query.country)
 
     def testSetGeoLocationUsedDefinedIpOrCountryAndMaxmind(self):
-        lat = 'maxmind_latitude'        
+        lat = 'maxmind_latitude'
         lon = 'maxmind_logitude'
-        city = None        
-        country = 'maxmind_country' 
+        city = None
+        country = 'maxmind_country'
 
         class RequestMockup:
             def __init__(self):
@@ -493,7 +493,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 self.maxmind_longitude = lon
                 self.maxmind_city = city
                 self.maxmind_country = country
-        
+
         query = LookupQueryMockup()
         query.user_defined_ip = 'valid_ip'
         query.set_geolocation(RequestMockup())
@@ -509,7 +509,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(query.maxmind_country, query.country)
 
         request = RequestMockup()
-        request.country = 'valid_country'  
+        request.country = 'valid_country'
         query.set_geolocation(request)
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
         self.assertEqual(lat, query.maxmind_latitude)
@@ -523,11 +523,11 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(query.maxmind_country, query.country)
 
     def testSetGeoLocationGAELatLong(self):
-        lat = 'gae_latitude'        
+        lat = 'gae_latitude'
         lon = 'gae_logitude'
-        city = None        
-        country = 'gae_country' 
-        
+        city = None
+        country = 'gae_country'
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return None
@@ -538,7 +538,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 self.gae_longitude = lon
                 self.gae_city = city
                 self.gae_country = country
-                
+
         query = LookupQueryMockup()
         query.set_geolocation(RequestMockup())
         self.assertEqual(constants.GEOLOCATION_APP_ENGINE,
@@ -552,12 +552,12 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(query.gae_longitude, query.longitude)
         self.assertEqual(query.gae_city, query.city)
         self.assertEqual(query.gae_country, query.country)
-    
+
     def testSetGeoLocationGAEIpOrCountryAndMaxmind(self):
-        lat = 'maxmind_latitude'        
+        lat = 'maxmind_latitude'
         lon = 'maxmind_logitude'
-        city = None        
-        country = 'maxmind_country' 
+        city = None
+        country = 'maxmind_country'
 
         class RequestMockup:
             def __init__(self):
@@ -592,7 +592,7 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         query = LookupQueryMockup()
         request = RequestMockup()
-        request.country = 'valid_country'  
+        request.country = 'valid_country'
         query.set_geolocation(request)
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
         self.assertEqual(lat, query.maxmind_latitude)
@@ -621,9 +621,9 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def __init__(self):
                 self.headers = {}
-                self.headers[message.HEADER_CITY] = valid_city 
+                self.headers[message.HEADER_CITY] = valid_city
                 self.headers[message.HEADER_LAT_LONG] = '0.0,3.0'
- 
+
         query = lookup_query.LookupQuery()
         query.set_appengine_geolocation(RequestMockup())
         self.assertEqual(valid_city, query.gae_city)
@@ -632,7 +632,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(valid_longitude, query.gae_longitude)
 
     def testSetPolicyUserDefinedGeoPolicyGeo(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return message.POLICY_GEO
@@ -649,7 +649,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_GEO, query.policy)
 
     def testSetPolicyUserDefinedGeoPolicyNoGeo(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return 'no_geo_policy'
@@ -666,7 +666,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_GEO, query.policy)
 
     def testSetPolicyUserDefinedCountryPolicyCountry(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return message.POLICY_COUNTRY
@@ -675,9 +675,9 @@ class LookupQueryTestCase(unittest2.TestCase):
         query.user_defined_country = 'valid_country'
         query.set_policy(RequestMockup())
         self.assertEqual(message.POLICY_COUNTRY, query.policy)
-       
+
     def testSetPolicyUserDefinedCountryPolicyGeo(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return message.POLICY_GEO
@@ -686,7 +686,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         query.user_defined_country = 'valid_country'
         query.set_policy(RequestMockup())
         self.assertEqual(message.POLICY_GEO, query.policy)
-       
+
     def testSetPolicyUserDefinedCountryPolicyNoGeoNoCountry(self):
 
         class RequestMockup:
@@ -699,7 +699,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_GEO, query.policy)
 
     def testSetPolicyUserDefinedMetroPolicyMetro(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return message.POLICY_METRO
@@ -708,9 +708,9 @@ class LookupQueryTestCase(unittest2.TestCase):
         query.metro = 'valid_metro'
         query.set_policy(RequestMockup())
         self.assertEqual(message.POLICY_METRO, query.policy)
-       
+
     def testSetPolicyUserDefinedMetroPolicyNoMetro(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return 'no_metro_policy'
@@ -719,9 +719,9 @@ class LookupQueryTestCase(unittest2.TestCase):
         query.metro = 'valid_metro'
         query.set_policy(RequestMockup())
         self.assertEqual(message.POLICY_METRO, query.policy)
-      
+
     def testSetPolicyGeoPolicyNoGeo(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return message.POLICY_GEO
@@ -733,7 +733,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyCountryPolicyNoUserDefinedCountry(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return message.POLICY_COUNTRY
@@ -744,7 +744,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyMetroPolicyNoMetro(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return message.POLICY_METRO
@@ -755,17 +755,17 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyPolicyRandom(self):
-        
+
         class RequestMockup:
-	    def get(self, unused_arg, default_value=None):
-		return message.POLICY_RANDOM
+            def get(self, unused_arg, default_value=None):
+                return message.POLICY_RANDOM
 
         query = lookup_query.LookupQuery()
         query.set_policy(RequestMockup())
         self.assertEqual(message.POLICY_RANDOM, query.policy)
- 
+
     def testSetPolicyNoPolicy(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return None
@@ -775,7 +775,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyNonValidPolicy(self):
-        
+
         class RequestMockup:
             def get(self, unused_arg, default_value=None):
                 return 'non_valid_policy'
@@ -791,8 +791,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         class RequestMockup:
             def __init__(self):
                 self.path = valid_tool + '/xyz/'
-                self.remote_addr = None  
-                self.headers = {}  
+                self.remote_addr = None
+                self.headers = {}
             def get(self, arg, default_value=None):
                 if arg == message.METRO:
                     return valid_metro
