@@ -19,6 +19,7 @@ class LookupQuery:
         self.country = None
         self.latitude = None
         self.longitude = None
+        self.distance = None
         self.gae_ip = None
         self.user_defined_ip = None
         self.gae_af = None
@@ -123,8 +124,8 @@ class LookupQuery:
             pass
 
         # Non (valid) user-defined IP address. Don't change address family.
-        self.__dict__[ip_field] = None 
- 
+        self.__dict__[ip_field] = None
+
     def set_geolocation(self, request):
         self.set_appengine_geolocation(request)
         self.user_defined_city = request.get(message.CITY, default_value=None)
@@ -170,7 +171,7 @@ class LookupQuery:
             self.longitude = self.gae_longitude
 
     def set_maxmind_geolocation(self, ip_address, country, city):
-        geo_record = maxmind.GeoRecord()    
+        geo_record = maxmind.GeoRecord()
         if ip_address is not None:
             geo_record = maxmind.get_ip_geolocation(ip_address)
         elif city is not None and country is not None:
@@ -208,14 +209,14 @@ class LookupQuery:
         if (self.user_defined_latitude is not None and \
             self.user_defined_longitude is not None) or \
             self.user_defined_ip is not None:
-            if self.policy != message.POLICY_GEO:  
+            if self.policy != message.POLICY_GEO:
                 logging.warning(
                     'Lat/longs user-defined, but policy is %s.', self.policy)
                 self.policy = message.POLICY_GEO
             return
         if self.user_defined_country is not None:
             if self.policy != message.POLICY_COUNTRY and \
-                self.policy != message.POLICY_GEO:  
+                self.policy != message.POLICY_GEO:
                 logging.warning(
                     'Country user-defined, but policy is %s.', self.policy)
                 self.policy = message.POLICY_GEO
@@ -243,7 +244,7 @@ class LookupQuery:
             return
         if self.policy  ==  message.POLICY_RANDOM:
             return
-        logging.warning('Non valid policy %s.', self.policy) 
+        logging.warning('Non valid policy %s.', self.policy)
         self.policy = self._get_default_policy()
 
     def _get_default_policy(self):

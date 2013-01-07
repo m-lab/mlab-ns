@@ -19,6 +19,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertIsNone(query.country)
         self.assertIsNone(query.latitude)
         self.assertIsNone(query.longitude)
+        self.assertIsNone(query.distance)
         self.assertIsNone(query.gae_ip)
         self.assertIsNone(query.gae_af)
         self.assertIsNone(query.user_defined_ip)
