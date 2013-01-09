@@ -2,6 +2,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 from mlabns.handlers import admin
+from mlabns.handlers import docs
 from mlabns.handlers import lookup
 from mlabns.handlers import pings
 from mlabns.handlers import privacy
