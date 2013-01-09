@@ -15,6 +15,7 @@ app = webapp.WSGIApplication(
     (r'/cron/check_status', update.NagiosUpdateHandler),
     (r'/pings', pings.PingsHandler),
     (r'/privacy', privacy.PrivacyHandler),
+    (r'/docs', docs.DocsHandler),
     (r'/register', registration.RegistrationHandler),
     # (r'/cron/process_logs', log2bq.Log2BigQueryHandler),
     (r'/.*', lookup.LookupHandler)],

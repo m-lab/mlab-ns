@@ -83,7 +83,9 @@ class AdminHandler(webapp.RequestHandler):
                 sliver_tool.when ]
             records.append(sliver_tool_info)
 
-        values = {'records' : records, 'headers': headers}
+        values = {'records' : records, 'headers': headers,
+                  'privacy_doc_url' : constants.PRIVACY_DOC_URL,
+                  'design_doc_url' : constants.DESIGN_DOC_URL}
         self.response.out.write(
             template.render('mlabns/templates/sliver_tool.html', values))
 
@@ -111,7 +113,9 @@ class AdminHandler(webapp.RequestHandler):
                 site.when ]
             records.append(site_info)
 
-        values = {'records' : records, 'headers': headers}
+        values = {'records' : records, 'headers': headers,
+                  'privacy_doc_url' : constants.PRIVACY_DOC_URL,
+                  'design_doc_url' : constants.DESIGN_DOC_URL}
         self.response.out.write(
             template.render('mlabns/templates/site.html', values))
 
@@ -143,10 +147,12 @@ class AdminHandler(webapp.RequestHandler):
         data = self.get_sites_info(sliver_tools, address_family)
         json_data = simplejson.dumps(data)
         file_name = '' . join(['mlabns/templates/map_view.html'])
-        self.response.out.write(
-            template.render(file_name, {'cities' : json_data,
-                                        'tool_id' : tool_id,
-                                        'address_family' : address_family}))
+        values = {'cities' : json_data,
+                  'tool_id' : tool_id,
+                  'address_family' : address_family,
+                  'privacy_doc_url' : constants.PRIVACY_DOC_URL,
+                  'design_doc_url' : constants.DESIGN_DOC_URL}
+        self.response.out.write(template.render(file_name, values))
 
     def get_sites_info(self, sliver_tools, address_family):
         """Returns info about the sites.

@@ -38,3 +38,7 @@ UNKNOWN_CITY = 'Zion'
 # URL to the privacy doc. All requests to http://mlab-ns.appspot.com/privacy
 # will be redirected to this URL.
 PRIVACY_DOC_URL = 'http://goo.gl/X1X2V'
+
+# URL to the design doc. All requests to http://mlab-ns.appspot.com/docs will be
+# redirected to this URL.
+DESIGN_DOC_URL = 'http://goo.gl/TlNZ3'
