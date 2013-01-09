@@ -304,6 +304,6 @@ class LookupHandler(webapp.RequestHandler):
             query.response_format,
             query.geolocation_type,
             query.metro,
-            str(time.time()))
+            str(time.time()),
             # Calculated information about the lookup:
-            str(query.distance),
+            str(query.distance))
