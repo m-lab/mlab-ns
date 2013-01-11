@@ -1,6 +1,6 @@
+from google.appengine.ext import db
 from google.appengine.ext import webapp
 
-from mlabns.db import model
 from mlabns.util import message
 from mlabns.util import util
 
@@ -13,11 +13,11 @@ class CleanupHandler(webapp.RequestHandler):
 
     def get(self):
       """Perform the cleanup."""
-      q = model.Ping.all()
       # get all rows that are older than 24 hours.
-      q.filter("time <", time.time() - (60 * 60 * 24))
-      for p in q.run():
-        p.delete()
+      q = db.GqlQuery("SELECT * FROM Ping WHERE time < " +
+          str(time.time() - (60 * 60 * 24)));
+      results = q.fetch(100)
+      db.delete(results);
 
 class PingsHandler(webapp.RequestHandler):
     """Returns batches of recent queries for visualization."""
