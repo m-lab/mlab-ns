@@ -23,6 +23,10 @@ handlers:
 - url: /oauth2callback
   script: oauth2client/appengine.py
 
+- url: /cron
+  script: main.app
+  login: admin
+
 - url: /.*
   script: main.app
 
