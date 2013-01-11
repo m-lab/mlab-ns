@@ -17,7 +17,7 @@ class CleanupHandler(webapp.RequestHandler):
       # get all rows that are older than 24 hours.
       start = float(time.time() - (60 * 60 * 24));
       logging.info('Deleting pings since %.2f', start);
-      q = db.GqlQuery('SELECT * FROM Ping WHERE time < ' + start)
+      q = db.GqlQuery('SELECT * FROM Ping WHERE time < ' + str(start))
       results = q.fetch(100)
       while results:
           db.delete(results)
