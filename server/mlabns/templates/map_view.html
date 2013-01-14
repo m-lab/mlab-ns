@@ -69,10 +69,13 @@
         if (xhr.readyState == 4 && xhr.status == 200) {
           // Response is a JSON array
           var newPings = JSON.parse(xhr.responseText);
-          for (var i = 0; i < newPings.length; ++i) {
-            newPings[i].lifetime = pingLifetime;
+          if (newPings.length > 0) {
+            console.log('Received ' + newPings.length + ' pings');
+            for (var i = 0; i < newPings.length; ++i) {
+              newPings[i].lifetime = pingLifetime;
+            }
+            realtimePings.push.apply(realtimePings, newPings);
           }
-          realtimePings.push.apply(realtimePings, newPings);
         }
       }
 
@@ -164,8 +167,11 @@
 
           // If we don't have any pings, set the lastPingTime to the current
           // time as a UNIX timestamp
-          if (realtimePings.length > 0)
-            lastPingTime = realtimePings[realtimePings.length - 1].time
+          if (realtimePings.length == 0) {
+            lastPingTime = Math.round((new Date()).getTime() / 1000);
+            return;
+          }
+          lastPingTime = realtimePings[realtimePings.length - 1].time
 
           // Update and draw existing pings
           var end = Math.min(realtimePings.length, MAX_PINGS_PER_FRAME);
