@@ -22,7 +22,11 @@ def put_ping(query, time):
                       tool_id = query.tool_id,
                       address_family = query.address_family,
                       time = time)
-    ping.put()
+    try:
+        ping.put()
+    except Error as e:
+        logging.error('Failed to put ping %v: %s', ping, e.strerror)
+        raise
 
 class LookupHandler(webapp.RequestHandler):
     """Routes GET requests to the appropriate SliverTools."""
