@@ -17,8 +17,8 @@ import logging
 import time
 
 def put_ping(query, time):
-    ping = model.Ping(latitude = round(query.latitude, 2),
-                      longitude = round(query.longitude, 2),
+    ping = model.Ping(latitude = round(float(query.latitude), 2),
+                      longitude = round(float(query.longitude), 2),
                       tool_id = query.tool_id,
                       address_family = query.address_family,
                       time = time)
