@@ -17,15 +17,21 @@ import logging
 import time
 
 def put_ping(query, time):
-    ping = model.Ping(latitude = round(float(query.latitude), 2),
-                      longitude = round(float(query.longitude), 2),
-                      tool_id = query.tool_id,
-                      address_family = query.address_family,
-                      time = time)
+    if query.latitude is None or query.longitude is None:
+      logging.warning('Attempt to put ping with invalid lat/long')
+      return
+
     try:
+        logging.info('Putting ping with lat/long %s %s', query.latitude,
+            query.longitude)
+        ping = model.Ping(latitude = round(float(query.latitude), 2),
+                          longitude = round(float(query.longitude), 2),
+                          tool_id = query.tool_id,
+                          address_family = query.address_family,
+                          time = time)
         ping.put()
     except Error as e:
-        logging.error('Failed to put ping %v: %s', ping, e.strerror)
+        logging.error('Failed to put ping %s: %s', ping, e.strerror)
         raise
 
 class LookupHandler(webapp.RequestHandler):
