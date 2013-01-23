@@ -79,15 +79,12 @@ class LookupHandler(webapp.RequestHandler):
         data = {}
 
         ip = []
-        fqdn_annotation = ''
 
         logging.info('user_defined_af = %s', query.user_defined_af)
         if query.user_defined_af == message.ADDRESS_FAMILY_IPv4:
             ip = [sliver_tool.sliver_ipv4]
-            fqdn_annotation = 'v4'
         elif query.user_defined_af == message.ADDRESS_FAMILY_IPv6:
             ip = [sliver_tool.sliver_ipv6]
-            fqdn_annotation = 'v6'
         else:
             # If 'address_family' is not specified, the default is to
             # return both valid IP addresses (if both 'status_ipv4' and
@@ -102,12 +99,10 @@ class LookupHandler(webapp.RequestHandler):
                 sliver_tool.status_ipv6 == message.STATUS_ONLINE):
                 ip.append(sliver_tool.sliver_ipv6)
 
-        fqdn_parts = sliver_tool.fqdn.split('.')
-        fqdn_parts[2] += fqdn_annotation
-        fqdn = '.'.join(fqdn_parts)
-
         if sliver_tool.http_port:
-            data['url'] = 'http://' + fqdn + ':' + sliver_tool.http_port
+            data['url'] = ''.join([
+                'http://', self._add_fqdn_annotation(query, sliver_tool.fqdn),
+                ':', sliver_tool.http_port])
 
         data['fqdn'] = fqdn
         data['ip'] = ip
@@ -147,8 +142,9 @@ class LookupHandler(webapp.RequestHandler):
 
         """
         if sliver_tool.http_port:
-            url = '' .join([
-                'http://', sliver_tool.fqdn, ':', sliver_tool.http_port])
+            url = ''.join([
+                'http://', self._add_fqdn_annotation(query, sliver_tool.fqdn),
+                ':', sliver_tool.http_port])
             return self.redirect(str(url))
 
         return util.send_not_found(self, 'html')
