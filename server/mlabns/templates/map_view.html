@@ -69,10 +69,13 @@
         if (xhr.readyState == 4 && xhr.status == 200) {
           // Response is a JSON array
           var newPings = JSON.parse(xhr.responseText);
-          for (var i = 0; i < newPings.length; ++i) {
-            newPings[i].lifetime = pingLifetime;
+          if (newPings.length > 0) {
+            console.log('Received ' + newPings.length + ' pings');
+            for (var i = 0; i < newPings.length; ++i) {
+              newPings[i].lifetime = pingLifetime;
+            }
+            realtimePings.push.apply(realtimePings, newPings);
           }
-          realtimePings.push.apply(realtimePings, newPings);
         }
       }
 
@@ -94,6 +97,8 @@
           var geo = {};
 
           var htmlSitesInfo = '';
+
+          var sliverCount = 0;
           for (site in cities[i]) {
             var _site = cities[i][site];
             cityName = _site['city'];
@@ -117,6 +122,7 @@
               var sliver_tool = _site.sliver_tools[j];
               var status = sliver_tool.status;
               statusCount[status] += 1;
+              sliverCount += 1;
               htmlSiteInfo += '<tr>' +
                 '<td>' + sliver_tool.slice_id + '</td>' +
                 '<td>' + sliver_tool.tool_id + '</td>' +
@@ -132,16 +138,14 @@
             '<h2>' + cityName + ',' + countryName + '</h2>' +
             htmlSitesInfo + '</div>';
 
-          if (statusCount['offline'] > 0) {
+          if (statusCount['offline'] == sliverCount) {
+            markerStyle = 'error';
+          } else if (statusCount['offline'] > 0) {
             markerStyle = 'warning';
           }
 
-          if (statusCount['offline'] > 2) {
-            markerStyle = 'error';
-          }
-
           if (statusCount['init'] > 2) {
-            markerStyle = 'error';
+            markerStyle = 'init';
           }
 
           var markerIcon = makeIcon(markerStyle, statusCount['offline']);
@@ -164,8 +168,11 @@
 
           // If we don't have any pings, set the lastPingTime to the current
           // time as a UNIX timestamp
-          if (realtimePings.length > 0)
-            lastPingTime = realtimePings[realtimePings.length - 1].time
+          if (realtimePings.length == 0) {
+            lastPingTime = Math.round((new Date()).getTime() / 1000);
+            return;
+          }
+          lastPingTime = realtimePings[realtimePings.length - 1].time
 
           // Update and draw existing pings
           var end = Math.min(realtimePings.length, MAX_PINGS_PER_FRAME);
