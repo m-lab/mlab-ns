@@ -99,10 +99,9 @@ class LookupHandler(webapp.RequestHandler):
                 sliver_tool.status_ipv6 == message.STATUS_ONLINE):
                 ip.append(sliver_tool.sliver_ipv6)
 
+        fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
         if sliver_tool.http_port:
-            data['url'] = ''.join([
-                'http://', self._add_fqdn_annotation(query, sliver_tool.fqdn),
-                ':', sliver_tool.http_port])
+            data['url'] = ''.join([ 'http://', fqdn, ':', sliver_tool.http_port])
 
         data['fqdn'] = fqdn
         data['ip'] = ip
