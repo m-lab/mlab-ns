@@ -7,6 +7,10 @@ cron:
   url: /cron/check_status
   schedule: every 13 minutes
 
+- description: Check IP addresses
+  url: /cron/check_ip
+  schedule: every 24 hours
+
 - description: Clean up old pings
   url: /cron/cleanup_pings
   schedule: every 24 hours

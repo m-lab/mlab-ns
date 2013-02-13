@@ -15,6 +15,66 @@ from mlabns.util import util
 AF_IPV4 = 'ipv4'
 AF_IPV6 = 'ipv6'
 
+class KsUpdateHandler(webapp.RequestHandler):
+    """Handles IP address updates."""
+
+    def get(self):
+        """Triggers the update handler.
+
+        Updates sliver tool IP addresses from ks.
+        """
+        url = 'http://ks.measurementlab.net/mlab-host-ips.txt'
+        ip = {}
+        lines = []
+        try:
+            lines = urllib2.urlopen(url).read().strip('\n').split('\n')
+        except urllib2.HTTPError:
+            # TODO(claudiu) Notify(email) when this happens.
+            logging.error('Cannot connect to ks.')
+
+        sliver_tool_list = {}
+        for line in lines:
+            if len(line) == 0:
+                continue
+
+            # FQDN,IPv4,IPv6 (optional)
+            fqdn,ipv4,ipv6 = line.split(',')
+            logging.info('Updating %s: IPv4 %s, IPv6 %s.', fqdn, ipv4, ipv6)
+
+            sliver_tool_gql = model.SliverTool.gql('WHERE fqdn=:fqdn', fqdn=fqdn)
+            logging.info('  found %d results', sliver_tool_gql.count())
+            # FQDN is unique so get() should be enough.
+            sliver_tool = sliver_tool_gql.get()
+            if sliver_tool == None:
+                logging.warning('  unable to find sliver_tool with fqdn %s',
+                                fqdn)
+                continue;
+            logging.info('  applying to %s.%s', sliver_tool.slice_id,
+                         sliver_tool.site_id)
+            sliver_tool.sliver_ipv4 = "off"
+            if ipv4 != None:
+                sliver_tool.sliver_ipv4 = ipv4
+
+            sliver_tool.sliver_ipv6 = "off"
+            if ipv6 != None:
+                sliver_tool.sliver_ipv6 = ipv6
+
+            try:
+                sliver_tool.put()
+                if sliver_tool.tool_id not in sliver_tool_list:
+                    sliver_tool_list[sliver_tool.tool_id] = []
+                sliver_tool_list[sliver_tool.tool_id].append(sliver_tool)
+
+                logging.info('Wrote %s: IPv4 %s, IPv6 %s.', fqdn, ipv4, ipv6)
+            except db.TransactionFailedError:
+                logging.error('Failed to write changes to db')
+
+        # Update memcache
+        for tool_id in sliver_tool_list.keys():
+           if not memcache.set(tool_id, sliver_tool_list[tool_id],
+                              namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+              logging.error('Memcache set failed')
+        
 class NagiosUpdateHandler(webapp.RequestHandler):
     """Handles SliverTools updates."""
 
