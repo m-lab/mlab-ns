@@ -16,6 +16,10 @@ handlers:
   static_files: mlabns/images/favicon.ico
   upload: mlabns/images/favicon.ico
 
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+
 - url: /(admin|map).*
   script: main.app
   #login: required
