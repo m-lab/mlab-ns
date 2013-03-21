@@ -201,8 +201,9 @@
           window.setTimeout(getPings, 5000);
 
           // Get new pings
-          xhr.open('GET', '/pings?tool_id={{tool_id}}&address_family={{address_family}}&last_time=' + lastPingTime, true);
-          xhr.send();
+          // TODO(dominic): reenable some time in the future.
+          //xhr.open('GET', '/pings?tool_id={{tool_id}}&address_family={{address_family}}&last_time=' + lastPingTime, true);
+          //xhr.send();
         })();
       }
 
