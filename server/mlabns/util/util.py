@@ -37,3 +37,14 @@ def send_success(request, output_type=message.FORMAT_JSON):
     else:
         request.response.out.write('<html> Success! </html>')
 
+def send_teapot(request, output_type=message.FORMAT_HTML):
+    request.error(404)
+    if output_type == message.FORMAT_JSON:
+        data={}
+        data['status_code'] = "418 I'm a teapot"
+        json_data = json.dumps(data)
+        request.response.headers['Content-Type'] = 'application/json'
+        request.response.out.write(json_data)
+    else:
+        request.response.out.write(
+            template.render('mlabns/templates/teapot.html', {}))
