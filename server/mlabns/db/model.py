@@ -106,6 +106,11 @@ class Slice(db.Model):
     slice_id = db.StringProperty()
     tool_id = db.StringProperty()
 
+class Tool(db.Model):
+    slice_id = db.StringProperty()
+    tool_id = db.StringProperty()
+    http_port = db.StringProperty()
+
 class Nagios(db.Model):
     key_id = db.StringProperty()
     username = db.StringProperty()

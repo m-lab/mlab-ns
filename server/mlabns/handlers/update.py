@@ -3,6 +3,7 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
+import json
 import logging
 import time
 import urllib2
@@ -14,6 +15,155 @@ from mlabns.util import util
 
 AF_IPV4 = 'ipv4'
 AF_IPV6 = 'ipv6'
+
+class KsRegistrationHandler(webapp.RequestHandler):
+    """Registers new sites from ks."""
+
+    def get(self):
+        """Triggers the registration handler.
+
+        Checks if new sites were added to ks and
+        registers them with mlab-ns.
+        """
+        url = 'http://ks.measurementlab.net/mlab-site-stats.json'
+        try:
+            ks_sites_json = json.loads(urllib2.urlopen(url).read())
+        except urllib2.HTTPError:
+            # TODO(claudiu) Notify(email) when this happens.
+            logging.error('Cannot connect to ks.')
+            return util.send_not_found(self)
+        except (TypeError, ValueError) as e:
+            logging.error('Invalid json format from ks.')
+            return util.send_not_found(self)
+
+        ks_site_ids = set()
+
+        # Validate the data from ks.
+        valid_ks_sites_json = []
+        for ks_site in ks_sites_json:
+            if self.validate_site_json(ks_site):
+                valid_ks_sites_json.append(ks_site)
+                ks_site_ids.add(ks_site['site'])
+
+        mlab_site_ids = set()
+        mlab_sites = model.Site.all()
+        for site in mlab_sites:
+            mlab_site_ids.add(site.site_id)
+
+        unchanged_site_ids = ks_site_ids.intersection(mlab_site_ids)
+        new_site_ids = ks_site_ids.difference(mlab_site_ids)
+        removed_site_ids = mlab_site_ids.difference(ks_site_ids)
+
+        # Do not remove sites here for now.
+        # TODO(claudiu) Implement the sites removal as a separate handler.
+        for site_id in removed_site_ids:
+            logging.warning('Site removed from ks: %s', site_id)
+
+        for site_id in unchanged_site_ids:
+            logging.info('Unchanged site: %s', site_id)
+
+        for ks_site in valid_ks_sites_json:
+            if (ks_site['site'] in new_site_ids):
+                logging.info('Registering site: %s', ks_site['site'])
+                # TODO(claudiu) Notify(email) when this happens.
+                self.register_site(ks_site)
+
+        return util.send_success(self)
+
+    def validate_site_json(self, site_json):
+        """Checks if the json data from ks is well formed.
+
+        Args:
+            site_json: A json representing the site info as appears on ks.
+
+        Returns:
+            True if the registration succeeds, False otherwise.
+        """
+        required_fields = ['site', 'metro', 'country', 'latitude', 'longitude']
+        # TODO(claudiu) Need more robust validation.
+
+        for field in site_json:
+            logging.info('Filed %s', field)
+
+        for field in required_fields:
+            if field not in site_json:
+                logging.error('Invalid data in site from ks.')
+                return False
+        return True
+
+    def register_site(self, ks_site):
+        """Registers a new site.
+
+        Args:
+            ks_site: A json representing the site info as appears on ks.
+
+        Returns:
+            True if the registration suceedes , False otherwise.
+        """
+        site = model.Site(
+            site_id = ks_site['site'],
+            city = ks_site['city'],
+            country = ks_site['country'],
+            latitude = float(ks_site['latitude']),
+            longitude = float(ks_site['longitude']),
+            metro = ks_site['metro'],
+            registration_timestamp=long(time.time()),
+            key_name=ks_site['site'])
+
+        try:
+            site.put()
+        except TransactionFailedError:
+            # TODO(claudiu) Trigger an event/notification.
+            logging.error('Failed to write changes to db.')
+            return False
+
+        sliver_tools = []
+        tools = model.Tool.all()
+        for tool in tools:
+            for server_id in ['mlab1', 'mlab2', 'mlab3']:
+                sliver_tool_id = '-'.join([
+                    tool.tool_id,
+                    tool.slice_id,
+                    server_id,
+                    ks_site['site']])
+
+                slice_parts = tool.slice_id.split('_')
+                sliver_tool = model.SliverTool(
+                    tool_id = tool.tool_id,
+                    slice_id = tool.slice_id,
+                    site_id = ks_site['site'],
+                    server_id = server_id,
+                    fqdn = '.'.join([
+                        slice_parts[1],
+                        slice_parts[0],
+                        server_id,
+                        ks_site['site'],
+                        'measurement-lab.org']),
+                    server_port = None,
+                    http_port = tool.http_port,
+                    sliver_ipv4 = 'off',
+                    sliver_ipv6 = 'off',
+                    status_ipv4 = 'offline',
+                    status_ipv6 = 'offline',
+                    latitude = site.latitude,
+                    longitude = site.longitude,
+                    city = site.city,
+                    country = site.country,
+                    update_request_timestamp = long(time.time()),
+                    key_name=sliver_tool_id)
+
+                sliver_tools.append(sliver_tool)
+
+        # Insert all new sliver_tools in the datastore
+        # in one batch operation.
+        try:
+            db.put(sliver_tools)
+        except TransactionFailedError:
+            # TODO(claudiu) Trigger an event/notification.
+            logging.error('Failed to write changes to db.')
+            return False
+
+        return True
 
 class KsUpdateHandler(webapp.RequestHandler):
     """Handles IP address updates."""
@@ -74,7 +224,7 @@ class KsUpdateHandler(webapp.RequestHandler):
            if not memcache.set(tool_id, sliver_tool_list[tool_id],
                               namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
               logging.error('Memcache set failed')
-        
+
 class NagiosUpdateHandler(webapp.RequestHandler):
     """Handles SliverTools updates."""
 
