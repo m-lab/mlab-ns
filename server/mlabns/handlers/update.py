@@ -132,11 +132,11 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         tools = model.Tool.all()
         for tool in tools:
             for server_id in ['mlab1', 'mlab2', 'mlab3']:
-                sliver_tool_id = '-'.join([
+                sliver_tool_id = model.get_sliver_tool_id(
                     tool.tool_id,
                     tool.slice_id,
                     server_id,
-                    ks_site['site']])
+                    ks_site['site'])
 
                 slice_parts = tool.slice_id.split('_')
                 sliver_tool = model.SliverTool(
