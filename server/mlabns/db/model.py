@@ -144,3 +144,12 @@ def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
         return '-'.join([tool_id, slice_id, server_id, site_id])
     except TypeError:
         return None
+
+def get_fqdn(slice_id, server_id, site_id):
+    """Returns an FQDN or None if the given slice_id is not valid."""
+
+    slice_parts = tool.slice_id.split('_')
+    if len(slice_parts) != 2:
+        return None
+    return '.'.join([slice_parts[1], slice_parts[0], server_id, site_id,
+                    'measurement-lab.org'])

@@ -148,8 +148,10 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                     server_id,
                     ks_site[SiteRegistrationMessage.SITE_FIELD])
 
-                slice_parts = tool.slice_id.split('_')
-                if len(slice_parts) != 2:
+                fqdn = model.get_fqdn(
+                    tool.slice_id, server_id,
+                    ks_site[SiteRegistrationMessage.SITE_FIELD])
+                if fqdn is None:
                     logging.error('Non valid slice id: %s.', tool.slice_id)
                     continue
                 sliver_tool = model.SliverTool(
@@ -157,12 +159,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                     slice_id = tool.slice_id,
                     site_id = ks_site[SiteRegistrationMessage.SITE_FIELD],
                     server_id = server_id,
-                    fqdn = '.'.join([
-                        slice_parts[1],
-                        slice_parts[0],
-                        server_id,
-                        ks_site[SiteRegistrationMessage.SITE_FIELD],
-                        'measurement-lab.org']),
+                    fqdn = fqdn,
                     # server_port is currently unused.
                     server_port = None,
                     http_port = tool.http_port,
