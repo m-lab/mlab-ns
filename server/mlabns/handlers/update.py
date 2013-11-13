@@ -17,14 +17,42 @@ from mlabns.util import util
 class SiteRegistrationHandler(webapp.RequestHandler):
     """Registers new sites from ks."""
 
+    class SiteRegistrationMessage:
+        # Message fields
+        SITE_FIELD = 'site'
+        METRO_FIELD = 'metro'
+        CITY_FIELD = 'city'
+        COUNTRY_FIELD = 'country'
+        LAT_FIELD = 'latitude'
+        LON_FIELD = 'longitude'
+        REQUIRED_FIELDS = [ SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
+                            LAT_FIELD, LON_FIELD]
+
+        def validate_site_json(self, site_json):
+           """Checks if the json data from ks is well formed.
+
+            Args:
+                site_json: A json representing the site info as appears on ks.
+
+            Returns:
+                True if the json data is valid, False otherwise.
+            """
+            # TODO(claudiu) Need more robust validation.
+            for field in SiteRegistrationMessage.REQUIRED_FIELDS:
+                if field not in site_json:
+                    logging.error('Missing field from site list: %s.', field)
+                    return False
+            return True
+
+    SITE_LIST_URL = 'http://ks.measurementlab.net/mlab-site-stats.json'
+
     def get(self):
         """Triggers the registration handler.
 
         Checks if new sites were added to ks and registers them with mlab-ns.
         """
-        url = 'http://ks.measurementlab.net/mlab-site-stats.json'
         try:
-            ks_sites_json = json.loads(urllib2.urlopen(url).read())
+            ks_sites_json = json.loads(urllib2.urlopen(SITE_LIST_URL).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot connect to ks.')
@@ -40,10 +68,10 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         for ks_site in ks_sites_json:
             if self.validate_site_json(ks_site):
                 valid_ks_sites_json.append(ks_site)
-                ks_site_ids.add(ks_site['site'])
+                ks_site_ids.add(ks_site[SiteRegistrationMessage.SITE_FIELD])
             else:
                logging.error('Invalid json format from ks.')
-               return util.send_not_found(self)
+               continue
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
@@ -54,44 +82,27 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         new_site_ids = ks_site_ids.difference(mlab_site_ids)
         removed_site_ids = mlab_site_ids.difference(ks_site_ids)
 
+        # Register only new sites.
         # Do not remove sites here for now.
         # TODO(claudiu) Implement the site removal as a separate handler.
         for site_id in removed_site_ids:
-            logging.warning('Site removed from ks: %s', site_id)
+            logging.warning('Site removed from ks: %s.', site_id)
 
         for site_id in unchanged_site_ids:
-            logging.info('Unchanged site: %s', site_id)
+            logging.info('Unchanged site: %s.', site_id)
 
         for ks_site in valid_ks_sites_json:
-            if (ks_site['site'] in new_site_ids):
-                logging.info('Registering site: %s', ks_site['site'])
+            if (ks_site[SiteRegistrationMessage.SITE_FIELD] in new_site_ids):
+                logging.info('Registering site: %s.',
+                             ks_site[SiteRegistrationMessage.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
-                if not self.register_site(ks_site):
-                    logging.error('Error registering site %s', ks_site['site'])
+                if not SiteRegistrationMessage.register_site(ks_site):
+                    logging.error('Error registering site %s.',
+                                  ks_site[SiteRegistrationMessage.SITE_FIELD])
                     return util.send_not_found(self)
 
         return util.send_success(self)
 
-    def validate_site_json(self, site_json):
-        """Checks if the json data from ks is well formed.
-
-        Args:
-            site_json: A json representing the site info as appears on ks.
-
-        Returns:
-            True if the json data is valid, False otherwise.
-        """
-        # TODO(claudiu) Need more robust validation.
-        required_fields = ['site', 'metro', 'country', 'latitude', 'longitude']
-
-        for field in site_json:
-            logging.info('Field %s', field)
-
-        for field in required_fields:
-            if field not in site_json:
-                logging.error('Invalid data in site from ks.')
-                return False
-        return True
 
     def register_site(self, ks_site):
         """Registers a new site.
@@ -103,21 +114,22 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             True if the registration succeeds, False otherwise.
         """
         try:
-            lat_long = float(ks_site['latitude'])
-            lon_long = float(ks_site['longitude'])
+            lat_long = float(ks_site[SiteRegistrationMessage.LAT_FIELD])
+            lon_long = float(ks_site[SiteRegistrationMessage.LON_FIELD])
         except ValueError:
             logging.error('Geo coordinates are not float (%s, %s)',
-                           ks_site['latitude'], ks_site['longitude'])
+                           ks_site[SiteRegistrationMessage.LAT_FIELD],
+                           ks_site[SiteRegistrationMessage.LON_FIELD])
             return False
         site = model.Site(
-            site_id = ks_site['site'],
-            city = ks_site['city'],
-            country = ks_site['country'],
+            site_id = ks_site[SiteRegistrationMessage.SITE_FIELD],
+            city = ks_site[SiteRegistrationMessage.CITY_FIELD],
+            country = ks_site[SiteRegistrationMessage.COUNTRY_FIELD],
             latitude = lat_long,
             longitude = lon_long,
-            metro = ks_site['metro'],
+            metro = ks_site[SiteRegistrationMessage.METRO_FIELD],
             registration_timestamp=long(time.time()),
-            key_name=ks_site['site'])
+            key_name=ks_site[SiteRegistrationMessage.SITE_FIELD])
 
         try:
             site.put()
@@ -134,7 +146,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                     tool.tool_id,
                     tool.slice_id,
                     server_id,
-                    ks_site['site'])
+                    ks_site[SiteRegistrationMessage.SITE_FIELD])
 
                 slice_parts = tool.slice_id.split('_')
                 if len(slice_parts) != 2:
@@ -143,13 +155,13 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 sliver_tool = model.SliverTool(
                     tool_id = tool.tool_id,
                     slice_id = tool.slice_id,
-                    site_id = ks_site['site'],
+                    site_id = ks_site[SiteRegistrationMessage.SITE_FIELD],
                     server_id = server_id,
                     fqdn = '.'.join([
                         slice_parts[1],
                         slice_parts[0],
                         server_id,
-                        ks_site['site'],
+                        ks_site[SiteRegistrationMessage.SITE_FIELD],
                         'measurement-lab.org']),
                     # server_port is currently unused.
                     server_port = None,
@@ -183,16 +195,17 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 class IPUpdateHandler(webapp.RequestHandler):
     """ Updates SliverTools' IP addresses from ks."""
 
+    IP_LIST_URL = 'http://ks.measurementlab.net/mlab-host-ips.txt'
+
     def get(self):
         """Triggers the update handler.
 
         Updates sliver tool IP addresses from ks.
         """
-        url = 'http://ks.measurementlab.net/mlab-host-ips.txt'
         ip = {}
         lines = []
         try:
-            lines = urllib2.urlopen(url).read().strip('\n').split('\n')
+            lines = urllib2.urlopen(IP_LIST_URL).read().strip('\n').split('\n')
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot connect to ks.')
@@ -200,17 +213,21 @@ class IPUpdateHandler(webapp.RequestHandler):
 
         sliver_tool_list = {}
         for line in lines:
-            # Expected format: FQDN,IPv4,IPv6 (IPv4 and IPv6 can be empty).
+            # Expected format: "FQDN,IPv4,IPv6" (IPv6 can be an empty string).
             line_fields = line.split(',')
-            if len(line_fields) < 1:
+            if len(line_fields) != 2:
                 logging.error('Malformed line: %s.', line)
                 continue
-            logging.info('Updating %s.', line_fields[0])
+            fqdn = line_fields[0]
+            ipv4 = line_fields[1]
+            ipv6 = line_fields[2]
+            logging.info('Updating %s.', fqdn)
 
             sliver_tool_gql = model.SliverTool.gql('WHERE fqdn=:fqdn',
                                                    fqdn=fqdn)
             # FQDN is unique so get() should be enough.
             sliver_tool = sliver_tool_gql.get()
+
             if sliver_tool == None:
                 logging.warning('Unable to find sliver_tool with fqdn %s', fqdn)
                 continue;
@@ -218,14 +235,13 @@ class IPUpdateHandler(webapp.RequestHandler):
             sliver_tool.sliver_ipv4 = message.NO_IP_ADDRESS
             if ipv4 != None:
                 sliver_tool.sliver_ipv4 = ipv4
-
             sliver_tool.sliver_ipv6 = message.NO_IP_ADDRESS
             if ipv6 != None:
                 sliver_tool.sliver_ipv6 = ipv6
 
             try:
                 sliver_tool.put()
-                logging.info('Wrote %s: IPv4 %s, IPv6 %s.', fqdn, ipv4, ipv6)
+                logging.info('Updated %s to IPv4 %s, IPv6 %s', fqdn, ipv4, ipv6)
             except db.TransactionFailedError:
                 logging.error('Failed to write changes to db')
                 continue
