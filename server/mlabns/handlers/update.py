@@ -22,8 +22,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     def get(self):
         """Triggers the registration handler.
 
-        Checks if new sites were added to ks and
-        registers them with mlab-ns.
+        Checks if new sites were added to ks and registers them with mlab-ns.
         """
         url = 'http://ks.measurementlab.net/mlab-site-stats.json'
         try:
@@ -44,6 +43,9 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             if self.validate_site_json(ks_site):
                 valid_ks_sites_json.append(ks_site)
                 ks_site_ids.add(ks_site['site'])
+            else:
+               logging.error('Invalid json format from ks.')
+               return util.send_not_found(self)
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
@@ -55,7 +57,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         removed_site_ids = mlab_site_ids.difference(ks_site_ids)
 
         # Do not remove sites here for now.
-        # TODO(claudiu) Implement the sites removal as a separate handler.
+        # TODO(claudiu) Implement the site removal as a separate handler.
         for site_id in removed_site_ids:
             logging.warning('Site removed from ks: %s', site_id)
 
@@ -66,7 +68,9 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             if (ks_site['site'] in new_site_ids):
                 logging.info('Registering site: %s', ks_site['site'])
                 # TODO(claudiu) Notify(email) when this happens.
-                self.register_site(ks_site)
+                if not self.register_site(ks_site):
+                    logging.error('Error registering site %s', ks_site['site'])
+                    return util.send_not_found(self)
 
         return util.send_success(self)
 
@@ -79,11 +83,11 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         Returns:
             True if the registration succeeds, False otherwise.
         """
-        required_fields = ['site', 'metro', 'country', 'latitude', 'longitude']
         # TODO(claudiu) Need more robust validation.
+        required_fields = ['site', 'metro', 'country', 'latitude', 'longitude']
 
         for field in site_json:
-            logging.info('Filed %s', field)
+            logging.info('Field %s', field)
 
         for field in required_fields:
             if field not in site_json:
