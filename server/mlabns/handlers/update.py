@@ -13,8 +13,6 @@ from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import util
 
-AF_IPV4 = 'ipv4'
-AF_IPV6 = 'ipv6'
 
 class SiteRegistrationHandler(webapp.RequestHandler):
     """Registers new sites from ks."""
@@ -202,14 +200,15 @@ class IPUpdateHandler(webapp.RequestHandler):
 
         sliver_tool_list = {}
         for line in lines:
-            if len(line) == 0:
+            # Expected format: FQDN,IPv4,IPv6 (IPv4 and IPv6 can be empty).
+            line_fields = line.split(',')
+            if len(line_fields) < 1:
+                logging.error('Malformed line: %s.', line)
                 continue
+            logging.info('Updating %s.', line_fields[0])
 
-            # FQDN,IPv4,IPv6 (optional)
-            fqdn,ipv4,ipv6 = line.split(',')
-            logging.info('Updating %s: IPv4 %s, IPv6 %s.', fqdn, ipv4, ipv6)
-
-            sliver_tool_gql = model.SliverTool.gql('WHERE fqdn=:fqdn', fqdn=fqdn)
+            sliver_tool_gql = model.SliverTool.gql('WHERE fqdn=:fqdn',
+                                                   fqdn=fqdn)
             logging.info('  found %d results', sliver_tool_gql.count())
             # FQDN is unique so get() should be enough.
             sliver_tool = sliver_tool_gql.get()
@@ -217,31 +216,32 @@ class IPUpdateHandler(webapp.RequestHandler):
                 logging.warning('  unable to find sliver_tool with fqdn %s',
                                 fqdn)
                 continue;
-            logging.info('  applying to %s.%s', sliver_tool.slice_id,
-                         sliver_tool.site_id)
-            sliver_tool.sliver_ipv4 = "off"
+
+            sliver_tool.sliver_ipv4 = 'off'
             if ipv4 != None:
                 sliver_tool.sliver_ipv4 = ipv4
 
-            sliver_tool.sliver_ipv6 = "off"
+            sliver_tool.sliver_ipv6 = 'off'
             if ipv6 != None:
                 sliver_tool.sliver_ipv6 = ipv6
 
             try:
                 sliver_tool.put()
-                if sliver_tool.tool_id not in sliver_tool_list:
-                    sliver_tool_list[sliver_tool.tool_id] = []
-                sliver_tool_list[sliver_tool.tool_id].append(sliver_tool)
-
                 logging.info('Wrote %s: IPv4 %s, IPv6 %s.', fqdn, ipv4, ipv6)
             except db.TransactionFailedError:
                 logging.error('Failed to write changes to db')
+                continue
+
+            if sliver_tool.tool_id not in sliver_tool_list:
+                sliver_tool_list[sliver_tool.tool_id] = []
+                sliver_tool_list[sliver_tool.tool_id].append(sliver_tool)
 
         # Update memcache
         for tool_id in sliver_tool_list.keys():
            if not memcache.set(tool_id, sliver_tool_list[tool_id],
                               namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
               logging.error('Memcache set failed')
+
 
 class StatusUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' status from nagios."""
@@ -264,9 +264,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
         opener = urllib2.build_opener(authhandler)
         urllib2.install_opener(opener)
 
-        slices_gql = model.Slice.gql('ORDER by slice_id DESC')
+        slices_gql = model.Tool.gql('ORDER by tool_id DESC')
         for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
-            logging.info('Slice is %s', item.tool_id)
+            logging.info('Tool is %s', item.tool_id)
             for family in ['', '_ipv6']:
               url = nagios.url + '?show_state=1&service_name=' + \
                     item.tool_id + family
@@ -353,7 +353,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 if len(line) == 0:
                     continue
                 # See the design doc for a description of the file format.
-                slice_fqdn,state,state_type = line.split(' ')
+                slice_fqdn, state, state_type = line.split(' ')
                 sliver_fqdn, tool_id = slice_fqdn.split('/')
                 status[sliver_fqdn] = message.STATUS_ONLINE
                 if state != constants.NAGIOS_SERVICE_STATUS_OK:
