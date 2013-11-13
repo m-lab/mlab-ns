@@ -81,7 +81,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             site_json: A json representing the site info as appears on ks.
 
         Returns:
-            True if the registration succeeds, False otherwise.
+            True if the json data is valid, False otherwise.
         """
         # TODO(claudiu) Need more robust validation.
         required_fields = ['site', 'metro', 'country', 'latitude', 'longitude']
@@ -139,6 +139,9 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                     ks_site['site'])
 
                 slice_parts = tool.slice_id.split('_')
+                if len(slice_parts) != 2:
+                    logging.error('Non valid slice id: %s.', tool.slice_id)
+                    continue
                 sliver_tool = model.SliverTool(
                     tool_id = tool.tool_id,
                     slice_id = tool.slice_id,
@@ -150,10 +153,13 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                         server_id,
                         ks_site['site'],
                         'measurement-lab.org']),
+                    # server_port is currently unused.
                     server_port = None,
                     http_port = tool.http_port,
+                    # IP addresses will be updated by the IPUpdateHandler.
                     sliver_ipv4 = 'off',
                     sliver_ipv6 = 'off',
+                    # Status will be updated by the StatusUpdateHandler.
                     status_ipv4 = 'offline',
                     status_ipv6 = 'offline',
                     latitude = site.latitude,
