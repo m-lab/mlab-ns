@@ -198,6 +198,7 @@ class IPUpdateHandler(webapp.RequestHandler):
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot connect to ks.')
+            return util.send_not_found(self)
 
         sliver_tool_list = {}
         for line in lines:
