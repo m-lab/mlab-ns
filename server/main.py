@@ -13,9 +13,9 @@ from mlabns.handlers import update
 app = webapp.WSGIApplication(
     [(r'/', admin.AdminHandler),
     (r'/admin.*', admin.AdminHandler),
-    (r'/cron/check_status', update.NagiosUpdateHandler),
-    (r'/cron/check_ip', update.KsUpdateHandler),
-    (r'/cron/check_site', update.KsRegistrationHandler),
+    (r'/cron/check_status', update.StatusUpdateHandler),
+    (r'/cron/check_ip', update.IPUpdateHandler),
+    (r'/cron/check_site', update.SiteRegistrationHandler),
     (r'/cron/cleanup_pings', pings.CleanupHandler),
     (r'/pings', pings.PingsHandler),
     (r'/privacy', privacy.PrivacyHandler),

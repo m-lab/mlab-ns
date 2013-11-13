@@ -16,7 +16,7 @@ from mlabns.util import util
 AF_IPV4 = 'ipv4'
 AF_IPV6 = 'ipv6'
 
-class KsRegistrationHandler(webapp.RequestHandler):
+class SiteRegistrationHandler(webapp.RequestHandler):
     """Registers new sites from ks."""
 
     def get(self):
@@ -98,7 +98,7 @@ class KsRegistrationHandler(webapp.RequestHandler):
             ks_site: A json representing the site info as appears on ks.
 
         Returns:
-            True if the registration suceedes , False otherwise.
+            True if the registration succeeds, False otherwise.
         """
         site = model.Site(
             site_id = ks_site['site'],
@@ -165,8 +165,8 @@ class KsRegistrationHandler(webapp.RequestHandler):
 
         return True
 
-class KsUpdateHandler(webapp.RequestHandler):
-    """Handles IP address updates."""
+class IPUpdateHandler(webapp.RequestHandler):
+    """ Updates SliverTools' IP addresses from ks."""
 
     def get(self):
         """Triggers the update handler.
@@ -225,8 +225,8 @@ class KsUpdateHandler(webapp.RequestHandler):
                               namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
               logging.error('Memcache set failed')
 
-class NagiosUpdateHandler(webapp.RequestHandler):
-    """Handles SliverTools updates."""
+class StatusUpdateHandler(webapp.RequestHandler):
+    """Updates SliverTools' status from nagios."""
 
     def get(self):
         """Triggers the update handler.
