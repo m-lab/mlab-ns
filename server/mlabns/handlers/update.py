@@ -155,11 +155,11 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                     server_port = None,
                     http_port = tool.http_port,
                     # IP addresses will be updated by the IPUpdateHandler.
-                    sliver_ipv4 = 'off',
-                    sliver_ipv6 = 'off',
+                    sliver_ipv4 = message.NO_IP_ADDRESS,
+                    sliver_ipv6 = message.NO_IP_ADDRESS,
                     # Status will be updated by the StatusUpdateHandler.
-                    status_ipv4 = 'offline',
-                    status_ipv6 = 'offline',
+                    status_ipv4 = message.STATUS_OFFLINE,
+                    status_ipv6 = message.STATUS_OFFLINE,
                     latitude = site.latitude,
                     longitude = site.longitude,
                     city = site.city,
@@ -209,19 +209,17 @@ class IPUpdateHandler(webapp.RequestHandler):
 
             sliver_tool_gql = model.SliverTool.gql('WHERE fqdn=:fqdn',
                                                    fqdn=fqdn)
-            logging.info('  found %d results', sliver_tool_gql.count())
             # FQDN is unique so get() should be enough.
             sliver_tool = sliver_tool_gql.get()
             if sliver_tool == None:
-                logging.warning('  unable to find sliver_tool with fqdn %s',
-                                fqdn)
+                logging.warning('Unable to find sliver_tool with fqdn %s', fqdn)
                 continue;
 
-            sliver_tool.sliver_ipv4 = 'off'
+            sliver_tool.sliver_ipv4 = message.NO_IP_ADDRESS
             if ipv4 != None:
                 sliver_tool.sliver_ipv4 = ipv4
 
-            sliver_tool.sliver_ipv6 = 'off'
+            sliver_tool.sliver_ipv6 = message.NO_IP_ADDRESS
             if ipv6 != None:
                 sliver_tool.sliver_ipv6 = ipv6
 
@@ -299,7 +297,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     if family == '':
                         # Set offline if we don't have a valid IP address for
                         # the slice.
-                        if sliver_tool.sliver_ipv4 == 'off':
+                        if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
                             logging.warning('Setting IPv4 status for %s ' \
                                 'offline due to missing IP address.',
                                 sliver_fqdn)
@@ -308,7 +306,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     elif family == '_ipv6':
                         # Set offline if we don't have a valid IP address for
                         # the slice.
-                        if sliver_tool.sliver_ipv6 == 'off':
+                        if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
                             logging.warning('Setting IPv6 status for %s ' \
                                 'offline due to missing IP address.',
                                 sliver_fqdn)

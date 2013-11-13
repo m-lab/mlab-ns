@@ -17,11 +17,12 @@ class SliverTool(db.Model):
     # Unannotated fqdn. v4 and v6 versions can be built if necessary.
     fqdn = db.StringProperty()
 
-    # IP addresses. Can be 'off'
+    # IP addresses. Can be message.NO_IP_ADDRESS
     sliver_ipv4 = db.StringProperty()
     sliver_ipv6 = db.StringProperty()
 
-    # These can have the following values: online and offline.
+    # These can have the following values: message.STATUS_OFFLINE or
+    # message.STATUS_ONLINE.
     status_ipv4 = db.StringProperty()
     status_ipv6 = db.StringProperty()
 

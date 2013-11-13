@@ -106,10 +106,10 @@ class LookupHandler(webapp.RequestHandler):
             # Although the update will only set the sliver as online if it
             # has a valid IP address, the resolver still returns it as
             # a candidate.
-            if (sliver_tool.sliver_ipv4 != 'off' and
+            if (sliver_tool.sliver_ipv4 != message.NO_IP_ADDRESS and
                 sliver_tool.status_ipv4 == message.STATUS_ONLINE):
                 ip.append(sliver_tool.sliver_ipv4)
-            if (sliver_tool.sliver_ipv6 != 'off' and
+            if (sliver_tool.sliver_ipv6 != message.NO_IP_ADDRESS and
                 sliver_tool.status_ipv6 == message.STATUS_ONLINE):
                 ip.append(sliver_tool.sliver_ipv6)
 
