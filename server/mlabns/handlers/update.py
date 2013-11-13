@@ -100,12 +100,19 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         Returns:
             True if the registration succeeds, False otherwise.
         """
+        try:
+            lat_long = float(ks_site['latitude'])
+            lon_long = float(ks_site['longitude'])
+        except ValueError:
+            logging.error('Geo coordinates are not float (%s, %s)',
+                           ks_site['latitude'], ks_site['longitude'])
+            return False
         site = model.Site(
             site_id = ks_site['site'],
             city = ks_site['city'],
             country = ks_site['country'],
-            latitude = float(ks_site['latitude']),
-            longitude = float(ks_site['longitude']),
+            latitude = lat_long,
+            longitude = lon_long,
             metro = ks_site['metro'],
             registration_timestamp=long(time.time()),
             key_name=ks_site['site'])
