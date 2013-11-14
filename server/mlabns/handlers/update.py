@@ -279,10 +279,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
             logging.info('Tool is %s', item.tool_id)
             for family in ['', '_ipv6']:
-              url = nagios.url + '?show_state=1&service_name=' + \
+              slice_url = nagios.url + '?show_state=1&service_name=' + \
                     item.tool_id + family
 
-              slice_status = self.get_slice_status(url)
+              slice_status = self.get_slice_status(slice_url)
               self.update_sliver_tools_status(slice_status, item.tool_id,
                                               family)
 
@@ -298,47 +298,38 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         sliver_tools_gql = model.SliverTool.gql('WHERE tool_id=:tool_id',
                                                 tool_id=tool_id)
-
         sliver_tool_list = []
         for sliver_tool in sliver_tools_gql.run(
             batch_size=constants.GQL_BATCH_SIZE):
-            for sliver_fqdn in slice_status:
-                is_match = False
+            slice_status[sliver_tool.fqdn]
 
-                if sliver_tool.fqdn == sliver_fqdn:
-                    is_match = True
-                    if family == '':
-                        # Set offline if we don't have a valid IP address for
-                        # the slice.
-                        if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
-                            logging.warning('Setting IPv4 status for %s ' \
-                                'offline due to missing IP address.',
-                                sliver_fqdn)
-                            slice_status[sliver_fqdn] = message.STATUS_OFFLINE
-                        sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
-                    elif family == '_ipv6':
-                        # Set offline if we don't have a valid IP address for
-                        # the slice.
-                        if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
-                            logging.warning('Setting IPv6 status for %s ' \
-                                'offline due to missing IP address.',
-                                sliver_fqdn)
-                            slice_status[sliver_fqdn] = message.STATUS_OFFLINE
-                        sliver_tool.status_ipv6 = slice_status[sliver_fqdn]
-                    else:
-                        logging.error('Unexpected family: %s', family)
+            if family == '':
+                if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
+                    logging.warning('Setting IPv4 status of %s to offline due '\
+                                    'to missing IP.', sliver_fqdn)
+                    slice_status[sliver_fqdn] = message.STATUS_OFFLINE
+                    sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
+            elif family == '_ipv6':
+                if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
+                    logging.warning('Setting IPv6 status for %s to offline ' \
+                                    'due to missing IP.', sliver_fqdn)
+                    slice_status[sliver_fqdn] = message.STATUS_OFFLINE
+                    sliver_tool.status_ipv6 = slice_status[sliver_fqdn]
+             else:
+                 logging.error('Unexpected family: %s', family)
+                 continue
 
-                if is_match:
-                    sliver_tool.update_request_timestamp = long(time.time())
-                    # Write changes to db.
-                    try:
-                        sliver_tool.put()
-                        sliver_tool_list.append(sliver_tool)
-                        logging.info('Updating %s: status is %s.',
-                                     sliver_fqdn, slice_status[sliver_fqdn])
-                    except TransactionFailedError:
-                        # TODO(claudiu) Trigger an event/notification.
-                        logging.error('Failed to write changes to db.')
+             sliver_tool.update_request_timestamp = long(time.time())
+             # Write changes to db.
+             try:
+                 sliver_tool.put()
+                 logging.info('Updating %s: status is %s.',
+                              sliver_fqdn, slice_status[sliver_fqdn])
+             except TransactionFailedError:
+                 # TODO(claudiu) Trigger an event/notification.
+                 logging.error('Failed to write changes to db.')
+                 continue
+             sliver_tool_list.append(sliver_tool)
 
         # Never set the memcache to an empty list since it's more likely that
         # this is a Nagios failure.
@@ -351,7 +342,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         """Read slice status from Nagios.
 
         Args:
-            url: String representing the URL to Nagios.
+            url: String representing the URL to Nagios for a single slice.
 
         Returns:
             A dict that contains the status of the slivers in this
