@@ -305,7 +305,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
         sliver_tool_list = []
         for sliver_tool in sliver_tools_gql.run(
             batch_size=constants.GQL_BATCH_SIZE):
-            slice_status[sliver_tool.fqdn]
+            if sliver_tool.fqdn not in slice_status:
+                # No updates for this sliver.
+                continue
 
             if family == AF_IPV4:
                 if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
