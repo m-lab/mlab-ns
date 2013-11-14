@@ -257,6 +257,10 @@ class IPUpdateHandler(webapp.RequestHandler):
 class StatusUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' status from nagios."""
 
+    AF_IPV4 = ''
+    AF_IPV6 = '_ipv6'
+    NAGIOS_AF_SUFFIXES = [ AF_IPV4, AF_IPV6 ]
+
     def get(self):
         """Triggers the update handler.
 
@@ -278,7 +282,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         slices_gql = model.Tool.gql('ORDER by tool_id DESC')
         for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
             logging.info('Tool is %s', item.tool_id)
-            for family in ['', '_ipv6']:
+            for family in NAGIOS_AF_SUFFIXES:
               slice_url = nagios.url + '?show_state=1&service_name=' + \
                     item.tool_id + family
 
@@ -303,13 +307,13 @@ class StatusUpdateHandler(webapp.RequestHandler):
             batch_size=constants.GQL_BATCH_SIZE):
             slice_status[sliver_tool.fqdn]
 
-            if family == '':
+            if family == AF_IPV4:
                 if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
                     logging.warning('Setting IPv4 status of %s to offline due '\
                                     'to missing IP.', sliver_fqdn)
                     slice_status[sliver_fqdn] = message.STATUS_OFFLINE
                     sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
-            elif family == '_ipv6':
+            elif family == AF_IPV6:
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
                     logging.warning('Setting IPv6 status for %s to offline ' \
                                     'due to missing IP.', sliver_fqdn)
