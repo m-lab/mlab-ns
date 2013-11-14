@@ -138,54 +138,18 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.error('Failed to write changes to db.')
             return False
 
-        sliver_tools = []
         tools = model.Tool.all()
         for tool in tools:
             for server_id in ['mlab1', 'mlab2', 'mlab3']:
-                sliver_tool_id = model.get_sliver_tool_id(
-                    tool.tool_id,
-                    tool.slice_id,
-                    server_id,
-                    ks_site[SiteRegistrationMessage.SITE_FIELD])
-
-                fqdn = model.get_fqdn(
-                    tool.slice_id, server_id,
-                    ks_site[SiteRegistrationMessage.SITE_FIELD])
+                fqdn = model.get_fqdn(tool.slice_id, server_id, site.site_id)
                 if fqdn is None:
                     logging.error('Non valid slice id: %s.', tool.slice_id)
                     continue
-                sliver_tool = model.SliverTool(
-                    tool_id = tool.tool_id,
-                    slice_id = tool.slice_id,
-                    site_id = ks_site[SiteRegistrationMessage.SITE_FIELD],
-                    server_id = server_id,
-                    fqdn = fqdn,
-                    # server_port is currently unused.
-                    server_port = None,
-                    http_port = tool.http_port,
-                    # IP addresses will be updated by the IPUpdateHandler.
-                    sliver_ipv4 = message.NO_IP_ADDRESS,
-                    sliver_ipv6 = message.NO_IP_ADDRESS,
-                    # Status will be updated by the StatusUpdateHandler.
-                    status_ipv4 = message.STATUS_OFFLINE,
-                    status_ipv6 = message.STATUS_OFFLINE,
-                    latitude = site.latitude,
-                    longitude = site.longitude,
-                    city = site.city,
-                    country = site.country,
-                    update_request_timestamp = long(time.time()),
-                    key_name=sliver_tool_id)
 
-                sliver_tools.append(sliver_tool)
-
-        # Insert all new sliver_tools in the datastore
-        # in one batch operation.
-        try:
-            db.put(sliver_tools)
-        except TransactionFailedError:
-            # TODO(claudiu) Trigger an event/notification.
-            logging.error('Failed to write changes to db.')
-            return False
+                register_sliver(tool, site, server_id, fqdn)
+                if not register_sliver(tool, site, server_id, fqdn):
+                    logging.error('Unable to register sliver %s', fqdn)
+                    continue
 
         return True
 
@@ -227,7 +191,25 @@ class IPUpdateHandler(webapp.RequestHandler):
 
             if sliver_tool == None:
                 logging.warning('Unable to find sliver_tool with fqdn %s', fqdn)
-                continue;
+                # Register sliver if the corresponding tool exists in the Tool
+                # table. This case happens when a new tool has been added after
+                # the last IPUpdateHanlder ran.
+                tool_id, site_id, server_id = model.get_tool_site_server_ids(
+                    fqdn)
+                if tool_id is None or site_id is None or server_id is None:
+                    logging.error('Non valid fqdn: %s.', fqdn)
+                    continue
+                tool_gql = model.Tool.gql('WHERE tool_id=:tool_id',
+                                           tool_id=tool_id)
+                if tool_gql == None:
+                    continue
+                site_gql = model.Site.gql('WHERE site_id=:site_id',
+                                          site_id=site_id)
+                if site_gql == None:
+                    continue
+                if not register_sliver(tool, site, server_id, fqdn):
+                    logging.error('Unable to register sliver %s', fqdn)
+                    continue
 
             sliver_tool.sliver_ipv4 = message.NO_IP_ADDRESS
             if ipv4 != None:
@@ -252,6 +234,47 @@ class IPUpdateHandler(webapp.RequestHandler):
            if not memcache.set(tool_id, sliver_tool_list[tool_id],
                               namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
               logging.error('Memcache set failed')
+
+
+    def register_sliver(tool, site, server_id, fqdn):
+        """Register sliver in the db.
+
+         Returns True if it succeeds, False otherwise.
+         """
+         sliver_tool_id = model.get_sliver_tool_id(
+             tool.tool_id, tool.slice_id, server_id, site.site_id)
+
+
+         sliver_tool = model.SliverTool(
+             tool_id=tool.tool_id,
+             slice_id=tool.slice_id,
+             site_id=site.site_id,
+             server_id=server_id,
+             fqdn=fqdn,
+             # server_port is currently unused.
+             server_port=None,
+             http_port=tool.http_port,
+             # IP addresses will be updated by the IPUpdateHandler.
+             sliver_ipv4=message.NO_IP_ADDRESS,
+             sliver_ipv6=message.NO_IP_ADDRESS,
+             # Status will be updated by the StatusUpdateHandler.
+             status_ipv4=message.STATUS_OFFLINE,
+             status_ipv6=message.STATUS_OFFLINE,
+             latitude=site.latitude,
+             longitude=site.longitude,
+             city=site.city,
+             country=site.country,
+             update_request_timestamp=long(time.time()),
+             key_name=sliver_tool_id)
+
+        try:
+            sliver_tool.put()
+        except TransactionFailedError:
+            # TODO(claudiu) Trigger an event/notification.
+            logging.error('Failed to write changes to db.')
+            return False
+
+       return True
 
 
 class StatusUpdateHandler(webapp.RequestHandler):
