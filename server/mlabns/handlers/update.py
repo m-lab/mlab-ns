@@ -28,7 +28,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         REQUIRED_FIELDS = [ SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                             LAT_FIELD, LON_FIELD]
 
-        def validate_site_json(self, site_json):
+        @classmethod
+        def validate_site_json(cls, site_json):
             """Checks if the json data from ks is well formed.
 
             Args:
@@ -38,7 +39,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 True if the json data is valid, False otherwise.
             """
             # TODO(claudiu) Need more robust validation.
-            for field in SiteRegistrationMessage.REQUIRED_FIELDS:
+            for field in cls.REQUIRED_FIELDS:
                 if field not in site_json:
                     logging.error('Missing field from site list: %s.', field)
                     return False
@@ -52,7 +53,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         Checks if new sites were added to ks and registers them with mlab-ns.
         """
         try:
-            ks_sites_json = json.loads(urllib2.urlopen(SITE_LIST_URL).read())
+            ks_sites_json = json.loads(
+                urllib2.urlopen(self.SITE_LIST_URL).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot connect to ks.')
@@ -66,9 +68,10 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         # Validate the data from ks.
         valid_ks_sites_json = []
         for ks_site in ks_sites_json:
-            if self.validate_site_json(ks_site):
+            if self.SiteRegistrationMessage().validate_site_json(ks_site):
                 valid_ks_sites_json.append(ks_site)
-                ks_site_ids.add(ks_site[SiteRegistrationMessage.SITE_FIELD])
+                ks_site_ids.add(
+                    ks_site[self.SiteRegistrationMessage().SITE_FIELD])
             else:
                logging.error('Invalid json format from ks.')
                continue
@@ -92,13 +95,15 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.info('Unchanged site: %s.', site_id)
 
         for ks_site in valid_ks_sites_json:
-            if (ks_site[SiteRegistrationMessage.SITE_FIELD] in new_site_ids):
+            if (ks_site[
+                    self.SiteRegistrationMessage().SITE_FIELD] in new_site_ids):
                 logging.info('Registering site: %s.',
-                             ks_site[SiteRegistrationMessage.SITE_FIELD])
+                             ks_site[self.SiteRegistrationMessage().SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
-                if not SiteRegistrationMessage.register_site(ks_site):
-                    logging.error('Error registering site %s.',
-                                  ks_site[SiteRegistrationMessage.SITE_FIELD])
+                if not self.register_site(ks_site):
+                    logging.error(
+                        'Error registering site %s.',
+                        ks_site[self.SiteRegistrationMessage().SITE_FIELD])
                     return util.send_not_found(self)
 
         return util.send_success(self)
@@ -114,22 +119,22 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             True if the registration succeeds, False otherwise.
         """
         try:
-            lat_long = float(ks_site[SiteRegistrationMessage.LAT_FIELD])
-            lon_long = float(ks_site[SiteRegistrationMessage.LON_FIELD])
+            lat_long = float(ks_site[self.SiteRegistrationMessage().LAT_FIELD])
+            lon_long = float(ks_site[self.SiteRegistrationMessage().LON_FIELD])
         except ValueError:
             logging.error('Geo coordinates are not float (%s, %s)',
-                           ks_site[SiteRegistrationMessage.LAT_FIELD],
-                           ks_site[SiteRegistrationMessage.LON_FIELD])
+                           ks_site[self.SiteRegistrationMessage().LAT_FIELD],
+                           ks_site[self.SiteRegistrationMessage().LON_FIELD])
             return False
         site = model.Site(
-            site_id = ks_site[SiteRegistrationMessage.SITE_FIELD],
-            city = ks_site[SiteRegistrationMessage.CITY_FIELD],
-            country = ks_site[SiteRegistrationMessage.COUNTRY_FIELD],
+            site_id = ks_site[self.SiteRegistrationMessage.SITE_FIELD],
+            city = ks_site[self.SiteRegistrationMessage().CITY_FIELD],
+            country = ks_site[self.SiteRegistrationMessage().COUNTRY_FIELD],
             latitude = lat_long,
             longitude = lon_long,
-            metro = ks_site[SiteRegistrationMessage.METRO_FIELD],
+            metro = ks_site[self.SiteRegistrationMessage().METRO_FIELD],
             registration_timestamp=long(time.time()),
-            key_name=ks_site[SiteRegistrationMessage.SITE_FIELD])
+            key_name=ks_site[self.SiteRegistrationMessage().SITE_FIELD])
 
         try:
             site.put()
@@ -137,6 +142,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Failed to write changes to db.')
             return False
+        logging.info('Succeeded to write to db %s', site.site_id)
 
         tools = model.Tool.all()
         for tool in tools:
@@ -152,6 +158,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                     continue
 
         return True
+
 
 class IPUpdateHandler(webapp.RequestHandler):
     """ Updates SliverTools' IP addresses from ks."""
