@@ -29,7 +29,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                             LAT_FIELD, LON_FIELD]
 
         def validate_site_json(self, site_json):
-           """Checks if the json data from ks is well formed.
+            """Checks if the json data from ks is well formed.
 
             Args:
                 site_json: A json representing the site info as appears on ks.
@@ -239,33 +239,33 @@ class IPUpdateHandler(webapp.RequestHandler):
     def register_sliver(tool, site, server_id, fqdn):
         """Register sliver in the db.
 
-         Returns True if it succeeds, False otherwise.
-         """
-         sliver_tool_id = model.get_sliver_tool_id(
-             tool.tool_id, tool.slice_id, server_id, site.site_id)
+        Returns True if it succeeds, False otherwise.
+        """
+        sliver_tool_id = model.get_sliver_tool_id(
+            tool.tool_id, tool.slice_id, server_id, site.site_id)
 
 
-         sliver_tool = model.SliverTool(
-             tool_id=tool.tool_id,
-             slice_id=tool.slice_id,
-             site_id=site.site_id,
-             server_id=server_id,
-             fqdn=fqdn,
-             # server_port is currently unused.
-             server_port=None,
-             http_port=tool.http_port,
-             # IP addresses will be updated by the IPUpdateHandler.
-             sliver_ipv4=message.NO_IP_ADDRESS,
-             sliver_ipv6=message.NO_IP_ADDRESS,
-             # Status will be updated by the StatusUpdateHandler.
-             status_ipv4=message.STATUS_OFFLINE,
-             status_ipv6=message.STATUS_OFFLINE,
-             latitude=site.latitude,
-             longitude=site.longitude,
-             city=site.city,
-             country=site.country,
-             update_request_timestamp=long(time.time()),
-             key_name=sliver_tool_id)
+        sliver_tool = model.SliverTool(
+            tool_id=tool.tool_id,
+            slice_id=tool.slice_id,
+            site_id=site.site_id,
+            server_id=server_id,
+            fqdn=fqdn,
+            # server_port is currently unused.
+            server_port=None,
+            http_port=tool.http_port,
+            # IP addresses will be updated by the IPUpdateHandler.
+            sliver_ipv4=message.NO_IP_ADDRESS,
+            sliver_ipv6=message.NO_IP_ADDRESS,
+            # Status will be updated by the StatusUpdateHandler.
+            status_ipv4=message.STATUS_OFFLINE,
+            status_ipv6=message.STATUS_OFFLINE,
+            latitude=site.latitude,
+            longitude=site.longitude,
+            city=site.city,
+            country=site.country,
+            update_request_timestamp=long(time.time()),
+            key_name=sliver_tool_id)
 
         try:
             sliver_tool.put()
@@ -274,7 +274,7 @@ class IPUpdateHandler(webapp.RequestHandler):
             logging.error('Failed to write changes to db.')
             return False
 
-       return True
+        return True
 
 
 class StatusUpdateHandler(webapp.RequestHandler):
@@ -344,21 +344,21 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                     'due to missing IP.', sliver_fqdn)
                     slice_status[sliver_fqdn] = message.STATUS_OFFLINE
                     sliver_tool.status_ipv6 = slice_status[sliver_fqdn]
-             else:
-                 logging.error('Unexpected family: %s', family)
-                 continue
+            else:
+                logging.error('Unexpected family: %s', family)
+                continue
 
-             sliver_tool.update_request_timestamp = long(time.time())
-             # Write changes to db.
-             try:
-                 sliver_tool.put()
-                 logging.info('Updating %s: status is %s.',
+            sliver_tool.update_request_timestamp = long(time.time())
+            # Write changes to db.
+            try:
+                sliver_tool.put()
+                logging.info('Updating %s: status is %s.',
                               sliver_fqdn, slice_status[sliver_fqdn])
-             except TransactionFailedError:
-                 # TODO(claudiu) Trigger an event/notification.
-                 logging.error('Failed to write changes to db.')
-                 continue
-             sliver_tool_list.append(sliver_tool)
+            except TransactionFailedError:
+                # TODO(claudiu) Trigger an event/notification.
+                logging.error('Failed to write changes to db.')
+                continue
+            sliver_tool_list.append(sliver_tool)
 
         # Never set the memcache to an empty list since it's more likely that
         # this is a Nagios failure.
