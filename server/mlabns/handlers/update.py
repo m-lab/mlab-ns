@@ -138,7 +138,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
         try:
             site.put()
-        except TransactionFailedError:
+        except db.TransactionFailedError:
             # TODO(claudiu) Trigger an event/notification.
             logging.error('Failed to write changes to db.')
             return False
@@ -304,6 +304,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
         """
         nagios = model.Nagios.get_by_key_name(
             constants.DEFAULT_NAGIOS_ENTRY)
+        if nagios is None:
+            logging.error('Datastore does not have the Nagios credentials.')
+            return util.send_not_found(self) 
 
         password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(
@@ -316,13 +319,14 @@ class StatusUpdateHandler(webapp.RequestHandler):
         slices_gql = model.Tool.gql('ORDER by tool_id DESC')
         for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
             logging.info('Tool is %s', item.tool_id)
-            for family in NAGIOS_AF_SUFFIXES:
+            for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
               slice_url = nagios.url + '?show_state=1&service_name=' + \
                     item.tool_id + family
 
               slice_status = self.get_slice_status(slice_url)
               self.update_sliver_tools_status(slice_status, item.tool_id,
                                               family)
+        return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
         """Updates sliver tools status.
@@ -340,21 +344,31 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for sliver_tool in sliver_tools_gql.run(
             batch_size=constants.GQL_BATCH_SIZE):
             if sliver_tool.fqdn not in slice_status:
-                # No updates for this sliver.
+                logging.info('No updates for sliver %s.', sliver_tool.fqdn)
                 continue
 
-            if family == AF_IPV4:
+            if family == StatusUpdateHandler.AF_IPV4:
                 if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
+                    if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
+                       continue
                     logging.warning('Setting IPv4 status of %s to offline due '\
-                                    'to missing IP.', sliver_fqdn)
-                    slice_status[sliver_fqdn] = message.STATUS_OFFLINE
-                    sliver_tool.status_ipv4 = slice_status[sliver_fqdn]
-            elif family == AF_IPV6:
+                                    'to missing IP.', sliver_tool.fqdn)
+                    sliver_tool.status_ipv4 = message.STATUS_OFFLINE
+                else:
+                    if sliver_tool.status_ipv4 == slice_status[sliver_tool.fqdn]:
+                        continue
+                    sliver_tool.status_ipv4 = slice_status[sliver_tool.fqdn]
+            elif family == StatusUpdateHandler.AF_IPV6:
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
+                    if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
+                        continue
                     logging.warning('Setting IPv6 status for %s to offline ' \
                                     'due to missing IP.', sliver_fqdn)
-                    slice_status[sliver_fqdn] = message.STATUS_OFFLINE
-                    sliver_tool.status_ipv6 = slice_status[sliver_fqdn]
+                    sliver_tool.status_ipv6 = message.STATUS_OFFLINE
+                else:
+                    if sliver_tool.status_ipv6 == slice_status[sliver_tool.fqdn]:
+                        continue
+                    sliver_tool.status_ipv6 = slice_status[sliver_tool.fqdn]
             else:
                 logging.error('Unexpected family: %s', family)
                 continue
@@ -364,8 +378,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
             try:
                 sliver_tool.put()
                 logging.info('Updating %s: status is %s.',
-                              sliver_fqdn, slice_status[sliver_fqdn])
-            except TransactionFailedError:
+                              sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
+            except db.TransactionFailedError:
                 # TODO(claudiu) Trigger an event/notification.
                 logging.error('Failed to write changes to db.')
                 continue
