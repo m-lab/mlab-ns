@@ -41,7 +41,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             # TODO(claudiu) Need more robust validation.
             for field in cls.REQUIRED_FIELDS:
                 if field not in site_json:
-                    logging.error('Missing field from site list: %s.', field)
+                    logging.error('%s does not have the required field %s.',
+                                  SITE_LIST_URL, field)
                     return False
             return True
 
@@ -50,17 +51,18 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     def get(self):
         """Triggers the registration handler.
 
-        Checks if new sites were added to ks and registers them with mlab-ns.
+        Checks if new sites were added to ks and registers them.
         """
         try:
             ks_sites_json = json.loads(
                 urllib2.urlopen(self.SITE_LIST_URL).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot connect to ks.')
+            logging.error('Cannot open %s.', SITE_LIST_URL)
             return util.send_not_found(self)
         except (TypeError, ValueError) as e:
-            logging.error('Invalid json format from ks.')
+            logging.error('The json format of %s in not valid.',
+                          self.SITE_LIST_URL)
             return util.send_not_found(self)
 
         ks_site_ids = set()
@@ -73,7 +75,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 ks_site_ids.add(
                     ks_site[self.SiteRegistrationMessage().SITE_FIELD])
             else:
-               logging.error('Invalid json format from ks.')
+               logging.error('The json format of %s is not valid.',
+                             self.SITE_LIST_URL)
                continue
 
         mlab_site_ids = set()
@@ -89,15 +92,17 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         # Do not remove sites here for now.
         # TODO(claudiu) Implement the site removal as a separate handler.
         for site_id in removed_site_ids:
-            logging.warning('Site removed from ks: %s.', site_id)
+            logging.warning(
+                'Site %s removed from %s.', site_id, self.SITE_LIST_URL)
 
         for site_id in unchanged_site_ids:
-            logging.info('Unchanged site: %s.', site_id)
+            logging.info(
+                'Site %s unchanged in %s.', site_id, self.SITE_LIST_URL)
 
         for ks_site in valid_ks_sites_json:
             if (ks_site[
                     self.SiteRegistrationMessage().SITE_FIELD] in new_site_ids):
-                logging.info('Registering site: %s.',
+                logging.info('Registering site %s.',
                              ks_site[self.SiteRegistrationMessage().SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
                 if not self.register_site(ks_site):
@@ -113,7 +118,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         """Registers a new site.
 
         Args:
-            ks_site: A json representing the site info as appears on ks.
+            ks_site: A json representing the site info as provided by ks.
 
         Returns:
             True if the registration succeeds, False otherwise.
@@ -140,25 +145,28 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             site.put()
         except db.TransactionFailedError:
             # TODO(claudiu) Trigger an event/notification.
-            logging.error('Failed to write changes to db.')
+            logging.error('Failed to write site %s to datastore.', site.site_id)
             return False
-        logging.info('Succeeded to write to db %s', site.site_id)
+        logging.info('Succeeded to write site %s to db', site.site_id)
 
         tools = model.Tool.all()
         for tool in tools:
             for server_id in ['mlab1', 'mlab2', 'mlab3']:
                 fqdn = model.get_fqdn(tool.slice_id, server_id, site.site_id)
                 if fqdn is None:
-                    logging.error('Non valid slice id: %s.', tool.slice_id)
+                    logging.error(
+                        'Cannot compute fqdn for slice %s.', tool.slice_id)
                     continue
 
                 sliver_tool = IPUpdateHandler().initialize_sliver_tool(
                     tool, site, server_id, fqdn)
                 try:
                     sliver_tool.put()
-                    logging.info('Registered sliver %s', fqdn)
+                    logging.info(
+                        'Succeeded to write sliver %s to datastore.', fqdn)
                 except db.TransactionFailedError:
-                    logging.error('Failed to register sliver %s', fqdn)
+                    logging.error(
+                        'Failed to write sliver %s to datastore.', fqdn)
                     continue
 
         return True
@@ -181,7 +189,7 @@ class IPUpdateHandler(webapp.RequestHandler):
                 self.IP_LIST_URL).read().strip('\n').split('\n')
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot connect to ks.')
+            logging.error('Cannot open %s.', self.IP_LIST_URL)
             return util.send_not_found(self)
 
         sliver_tool_list = {}
@@ -189,12 +197,11 @@ class IPUpdateHandler(webapp.RequestHandler):
             # Expected format: "FQDN,IPv4,IPv6" (IPv6 can be an empty string).
             line_fields = line.split(',')
             if len(line_fields) != 3:
-                logging.error('Malformed line: %s.', line)
+                logging.error('Line does not have 3 fields: %s.', line)
                 continue
             fqdn = line_fields[0]
             ipv4 = line_fields[1]
             ipv6 = line_fields[2]
-            logging.info('Updating %s', fqdn)
 
             sliver_tool_gql = model.SliverTool.gql('WHERE fqdn=:fqdn',
                                                    fqdn=fqdn)
@@ -207,31 +214,33 @@ class IPUpdateHandler(webapp.RequestHandler):
                 continue
 
             # case 2) Sliver tool has changed.
-            # case 2.1) Sliver tool did not exist. Initialize sliver if the
-            # corresponding tool exists in the Tool table and the corresponding
-            # site exists in the Site table. This case occurs when a new tool
-            # has been added after the last IPUpdateHanlder ran.
-            # The sliver tool will be written to datastore at the next step.
+            # case 2.1) Sliver tool does not exist in datastore. Initialize
+            #     sliver if the corresponding tool exists in the Tool table and
+            #     the corresponding site exists in the Site table. This case
+            #     occurs when a new tool has been added after the last
+            #     IPUpdateHanlder ran. The sliver tool will actually be written
+            #     to datastore at the next step.
             if sliver_tool == None:
-                logging.warning('Unable to find sliver_tool with fqdn %s', fqdn)
+                logging.warning('sliver_tool %s is not in datastore.', fqdn)
                 slice_id, site_id, server_id = model.get_slice_site_server_ids(
                     fqdn)
                 if slice_id is None or site_id is None or server_id is None:
-                    logging.info('Non valid sliver fqdn %s', fqdn)
+                    logging.info('Non valid sliver fqdn %s.', fqdn)
                     continue
                 tool = model.Tool.gql('WHERE slice_id=:slice_id',
                                       slice_id=slice_id).get()
                 if tool == None:
-                    logging.info('Slice not supported %s', slice_id)
+                    logging.info('mlab-ns does not support slice %s.', slice_id)
                     continue
                 site = model.Site.gql('WHERE site_id=:site_id',
                                       site_id=site_id).get()
                 if site == None:
-                    logging.info('Site not supported %s', site_id)
+                    logging.info('mlab-ns does not support site %s.', site_id)
                     continue
                 sliver_tool = self.initialize_sliver_tool(
                     tool, site, server_id, fqdn)
- 
+
+            # case 2.2) Sliver tool exists in datastore.
             if ipv4 != None:
                 sliver_tool.sliver_ipv4 = ipv4
             else:
@@ -243,9 +252,13 @@ class IPUpdateHandler(webapp.RequestHandler):
 
             try:
                 sliver_tool.put()
-                logging.info('Updated %s to IPv4 %s, IPv6 %s', fqdn, ipv4, ipv6)
+                logging.info(
+                    'Succeeded to write IPs of %s (%s, %s) in datastore.',
+                    fqdn, ipv4, ipv6)
             except db.TransactionFailedError:
-                logging.error('Failed to write changes to db')
+                logging.error(
+                    'Failed to write IPs of %s (%s, %s) in datastore.',
+                    fqdn, ipv4, ipv6)
                 continue
 
             if sliver_tool.tool_id not in sliver_tool_list:
@@ -256,7 +269,7 @@ class IPUpdateHandler(webapp.RequestHandler):
         for tool_id in sliver_tool_list.keys():
            if not memcache.set(tool_id, sliver_tool_list[tool_id],
                               namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-              logging.error('Memcache set failed')
+              logging.error('Failed to update sliver IP addresses in memcache.')
 
         return util.send_success(self)
 
@@ -298,7 +311,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
     def get(self):
         """Triggers the update handler.
 
-        Updates sliver status with information from nagios. The nagios url
+        Updates sliver status with information from Nagios. The Nagios URL
         containing the information is stored in the Nagios db along with
         the credentials necessary to access the data.
         """
@@ -306,7 +319,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
             constants.DEFAULT_NAGIOS_ENTRY)
         if nagios is None:
             logging.error('Datastore does not have the Nagios credentials.')
-            return util.send_not_found(self) 
+            return util.send_not_found(self)
 
         password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(
@@ -318,7 +331,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         slices_gql = model.Tool.gql('ORDER by tool_id DESC')
         for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
-            logging.info('Tool is %s', item.tool_id)
+            logging.info('Pulling status of %s from Nagios.', item.tool_id)
             for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
               slice_url = nagios.url + '?show_state=1&service_name=' + \
                     item.tool_id + family
@@ -329,7 +342,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
-        """Updates sliver tools status.
+        """Updates status of sliver tools in input slice.
 
         Args:
             slice_status: A dict that contains the status of the
@@ -350,38 +363,50 @@ class StatusUpdateHandler(webapp.RequestHandler):
             if family == StatusUpdateHandler.AF_IPV4:
                 if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
+                        logging.info('No updates for sliver %s.',
+                                     sliver_tool.fqdn)
                        continue
                     logging.warning('Setting IPv4 status of %s to offline due '\
                                     'to missing IP.', sliver_tool.fqdn)
                     sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
-                    if sliver_tool.status_ipv4 == slice_status[sliver_tool.fqdn]:
+                    if sliver_tool.status_ipv4 == slice_status[
+                        sliver_tool.fqdn]:
+                        logging.info('No updates for sliver %s.',
+                                    sliver_tool.fqdn)
                         continue
                     sliver_tool.status_ipv4 = slice_status[sliver_tool.fqdn]
             elif family == StatusUpdateHandler.AF_IPV6:
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
+                        logging.info('No updates for sliver %s.',
+                                     sliver_tool.fqdn)
                         continue
                     logging.warning('Setting IPv6 status for %s to offline ' \
                                     'due to missing IP.', sliver_fqdn)
                     sliver_tool.status_ipv6 = message.STATUS_OFFLINE
                 else:
-                    if sliver_tool.status_ipv6 == slice_status[sliver_tool.fqdn]:
+                    if sliver_tool.status_ipv6 == slice_status[
+                        sliver_tool.fqdn]:
+                        logging.info('No updates for sliver %s.',
+                                     sliver_tool.fqdn)
                         continue
                     sliver_tool.status_ipv6 = slice_status[sliver_tool.fqdn]
             else:
-                logging.error('Unexpected family: %s', family)
+                logging.error('Unexpected address family: %s.', family)
                 continue
 
             sliver_tool.update_request_timestamp = long(time.time())
-            # Write changes to db.
             try:
                 sliver_tool.put()
-                logging.info('Updating %s: status is %s.',
-                              sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
+                logging.info(
+                    'Succeeded to update status of %s to %s in datastore.',
+                    sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
             except db.TransactionFailedError:
                 # TODO(claudiu) Trigger an event/notification.
-                logging.error('Failed to write changes to db.')
+                logging.error(
+                    'Failed to update status of %s to %s in datastore.',
+                    sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
                 continue
             sliver_tool_list.append(sliver_tool)
 
@@ -390,7 +415,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         if sliver_tool_list:
             if not memcache.set(tool_id, sliver_tool_list,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                logging.error('Memcache set failed')
+                logging.error('Failed to update sliver status in memcache.')
 
     def get_slice_status(self, url):
         """Read slice status from Nagios.
@@ -405,17 +430,29 @@ class StatusUpdateHandler(webapp.RequestHandler):
         status = {}
         try:
             lines = urllib2.urlopen(url).read().strip('\n').split('\n')
-            for line in lines:
-                if len(line) == 0:
-                    continue
-                # See the design doc for a description of the file format.
-                slice_fqdn, state, state_type = line.split(' ')
-                sliver_fqdn, tool_id = slice_fqdn.split('/')
-                status[sliver_fqdn] = message.STATUS_ONLINE
-                if state != constants.NAGIOS_SERVICE_STATUS_OK:
-                    status[sliver_fqdn] = message.STATUS_OFFLINE
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot connect to nagios monitoring system.')
+            logging.error('Cannot open %s.', url)
+            return None
+
+        for line in lines:
+            if len(line) == 0:
+                continue
+            # See the design doc for a description of the file format.
+            line_fields = line.split(' ')
+            if len(line_fields) != 3:
+                logging.error('Line does not have 3 fields: %s.', line)
+                continue
+            slice_fqdn = line_fields[0]
+            state = line_fields[1]
+            slice_fields = slice_fqdn.split('/')
+            if len(slice_fields) != 2:
+                logging.error('Slice FQDN does not 2 fields: %s.', slice_fqdn)
+                continue
+            sliver_fqdn = slice_fields[0]
+            if state != constants.NAGIOS_SERVICE_STATUS_OK:
+                status[sliver_fqdn] = message.STATUS_OFFLINE
+            else:
+                status[sliver_fqdn] = message.STATUS_ONLINE
 
         return status
