@@ -365,7 +365,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
                         logging.info('No updates for sliver %s.',
                                      sliver_tool.fqdn)
-                       continue
+                        continue
                     logging.warning('Setting IPv4 status of %s to offline due '\
                                     'to missing IP.', sliver_tool.fqdn)
                     sliver_tool.status_ipv4 = message.STATUS_OFFLINE
