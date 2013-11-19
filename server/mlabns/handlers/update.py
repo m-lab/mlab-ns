@@ -17,34 +17,33 @@ from mlabns.util import util
 class SiteRegistrationHandler(webapp.RequestHandler):
     """Registers new sites from ks."""
 
-    class SiteRegistrationMessage:
-        # Message fields
-        SITE_FIELD = 'site'
-        METRO_FIELD = 'metro'
-        CITY_FIELD = 'city'
-        COUNTRY_FIELD = 'country'
-        LAT_FIELD = 'latitude'
-        LON_FIELD = 'longitude'
-        REQUIRED_FIELDS = [ SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
-                            LAT_FIELD, LON_FIELD]
+    # Message fields
+    SITE_FIELD = 'site'
+    METRO_FIELD = 'metro'
+    CITY_FIELD = 'city'
+    COUNTRY_FIELD = 'country'
+    LAT_FIELD = 'latitude'
+    LON_FIELD = 'longitude'
+    REQUIRED_FIELDS = [ SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
+                        LAT_FIELD, LON_FIELD]
 
-        @classmethod
-        def validate_site_json(cls, site_json):
-            """Checks if the json data from ks is well formed.
+    @classmethod
+    def validate_site_json(cls, site_json):
+        """Checks if the json data from ks is well formed.
 
-            Args:
-                site_json: A json representing the site info as appears on ks.
+        Args:
+            site_json: A json representing the site info as appears on ks.
 
-            Returns:
-                True if the json data is valid, False otherwise.
-            """
-            # TODO(claudiu) Need more robust validation.
-            for field in cls.REQUIRED_FIELDS:
-                if field not in site_json:
-                    logging.error('%s does not have the required field %s.',
-                                  SITE_LIST_URL, field)
-                    return False
-            return True
+        Returns:
+            True if the json data is valid, False otherwise.
+        """
+        # TODO(claudiu) Need more robust validation.
+        for field in cls.REQUIRED_FIELDS:
+            if field not in site_json:
+                logging.error('%s does not have the required field %s.',
+                              SITE_LIST_URL, field)
+                return False
+        return True
 
     SITE_LIST_URL = 'http://ks.measurementlab.net/mlab-site-stats.json'
 
@@ -58,7 +57,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 urllib2.urlopen(self.SITE_LIST_URL).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', SITE_LIST_URL)
+            logging.error('Cannot open %s.', self.SITE_LIST_URL)
             return util.send_not_found(self)
         except (TypeError, ValueError) as e:
             logging.error('The json format of %s in not valid.',
@@ -70,10 +69,9 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         # Validate the data from ks.
         valid_ks_sites_json = []
         for ks_site in ks_sites_json:
-            if self.SiteRegistrationMessage().validate_site_json(ks_site):
+            if self.validate_site_json(ks_site):
                 valid_ks_sites_json.append(ks_site)
-                ks_site_ids.add(
-                    ks_site[self.SiteRegistrationMessage().SITE_FIELD])
+                ks_site_ids.add(ks_site[self.SITE_FIELD])
             else:
                logging.error('The json format of %s is not valid.',
                              self.SITE_LIST_URL)
@@ -88,7 +86,6 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         new_site_ids = ks_site_ids.difference(mlab_site_ids)
         removed_site_ids = mlab_site_ids.difference(ks_site_ids)
 
-        # Register only new sites.
         # Do not remove sites here for now.
         # TODO(claudiu) Implement the site removal as a separate handler.
         for site_id in removed_site_ids:
@@ -100,15 +97,12 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 'Site %s unchanged in %s.', site_id, self.SITE_LIST_URL)
 
         for ks_site in valid_ks_sites_json:
-            if (ks_site[
-                    self.SiteRegistrationMessage().SITE_FIELD] in new_site_ids):
-                logging.info('Registering site %s.',
-                             ks_site[self.SiteRegistrationMessage().SITE_FIELD])
+            if (ks_site[self.SITE_FIELD] in new_site_ids):
+                logging.info('Registering site %s.', self.SITE_FIELD)
                 # TODO(claudiu) Notify(email) when this happens.
                 if not self.register_site(ks_site):
                     logging.error(
-                        'Error registering site %s.',
-                        ks_site[self.SiteRegistrationMessage().SITE_FIELD])
+                        'Error registering site %s.', self.SITE_FIELD)
                     return util.send_not_found(self)
 
         return util.send_success(self)
@@ -124,22 +118,22 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             True if the registration succeeds, False otherwise.
         """
         try:
-            lat_long = float(ks_site[self.SiteRegistrationMessage().LAT_FIELD])
-            lon_long = float(ks_site[self.SiteRegistrationMessage().LON_FIELD])
+            lat_long = float(ks_site[self.LAT_FIELD])
+            lon_long = float(ks_site[self.LON_FIELD])
         except ValueError:
             logging.error('Geo coordinates are not float (%s, %s)',
-                           ks_site[self.SiteRegistrationMessage().LAT_FIELD],
-                           ks_site[self.SiteRegistrationMessage().LON_FIELD])
+                           ks_site[self.LAT_FIELD],
+                           ks_site[self.LON_FIELD])
             return False
         site = model.Site(
-            site_id = ks_site[self.SiteRegistrationMessage.SITE_FIELD],
-            city = ks_site[self.SiteRegistrationMessage().CITY_FIELD],
-            country = ks_site[self.SiteRegistrationMessage().COUNTRY_FIELD],
+            site_id = ks_site[self.SITE_FIELD],
+            city = ks_site[self.CITY_FIELD],
+            country = ks_site[self.COUNTRY_FIELD],
             latitude = lat_long,
             longitude = lon_long,
-            metro = ks_site[self.SiteRegistrationMessage().METRO_FIELD],
+            metro = ks_site[self.METRO_FIELD],
             registration_timestamp=long(time.time()),
-            key_name=ks_site[self.SiteRegistrationMessage().SITE_FIELD])
+            key_name=ks_site[self.SITE_FIELD])
 
         try:
             site.put()

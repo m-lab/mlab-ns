@@ -160,6 +160,9 @@ def get_slice_site_server_ids(fqdn):
             '.', 4)
     except ValueError:
         return None, None, None
+    if (slice_id_part1 is None or slice_id_part2 is None or server_id is None or
+        site_id is None):
+        return None, None, None
 
     slice_id = '_'.join([ slice_id_part2, slice_id_part1])
     return slice_id, site_id, server_id
