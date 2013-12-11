@@ -278,8 +278,7 @@ class IPUpdateHandler(webapp.RequestHandler):
             site_id=site.site_id,
             server_id=server_id,
             fqdn=fqdn,
-            # server_port is currently unused.
-            server_port=None,
+            server_port=tool.server_port,
             http_port=tool.http_port,
             # IP addresses will be updated by the IPUpdateHandler.
             sliver_ipv4=message.NO_IP_ADDRESS,

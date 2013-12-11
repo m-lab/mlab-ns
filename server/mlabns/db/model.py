@@ -9,9 +9,6 @@ class SliverTool(db.Model):
     site_id = db.StringProperty()
     server_id = db.StringProperty()
     server_port = db.StringProperty()
-
-    # For web-based tools, this is used to build the URL the client is
-    # redirected to: http://fqdn[ipv4|ipv6]:http_port
     http_port = db.StringProperty()
 
     # Unannotated fqdn. v4 and v6 versions can be built if necessary.
@@ -109,6 +106,9 @@ class Slice(db.Model):
 class Tool(db.Model):
     slice_id = db.StringProperty()
     tool_id = db.StringProperty()
+    server_port = db.StringProperty()
+    # For web-based tools, this is used to build the URL the client is
+    # redirected to: http://fqdn[ipv4|ipv6]:http_port
     http_port = db.StringProperty()
 
 class Nagios(db.Model):

@@ -98,6 +98,8 @@ class LookupHandler(webapp.RequestHandler):
         fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
         if sliver_tool.http_port:
             data['url'] = ''.join([ 'http://', fqdn, ':', sliver_tool.http_port])
+        if sliver_tool.server_port:
+            data['port'] = sliver_tool.server_port
 
         data['fqdn'] = fqdn
         data['ip'] = ip
