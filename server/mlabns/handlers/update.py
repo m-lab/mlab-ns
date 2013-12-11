@@ -323,8 +323,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
         opener = urllib2.build_opener(authhandler)
         urllib2.install_opener(opener)
 
-        slices_gql = model.Tool.gql('ORDER by tool_id DESC')
-        for item in slices_gql.run(batch_size=constants.GQL_BATCH_SIZE):
+        tools_gql = model.Tool.gql('ORDER by tool_id DESC')
+        for item in tools_gql.run(batch_size=constants.GQL_BATCH_SIZE):
             logging.info('Pulling status of %s from Nagios.', item.tool_id)
             for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
               slice_url = nagios.url + '?show_state=1&service_name=' + \

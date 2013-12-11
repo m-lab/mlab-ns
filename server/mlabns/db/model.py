@@ -105,7 +105,6 @@ class EncryptionKey(db.Model):
 
 class Slice(db.Model):
     slice_id = db.StringProperty()
-    tool_id = db.StringProperty()
 
 class Tool(db.Model):
     slice_id = db.StringProperty()
