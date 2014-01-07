@@ -18,6 +18,3 @@ cron:
   url: /cron/check_ip
   schedule: every day 01:00
 
-- description: Clean up old pings
-  url: /cron/cleanup_pings
-  schedule: every 24 hours

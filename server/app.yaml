@@ -34,10 +34,6 @@ handlers:
 - url: /.*
   script: main.app
 
-# Kept separate as I would like it to be only accessed via this domain.
-- url: /pings
-  script: main.app
-
 builtins:
 - appstats: on
 - deferred: on

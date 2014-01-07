@@ -4,7 +4,6 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from mlabns.handlers import admin
 from mlabns.handlers import docs
 from mlabns.handlers import lookup
-from mlabns.handlers import pings
 from mlabns.handlers import privacy
 from mlabns.handlers import update
 # from mlabns.handlers import log2bq
@@ -15,8 +14,6 @@ app = webapp.WSGIApplication(
     (r'/cron/check_status', update.StatusUpdateHandler),
     (r'/cron/check_ip', update.IPUpdateHandler),
     (r'/cron/check_site', update.SiteRegistrationHandler),
-    (r'/cron/cleanup_pings', pings.CleanupHandler),
-    (r'/pings', pings.PingsHandler),
     (r'/privacy', privacy.PrivacyHandler),
     (r'/docs', docs.DocsHandler),
     # (r'/cron/process_logs', log2bq.Log2BigQueryHandler),

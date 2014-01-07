@@ -33,52 +33,6 @@
       var offlineMarkersArray = [];
       var errorMarkersArray = [];
 
-      var realtimePings = [];
-      var lastPingTime = Math.round((new Date()).getTime() / 1000);
-      var pingLifetime = 60 * 5.5;
-      var pingCircleOptions = {
-        clickable: false,
-        editable: false,
-        fillColor: '#FF0000',
-        fillOpacity: 0.8,
-        strokeWeight: 2,
-        strokeColor: black,
-        strokeOpacity: 0.9
-      };
-      var PING_OPACITY_FADE_FACTOR = 0.98;
-      var MAX_PINGS_PER_FRAME = 10;
-
-      window.requestAnimFrame = (function() {
-        return window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            window.oRequestAnimationFrame ||
-            window.msRequestAnimationFrame ||
-            function( callback) {
-              window.setTimeout(callback, 1000 / 60);
-            };
-      })();
-
-      var xhr;
-      if (window.XMLHttpRequest) {
-        xhr = new XMLHttpRequest();
-      } else {
-        xhr = new ActiveXObject('Microsoft.XMLHTTP');
-      }
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-          // Response is a JSON array
-          var newPings = JSON.parse(xhr.responseText);
-          if (newPings.length > 0) {
-            console.log('Received ' + newPings.length + ' pings');
-            for (var i = 0; i < newPings.length; ++i) {
-              newPings[i].lifetime = pingLifetime;
-            }
-            realtimePings.push.apply(realtimePings, newPings);
-          }
-        }
-      }
-
       function initialize() {
         var mapOptions = {
           center: new google.maps.LatLng(41.9000, 12.500),
@@ -162,49 +116,6 @@
               infowindow.open(map, this); });
         }
         showMarkers();
-
-        (function update() {
-          window.requestAnimFrame(update);
-
-          // If we don't have any pings, set the lastPingTime to the current
-          // time as a UNIX timestamp
-          if (realtimePings.length == 0) {
-            lastPingTime = Math.round((new Date()).getTime() / 1000);
-            return;
-          }
-          lastPingTime = realtimePings[realtimePings.length - 1].time
-
-          // Update and draw existing pings
-          var end = Math.min(realtimePings.length, MAX_PINGS_PER_FRAME);
-          for (var i = 0; i < end; ++i) {
-            var ping = realtimePings[i];
-            if (typeof ping.circle === 'undefined') {
-              ping.circle = new google.maps.Circle(pingCircleOptions);
-              ping.circle.setCenter(new google.maps.LatLng(ping.latitude, ping.longitude));
-              ping.circle.setRadius(perZoomRadius());
-              ping.circle.setMap(map);
-            } else {
-              ping.circle.setRadius(ping.circle.radius + perZoomRadius() / 10);
-              ping.circle.setOptions({
-                fillOpacity: ping.circle.fillOpacity * PING_OPACITY_FADE_FACTOR,
-                strokeOpacity: ping.circle.strokeOpacity * PING_OPACITY_FADE_FACTOR
-              });
-            }
-            if (--ping.lifetime == 0) {
-              ping.circle.setMap(null);
-              realtimePings.splice(i, 1);
-            }
-          }
-        })();
-
-        (function getPings() {
-          window.setTimeout(getPings, 5000);
-
-          // Get new pings
-          // TODO(dominic): reenable some time in the future.
-          //xhr.open('GET', '/pings?tool_id={{tool_id}}&address_family={{address_family}}&last_time=' + lastPingTime, true);
-          //xhr.send();
-        })();
       }
 
       function perZoomRadius() {
