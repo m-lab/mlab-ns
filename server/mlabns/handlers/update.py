@@ -257,7 +257,8 @@ class IPUpdateHandler(webapp.RequestHandler):
 
             if sliver_tool.tool_id not in sliver_tool_list:
                 sliver_tool_list[sliver_tool.tool_id] = []
-                sliver_tool_list[sliver_tool.tool_id].append(sliver_tool)
+            sliver_tool_list[sliver_tool.tool_id].append(sliver_tool)
+            logging.info('sliver %s to be added to memcache', sliver_tool.fqdn)
 
         # Update memcache
         for tool_id in sliver_tool_list.keys():
@@ -402,6 +403,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
                 continue
             sliver_tool_list.append(sliver_tool)
+            logging.info('sliver %s to be added to memcache', sliver_tool.fqdn)
 
         # Never set the memcache to an empty list since it's more likely that
         # this is a Nagios failure.
