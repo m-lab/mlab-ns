@@ -98,12 +98,12 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
         for ks_site in valid_ks_sites_json:
             if (ks_site[self.SITE_FIELD] in new_site_ids):
-                logging.info('Registering site %s.', self.SITE_FIELD)
+                logging.info('Registering site %s.', ks_site[self.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
                 if not self.register_site(ks_site):
                     logging.error(
-                        'Error registering site %s.', self.SITE_FIELD)
-                    return util.send_not_found(self)
+                        'Error registering site %s.', ks_site[self.SITE_FIELD])
+                    continue
 
         return util.send_success(self)
 
@@ -205,55 +205,57 @@ class IPUpdateHandler(webapp.RequestHandler):
             # case 1) Sliver tool has not changed. Nothing to do.
             if (sliver_tool != None and sliver_tool.sliver_ipv4 == ipv4 and
                 sliver_tool.sliver_ipv6 == ipv6):
-                continue
-
+                pass
             # case 2) Sliver tool has changed.
-            # case 2.1) Sliver tool does not exist in datastore. Initialize
-            #     sliver if the corresponding tool exists in the Tool table and
-            #     the corresponding site exists in the Site table. This case
-            #     occurs when a new tool has been added after the last
-            #     IPUpdateHanlder ran. The sliver tool will actually be written
-            #     to datastore at the next step.
-            if sliver_tool == None:
-                logging.warning('sliver_tool %s is not in datastore.', fqdn)
-                slice_id, site_id, server_id = model.get_slice_site_server_ids(
-                    fqdn)
-                if slice_id is None or site_id is None or server_id is None:
-                    logging.info('Non valid sliver fqdn %s.', fqdn)
-                    continue
-                tool = model.Tool.gql('WHERE slice_id=:slice_id',
-                                      slice_id=slice_id).get()
-                if tool == None:
-                    logging.info('mlab-ns does not support slice %s.', slice_id)
-                    continue
-                site = model.Site.gql('WHERE site_id=:site_id',
-                                      site_id=site_id).get()
-                if site == None:
-                    logging.info('mlab-ns does not support site %s.', site_id)
-                    continue
-                sliver_tool = self.initialize_sliver_tool(
-                    tool, site, server_id, fqdn)
-
-            # case 2.2) Sliver tool exists in datastore.
-            if ipv4 != None:
-                sliver_tool.sliver_ipv4 = ipv4
             else:
-                sliver_tool.sliver_ipv4 = message.NO_IP_ADDRESS
-            if ipv6 != None:
-                sliver_tool.sliver_ipv6 = ipv6
-            else:
-                sliver_tool.sliver_ipv6 = message.NO_IP_ADDRESS
+                # case 2.1) Sliver tool does not exist in datastore. Initialize
+                #     sliver if the corresponding tool exists in the Tool table
+                #     and the corresponding site exists in the Site table. This
+                #     case occurs when a new tool has been added after the last
+                #     IPUpdateHanlder ran. The sliver tool will actually be
+                #     written to datastore at the next step.
+                if sliver_tool == None:
+                    logging.warning('sliver_tool %s is not in datastore.', fqdn)
+                    slice_id, site_id, server_id = \
+                        model.get_slice_site_server_ids(fqdn)
+                    if slice_id is None or site_id is None or server_id is None:
+                        logging.info('Non valid sliver fqdn %s.', fqdn)
+                        continue
+                    tool = model.Tool.gql('WHERE slice_id=:slice_id',
+                                          slice_id=slice_id).get()
+                    if tool == None:
+                        logging.info('mlab-ns does not support slice %s.',
+                                     slice_id)
+                        continue
+                    site = model.Site.gql('WHERE site_id=:site_id',
+                                          site_id=site_id).get()
+                    if site == None:
+                        logging.info('mlab-ns does not support site %s.',
+                                     site_id)
+                        continue
+                    sliver_tool = self.initialize_sliver_tool(
+                        tool, site, server_id, fqdn)
 
-            try:
-                sliver_tool.put()
-                logging.info(
-                    'Succeeded to write IPs of %s (%s, %s) in datastore.',
-                    fqdn, ipv4, ipv6)
-            except db.TransactionFailedError:
-                logging.error(
-                    'Failed to write IPs of %s (%s, %s) in datastore.',
-                    fqdn, ipv4, ipv6)
-                continue
+                # case 2.2) Sliver tool exists in datastore.
+                if ipv4 != None:
+                    sliver_tool.sliver_ipv4 = ipv4
+                else:
+                    sliver_tool.sliver_ipv4 = message.NO_IP_ADDRESS
+                if ipv6 != None:
+                    sliver_tool.sliver_ipv6 = ipv6
+                else:
+                    sliver_tool.sliver_ipv6 = message.NO_IP_ADDRESS
+
+                try:
+                    sliver_tool.put()
+                    logging.info(
+                        'Succeeded to write IPs of %s (%s, %s) in datastore.',
+                        fqdn, ipv4, ipv6)
+                except db.TransactionFailedError:
+                    logging.error(
+                        'Failed to write IPs of %s (%s, %s) in datastore.',
+                        fqdn, ipv4, ipv6)
+                    continue
 
             if sliver_tool.tool_id not in sliver_tool_list:
                 sliver_tool_list[sliver_tool.tool_id] = []
@@ -261,10 +263,15 @@ class IPUpdateHandler(webapp.RequestHandler):
             logging.info('sliver %s to be added to memcache', sliver_tool.fqdn)
 
         # Update memcache
-        for tool_id in sliver_tool_list.keys():
-           if not memcache.set(tool_id, sliver_tool_list[tool_id],
-                              namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-              logging.error('Failed to update sliver IP addresses in memcache.')
+        # Never set the memcache to an empty list since it's more likely that
+        # this is a Nagios failure.
+        if sliver_tool_list:
+            for tool_id in sliver_tool_list.keys():
+                if not memcache.set(
+                    tool_id, sliver_tool_list[tool_id],
+                    namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                    logging.error(
+                        'Failed to update sliver IP addresses in memcache.')
 
         return util.send_success(self)
 
@@ -351,7 +358,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for sliver_tool in sliver_tools_gql.run(
             batch_size=constants.GQL_BATCH_SIZE):
             if sliver_tool.fqdn not in slice_status:
-                logging.info('No updates for sliver %s.', sliver_tool.fqdn)
+                logging.info('Nagios does not know sliver %s.',
+                              sliver_tool.fqdn)
                 continue
 
             if family == StatusUpdateHandler.AF_IPV4:
@@ -359,33 +367,33 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
                         logging.info('No updates for sliver %s.',
                                      sliver_tool.fqdn)
-                        continue
-                    logging.warning('Setting IPv4 status of %s to offline due '\
-                                    'to missing IP.', sliver_tool.fqdn)
-                    sliver_tool.status_ipv4 = message.STATUS_OFFLINE
+                    else:
+                        logging.warning('Setting IPv4 status of %s to offline '\
+                                        'due to missing IP.', sliver_tool.fqdn)
+                        sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
                     if sliver_tool.status_ipv4 == slice_status[
                         sliver_tool.fqdn]:
                         logging.info('No updates for sliver %s.',
-                                    sliver_tool.fqdn)
-                        continue
-                    sliver_tool.status_ipv4 = slice_status[sliver_tool.fqdn]
+                                      sliver_tool.fqdn)
+                    else:
+                        sliver_tool.status_ipv4 = slice_status[sliver_tool.fqdn]
             elif family == StatusUpdateHandler.AF_IPV6:
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
                         logging.info('No updates for sliver %s.',
                                      sliver_tool.fqdn)
-                        continue
-                    logging.warning('Setting IPv6 status for %s to offline ' \
-                                    'due to missing IP.', sliver_fqdn)
-                    sliver_tool.status_ipv6 = message.STATUS_OFFLINE
+                    else:
+                        logging.warning('Setting IPv6 status for %s to offline'\
+                                        ' due to missing IP.', sliver_fqdn)
+                        sliver_tool.status_ipv6 = message.STATUS_OFFLINE
                 else:
                     if sliver_tool.status_ipv6 == slice_status[
                         sliver_tool.fqdn]:
                         logging.info('No updates for sliver %s.',
                                      sliver_tool.fqdn)
-                        continue
-                    sliver_tool.status_ipv6 = slice_status[sliver_tool.fqdn]
+                    else:
+                        sliver_tool.status_ipv6 = slice_status[sliver_tool.fqdn]
             else:
                 logging.error('Unexpected address family: %s.', family)
                 continue
