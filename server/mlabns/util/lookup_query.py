@@ -2,6 +2,7 @@ from mlabns.third_party import ipaddr
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import maxmind
+from mlabns.util import sieve
 
 import logging
 
@@ -36,6 +37,7 @@ class LookupQuery:
         self.maxmind_country = None
         self.maxmind_latitude = None
         self.maxmind_longitude = None
+        self.sieves = None
 
     def initialize_from_http_request(self, request):
         """Initializes the lookup parameters from the HTTP request.
@@ -49,6 +51,10 @@ class LookupQuery:
         self.set_geolocation(request)
         self.metro = request.get(message.METRO, default_value=None)
         self.set_policy(request)
+        self.set_sieves(request)
+
+    def set_sieves(self, request):
+        self.sieves = sieve.new_sieves_from_request(request.get(message.SIEVE, default_value=None))
 
     def set_response_format(self, request):
         self.response_format = request.get(message.RESPONSE_FORMAT,

@@ -36,6 +36,9 @@ class ResolverBase:
             elif query.address_family == message.ADDRESS_FAMILY_IPv6:
                 candidates = self._get_candidates(query,
                                                   message.ADDRESS_FAMILY_IPv4)
+        if (query.sieves):
+            for sieve in query.sieves:
+                candidates = sieve.sieve(candidates)
         return candidates
 
     def _get_candidates(self, query, address_family):
