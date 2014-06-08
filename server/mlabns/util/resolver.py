@@ -116,7 +116,7 @@ class ResolverBase:
             logging.error('No results found for %s.', query.tool_id)
             return None
 
-        return random.choice(candidates)
+        return [random.choice(candidates)]
 
 
 class GeoResolver(ResolverBase):
@@ -173,7 +173,7 @@ class GeoResolver(ResolverBase):
         query.distance = math.ceil(min_distance)
 
         # Choose randomly among candidates with the same, minimum distance.
-        return random.choice(closest_sliver_tools)
+        return [random.choice(closest_sliver_tools)]
 
 
 class MetroResolver(ResolverBase):
@@ -230,7 +230,7 @@ class CountryResolver(ResolverBase):
 
         if len(country_candidates) == 0:
             return None
-        return random.choice(country_candidates)
+        return [random.choice(country_candidates)]
 
 
 def new_resolver(policy):
