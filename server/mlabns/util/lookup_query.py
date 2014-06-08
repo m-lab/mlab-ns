@@ -52,6 +52,11 @@ class LookupQuery:
         self.metro = request.get(message.METRO, default_value=None)
         self.set_policy(request)
         self.set_sieves(request)
+	self.set_options_count(request)
+
+    def set_options_count(self, request):
+        self.options_count=int(request.get(message.OPTIONS_COUNT,\
+	                                   default_value=4))
 
     def set_sieves(self, request):
         self.sieves = sieve.new_sieves_from_request(
@@ -216,7 +221,8 @@ class LookupQuery:
         if (self.user_defined_latitude is not None and \
             self.user_defined_longitude is not None) or \
             self.user_defined_ip is not None:
-            if self.policy != message.POLICY_GEO:
+            if self.policy != message.POLICY_GEO and \
+	       self.policy != message.POLICY_GEO_OPTIONS:
                 logging.warning(
                     'Lat/longs user-defined, but policy is %s.', self.policy)
                 self.policy = message.POLICY_GEO
@@ -251,6 +257,8 @@ class LookupQuery:
             return
         if self.policy  ==  message.POLICY_RANDOM:
             return
+        if self.policy == message.POLICY_GEO_OPTIONS:
+	    return
         logging.warning('Non valid policy %s.', self.policy)
         self.policy = self._get_default_policy()
 

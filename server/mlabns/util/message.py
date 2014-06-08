@@ -25,7 +25,8 @@ FORMAT_HTML     = 'html'
 FORMAT_JSON     = 'json'
 FORMAT_MAP      = 'map'
 FORMAT_REDIRECT = 'redirect'
-VALID_FORMATS = [FORMAT_HTML, FORMAT_JSON, FORMAT_MAP, FORMAT_REDIRECT]
+FORMAT_BT       = 'bt'
+VALID_FORMATS = [FORMAT_HTML, FORMAT_JSON, FORMAT_MAP, FORMAT_REDIRECT, FORMAT_BT]
 DEFAULT_RESPONSE_FORMAT = FORMAT_JSON
 
 FQDN            = 'fqdn'
@@ -40,6 +41,7 @@ METRO           = 'metro'
 
 POLICY          = 'policy'
 POLICY_GEO      = 'geo'
+POLICY_GEO_OPTIONS='geo_options'
 POLICY_METRO    = 'metro'
 POLICY_RANDOM   = 'random'
 POLICY_COUNTRY  = 'country'
@@ -64,6 +66,7 @@ URL             = 'url'
 USER_CITY       = 'city'
 USER_COUNTRY    = 'country'
 SIEVE           = 'sieve'
+OPTIONS_COUNT   = 'options_count'
 
 class Error(Exception): pass
 class FormatError(Error): pass
