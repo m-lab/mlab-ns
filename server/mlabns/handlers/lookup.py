@@ -37,21 +37,23 @@ class LookupHandler(webapp.RequestHandler):
 
         logging.info('Policy is %s', query.policy)
         lookup_resolver = resolver.new_resolver(query.policy)
-        sliver_tool = lookup_resolver.answer_query(query)
+        sliver_tools = lookup_resolver.answer_query(query)
 
         # Shh.
         if query.tool_id == "teapot":
             return util.send_teapot(self, query.response_format)
 
-        if sliver_tool is None:
+        if sliver_tools is None:
             return util.send_not_found(self, query.response_format)
 
         if query.response_format == message.FORMAT_JSON:
-            self.send_json_response(sliver_tool, query)
+            self.send_json_response(sliver_tools, query)
         elif query.response_format == message.FORMAT_HTML:
-            self.send_html_response(sliver_tool, query)
+            self.send_html_response(sliver_tools, query)
         elif query.response_format == message.FORMAT_REDIRECT:
-            self.send_redirect_response(sliver_tool, query)
+            self.send_redirect_response(sliver_tools, query)
+        elif query.response_format == message.FORMAT_BT:
+            self.send_bt_response(sliver_tools, query)
         elif query.response_format == message.FORMAT_MAP:
             candidates = lookup_resolver.get_candidates(query)
             self.send_map_response(sliver_tool, query, candidates)
@@ -59,85 +61,145 @@ class LookupHandler(webapp.RequestHandler):
             # TODO (claudiu) Discuss what should be the default behaviour.
             # I think json it's OK since is valid for all tools, while
             # redirect only applies to web-based tools (e.g., npad)
-            self.send_json_response(sliver_tool, query)
+            self.send_json_response(sliver_tools, query)
 
         # TODO (claudiu) Add a FORMAT_TYPE column in the BigQuery schema.
-        self.log_request(query, sliver_tool)
+        self.log_request(query, sliver_tools)
 
-    def send_json_response(self, sliver_tool, query):
+    def send_bt_response(self, sliver_tools, query):
+        """Sends the response to the lookup request in bt format.
+
+        Args:
+            sliver_tools: A list of SliverTool instances,
+                representing the best sliver
+                tools selected for this lookup request.
+            query: A LookupQuery instance representing the user lookup request.
+        """
+        if type(sliver_tools) is not list:
+            logging.error("Problem: sliver_tools is not a list.")
+            return
+
+        bt_data = "";
+        for sliver_tool in sliver_tools:
+            fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
+
+            data = sliver_tool.country
+            data += ", "
+            data += ", "
+            data += sliver_tool.city
+
+            data += "|"
+            data += fqdn
+            data += "\n"
+
+            bt_data += data
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.out.write(bt_data)
+
+    def send_json_response(self, sliver_tools, query):
         """Sends the response to the lookup request in json format.
 
         Args:
-            sliver_tool: A SliverTool instance, representing the best sliver
+            sliver_tools: A list of SliverTool instances,
+                representing the best sliver
                 tool selected for this lookup request.
             query: A LookupQuery instance representing the user lookup request.
         """
-        data = {}
+        array_response = False
+        if len(sliver_tools) > 1:
+            array_response = True
 
-        ip = []
+        if type(sliver_tools) is not list:
+            logging.error("Problem: sliver_tools is not a list.")
+            return
 
-        logging.info('user_defined_af = %s', query.user_defined_af)
-        if query.user_defined_af == message.ADDRESS_FAMILY_IPv4:
-            ip = [sliver_tool.sliver_ipv4]
-        elif query.user_defined_af == message.ADDRESS_FAMILY_IPv6:
-            ip = [sliver_tool.sliver_ipv6]
-        else:
-            # If 'address_family' is not specified, the default is to
-            # return both valid IP addresses (if both 'status_ipv4' and
-            # 'status_ipv6' are 'online').
-            # Although the update will only set the sliver as online if it
-            # has a valid IP address, the resolver still returns it as
-            # a candidate.
-            if (sliver_tool.sliver_ipv4 != message.NO_IP_ADDRESS and
-                sliver_tool.status_ipv4 == message.STATUS_ONLINE):
-                ip.append(sliver_tool.sliver_ipv4)
-            if (sliver_tool.sliver_ipv6 != message.NO_IP_ADDRESS and
-                sliver_tool.status_ipv6 == message.STATUS_ONLINE):
-                ip.append(sliver_tool.sliver_ipv6)
+        json_data = "";
+        for sliver_tool in sliver_tools:
+            data = {}
 
-        fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
-        if sliver_tool.http_port:
-            data['url'] = ''.join([ 'http://', fqdn, ':', sliver_tool.http_port])
-        if sliver_tool.server_port:
-            data['port'] = sliver_tool.server_port
+            ip = []
 
-        data['fqdn'] = fqdn
-        data['ip'] = ip
-        data['site'] = sliver_tool.site_id
-        data['city'] = sliver_tool.city
-        data['country'] = sliver_tool.country
+            logging.info('user_defined_af = %s', query.user_defined_af)
+            if query.user_defined_af == message.ADDRESS_FAMILY_IPv4:
+                ip = [sliver_tool.sliver_ipv4]
+            elif query.user_defined_af == message.ADDRESS_FAMILY_IPv6:
+                ip = [sliver_tool.sliver_ipv6]
+            else:
+                # If 'address_family' is not specified, the default is to
+                # return both valid IP addresses (if both 'status_ipv4' and
+                # 'status_ipv6' are 'online').
+                # Although the update will only set the sliver as online if it
+                # has a valid IP address, the resolver still returns it as
+                # a candidate.
+                if (sliver_tool.sliver_ipv4 != message.NO_IP_ADDRESS and
+                    sliver_tool.status_ipv4 == message.STATUS_ONLINE):
+                    ip.append(sliver_tool.sliver_ipv4)
+                if (sliver_tool.sliver_ipv6 != message.NO_IP_ADDRESS and
+                    sliver_tool.status_ipv6 == message.STATUS_ONLINE):
+                    ip.append(sliver_tool.sliver_ipv6)
 
-        json_data = json.dumps(data)
+            fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
+            if sliver_tool.http_port:
+                data['url'] = ''.join([ 'http://', fqdn, ':', sliver_tool.http_port])
+            if sliver_tool.server_port:
+                data['port'] = sliver_tool.server_port
+
+            data['fqdn'] = fqdn
+            data['ip'] = ip
+            data['site'] = sliver_tool.site_id
+            data['city'] = sliver_tool.city
+            data['country'] = sliver_tool.country
+
+            if json_data != "":
+                json_data += ","
+            json_data += json.dumps(data)
+
+        if array_response:
+            json_data = "[" + json_data + "]"
         self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(json_data)
 
-    def send_html_response(self, sliver_tool, query):
+    def send_html_response(self, sliver_tools, query):
         """Sends the response to the lookup request in html format.
 
         Args:
-            sliver_tool: A SliverTool instance, representing the best sliver
+            sliver_tools: A list of SliverTool instances,
+            representing the best sliver
                 tool selected for this lookup request.
             query: A LookupQuery instance representing the user lookup request.
 
         """
+
+        if type(sliver_tools) != list:
+            logging.error("Problem: sliver_tools is not a list.")
+            return
+
         records = []
-        records.append(sliver_tool)
+        records.extend(sliver_tools)
         values = {'records' : records}
         self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.out.write(
             template.render(
                 'mlabns/templates/lookup_response.html', values))
 
-    def send_redirect_response(self, sliver_tool, query):
+    def send_redirect_response(self, sliver_tools, query):
         """Sends an HTTP redirect (for web-based tools only).
 
         Args:
-            sliver_tool: A SliverTool instance, representing the best sliver
+            sliver_tool: A list of SliverTool instances,
+                representing the best sliver
                 tool selected for this lookup request.
             query: A LookupQuery instance representing the user lookup request.
 
         """
+        if type(sliver_tools) != list:
+            logging.error("Problem: sliver_tools is not a list.")
+            return
+
+        sliver_tool = sliver_tools[0]
+
         if sliver_tool.http_port:
             url = ''.join([
                 'http://', self._add_fqdn_annotation(query, sliver_tool.fqdn),
@@ -239,7 +301,7 @@ class LookupHandler(webapp.RequestHandler):
 
         return '.'.join(fqdn_parts)
 
-    def log_request(self, query, sliver_tool):
+    def log_request(self, query, sliver_tools):
         """Logs the request. Each entry in the log is uploaded to BigQuery.
 
         Args:
@@ -247,17 +309,34 @@ class LookupHandler(webapp.RequestHandler):
             sliver_tool: SliverTool entity chosen in the server
                 selection phase.
         """
-        if sliver_tool is None:
+        if sliver_tools is None:
             # TODO(claudiu) Log also the error.
             return
-
-        fqdn = sliver_tool.fqdn
-        if query.user_defined_af:
-            fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
+        if type(sliver_tools) != list:
+            logging.error("Problem: sliver_tools is not a list.")
+            return
 
         user_agent = ''
         if 'User-Agent' in self.request.headers:
             user_agent = self.request.headers['User-Agent']
+
+        sliver_tool_info = ""
+        for sliver_tool in sliver_tools:
+            fqdn = sliver_tool.fqdn
+            if query.user_defined_af:
+                fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
+            sliver_tool_info += "(%s %s %s %s %s %s %s %s %s %s %s) " % \
+                (sliver_tool.slice_id,
+                sliver_tool.server_id,
+                sliver_tool.sliver_ipv4,
+                sliver_tool.sliver_ipv6,
+                sliver_tool.fqdn,
+                fqdn,
+                sliver_tool.site_id,
+                sliver_tool.city,
+                sliver_tool.country,
+                sliver_tool.latitude,
+                sliver_tool.longitude)
 
         # See the privacy doc at http://mlab-ns.appspot.com/privacy.
         # The list of these fields is consistent with the BigQuery schema,
@@ -267,7 +346,7 @@ class LookupHandler(webapp.RequestHandler):
         logging.info(
             '[lookup]'
             '%s,%s,%s,%s,%s,%s,%s,'
-            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
+            '%s,'
             '%s,%s,%s,%s,%s,%s,%s',
             # Info about the user:
             query.user_defined_ip,
@@ -277,18 +356,7 @@ class LookupHandler(webapp.RequestHandler):
             query.ip_address,
             query.address_family,
             user_agent,
-            # Info about the server:
-            sliver_tool.slice_id,
-            sliver_tool.server_id,
-            sliver_tool.sliver_ipv4,
-            sliver_tool.sliver_ipv6,
-            sliver_tool.fqdn,
-            fqdn,
-            sliver_tool.site_id,
-            sliver_tool.city,
-            sliver_tool.country,
-            sliver_tool.latitude,
-            sliver_tool.longitude,
+            sliver_tool_info,
             # Info about the request:
             query.tool_id,
             query.policy,
