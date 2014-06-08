@@ -4,10 +4,12 @@ from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import distance
 from mlabns.util import message
+from mlabns.util import sliver_tool_distance
 
 import logging
 import math
 import random
+from operator import attrgetter
 
 
 class ResolverBase:
@@ -176,6 +178,65 @@ class GeoResolver(ResolverBase):
         return [random.choice(closest_sliver_tools)]
 
 
+class GeoResolverWithOptions(ResolverBase):
+    """Chooses the server geographically closest to the client."""
+
+    def answer_query(self, query):
+        """Selects the geographically closest SliverTool.
+
+        Args:
+            query: A LookupQuery instance.
+
+        Returns:
+            A SliverTool entity in case of success, or None if there is no
+            SliverTool available that matches the query.
+        """
+        candidates = self.get_candidates(query)
+        if len(candidates) == 0:
+            logging.error('No results found for %s.', query.tool_id)
+            return None
+
+        if (query.latitude is None) or (query.longitude is None):
+            logging.warning('No latide/longitude, return a random sliver tool.')
+            return random.choice(candidates)
+
+        min_distance = float('+inf')
+        sliver_tool_bins = {}
+        sliver_tools = []
+        distances = {}
+
+        # Combine the candidates into bins by site.
+        for sliver_tool in candidates:
+            if not sliver_tool_bins.has_key(sliver_tool.site_id):
+                sliver_tool_bins[sliver_tool.site_id] = [sliver_tool]
+            else:
+                sliver_tool_bins[sliver_tool.site_id].append(sliver_tool)
+
+        for site_id in sliver_tool_bins:
+            # Take a random sliver from the list.
+            sliver_tool = random.choice(sliver_tool_bins[site_id])
+            # Check if we already computed the distance of this site.
+            if distances.has_key(sliver_tool.site_id):
+                current_distance = distances[sliver_tool.site_id]
+            else:
+                current_distance = distance.distance(
+                    query.latitude,
+                    query.longitude,
+                    sliver_tool.latitude,
+                    sliver_tool.longitude)
+                distances[sliver_tool.site_id] = current_distance
+
+            sliver_tools.append(\
+                sliver_tool_distance.SliverToolDistance(sliver_tool, \
+                                                        current_distance))
+
+        sliver_tools_sorted = sorted(sliver_tools, key=attrgetter('distance'))
+        final_results = []
+        for std in sliver_tools_sorted:
+            final_results.append(std.sliver_tool)
+        return final_results[:query.options_count]
+
+
 class MetroResolver(ResolverBase):
     """Implements the metro policy."""
 
@@ -242,5 +303,7 @@ def new_resolver(policy):
         return RandomResolver()
     elif policy == message.POLICY_COUNTRY:
         return CountryResolver()
+    elif policy == message.POLICY_GEO_OPTIONS:
+        return GeoResolverWithOptions()
     else:
         return RandomResolver()
