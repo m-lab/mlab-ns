@@ -141,7 +141,7 @@ class GeoResolver(ResolverBase):
 
         if (query.latitude is None) or (query.longitude is None):
             logging.warning('No latide/longitude, return a random sliver tool.')
-            return random.choice(candidates)
+            return [random.choice(candidates)]
 
         min_distance = float('+inf')
         closest_sliver_tools = []
@@ -198,7 +198,7 @@ class GeoResolverWithOptions(ResolverBase):
 
         if (query.latitude is None) or (query.longitude is None):
             logging.warning('No latide/longitude, return a random sliver tool.')
-            return random.choice(candidates)
+            return [random.choice(candidates)]
 
         min_distance = float('+inf')
         sliver_tool_bins = {}
