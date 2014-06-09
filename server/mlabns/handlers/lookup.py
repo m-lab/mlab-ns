@@ -83,10 +83,9 @@ class LookupHandler(webapp.RequestHandler):
         for sliver_tool in sliver_tools:
             fqdn = self._add_fqdn_annotation(query, sliver_tool.fqdn)
 
-            data = sliver_tool.country
+            data = sliver_tool.city
             data += ", "
-            data += ", "
-            data += sliver_tool.city
+            data += sliver_tool.country
 
             data += "|"
             data += fqdn
