@@ -54,7 +54,8 @@ class LookupQuery:
         self.set_sieves(request)
 
     def set_sieves(self, request):
-        self.sieves = sieve.new_sieves_from_request(request.get(message.SIEVE, default_value=None))
+        self.sieves = sieve.new_sieves_from_request(
+	    request.get_all(message.SIEVE))
 
     def set_response_format(self, request):
         self.response_format = request.get(message.RESPONSE_FORMAT,

@@ -37,7 +37,10 @@ def new_sieves_from_request(sieve_request):
     if sieve_request == None:
         return sieves
 
-    for sieve_parameter in sieve_request.split('~'):
+    if type(sieve_request) != list:
+        sieve_request = [sieve_request]
+
+    for sieve_parameter in sieve_request:
         sieve_parameter_split = sieve_parameter.split(':')
         if len(sieve_parameter_split) != 2:
             continue
