@@ -10,6 +10,7 @@ class SliverTool(db.Model):
     server_id = db.StringProperty()
     server_port = db.StringProperty()
     http_port = db.StringProperty()
+    tool_extra = db.StringProperty()
 
     # Unannotated fqdn. v4 and v6 versions can be built if necessary.
     fqdn = db.StringProperty()

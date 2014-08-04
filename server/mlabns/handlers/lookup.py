@@ -150,6 +150,9 @@ class LookupHandler(webapp.RequestHandler):
             data['city'] = sliver_tool.city
             data['country'] = sliver_tool.country
 
+            if sliver_tool.tool_extra:
+                data['tool_extra'] = sliver_tool.tool_extra
+
             if json_data != "":
                 json_data += ","
             json_data += json.dumps(data)

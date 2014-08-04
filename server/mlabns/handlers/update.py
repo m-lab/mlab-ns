@@ -294,6 +294,7 @@ class IPUpdateHandler(webapp.RequestHandler):
             # Status will be updated by the StatusUpdateHandler.
             status_ipv4=message.STATUS_OFFLINE,
             status_ipv6=message.STATUS_OFFLINE,
+            tool_extra="",
             latitude=site.latitude,
             longitude=site.longitude,
             city=site.city,
@@ -335,7 +336,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
             logging.info('Pulling status of %s from Nagios.', item.tool_id)
             for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
               slice_url = nagios.url + '?show_state=1&service_name=' + \
-                    item.tool_id + family
+                    item.tool_id + family + \
+		    "&plugin_output=1"
 
               slice_status = self.get_slice_status(slice_url)
               self.update_sliver_tools_status(slice_status, item.tool_id,
@@ -372,12 +374,17 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                         'due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
-                    if sliver_tool.status_ipv4 == slice_status[
-                        sliver_tool.fqdn]:
+                    if (sliver_tool.status_ipv4 == slice_status[
+                        sliver_tool.fqdn]['status'] and
+		       sliver_tool.tool_extra == slice_status[
+			sliver_tool.fqdn]['tool_extra']):
                         logging.info('No updates for sliver %s.',
                                       sliver_tool.fqdn)
                     else:
-                        sliver_tool.status_ipv4 = slice_status[sliver_tool.fqdn]
+                        sliver_tool.status_ipv4 = \
+			  slice_status[sliver_tool.fqdn]['status']
+                        sliver_tool.tool_extra = \
+			  slice_status[sliver_tool.fqdn]['tool_extra']
             elif family == StatusUpdateHandler.AF_IPV6:
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
@@ -388,12 +395,17 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                         ' due to missing IP.', sliver_fqdn)
                         sliver_tool.status_ipv6 = message.STATUS_OFFLINE
                 else:
-                    if sliver_tool.status_ipv6 == slice_status[
-                        sliver_tool.fqdn]:
+                    if (sliver_tool.status_ipv6 == slice_status[
+                        sliver_tool.fqdn]['status'] and
+		       sliver_tool.tool_extra == slice_status[
+			sliver_tool.fqdn]['tool_extra']):
                         logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
+                                      sliver_tool.fqdn)
                     else:
-                        sliver_tool.status_ipv6 = slice_status[sliver_tool.fqdn]
+                        sliver_tool.status_ipv6 = \
+			  slice_status[sliver_tool.fqdn]['status']
+                        sliver_tool.tool_extra = \
+			  slice_status[sliver_tool.fqdn]['tool_extra']
             else:
                 logging.error('Unexpected address family: %s.', family)
                 continue
@@ -443,19 +455,22 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 continue
             # See the design doc for a description of the file format.
             line_fields = line.split(' ')
-            if len(line_fields) != 3:
-                logging.error('Line does not have 3 fields: %s.', line)
+            if len(line_fields) <= 3:
+                logging.error('Line does not have more than 3 fields: %s.', line)
                 continue
             slice_fqdn = line_fields[0]
             state = line_fields[1]
+            tool_extra = " ".join(line_fields[2:])
             slice_fields = slice_fqdn.split('/')
             if len(slice_fields) != 2:
                 logging.error('Slice FQDN does not 2 fields: %s.', slice_fqdn)
                 continue
             sliver_fqdn = slice_fields[0]
             if state != constants.NAGIOS_SERVICE_STATUS_OK:
-                status[sliver_fqdn] = message.STATUS_OFFLINE
+                status[sliver_fqdn] = { 'status': message.STATUS_OFFLINE,
+		  'tool_extra': tool_extra }
             else:
-                status[sliver_fqdn] = message.STATUS_ONLINE
+                status[sliver_fqdn] = { 'status': message.STATUS_ONLINE,
+		  'tool_extra': tool_extra }
 
         return status
