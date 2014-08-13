@@ -259,6 +259,8 @@ class LookupQuery:
             return
         if self.policy == message.POLICY_GEO_OPTIONS:
 	    return
+        if self.policy == message.POLICY_ALL:
+            return
         logging.warning('Non valid policy %s.', self.policy)
         self.policy = self._get_default_policy()
 

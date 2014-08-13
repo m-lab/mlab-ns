@@ -45,6 +45,7 @@ POLICY_GEO_OPTIONS='geo_options'
 POLICY_METRO    = 'metro'
 POLICY_RANDOM   = 'random'
 POLICY_COUNTRY  = 'country'
+POLICY_ALL      = 'all'
  
 REMOTE_ADDRESS  = 'ip'
 SERVER_ID       = 'server_id'

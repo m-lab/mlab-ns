@@ -113,11 +113,15 @@ class LookupHandler(webapp.RequestHandler):
             logging.error("Problem: sliver_tools is not a list.")
             return
 
+        tool = None
         json_data = "";
         for sliver_tool in sliver_tools:
             data = {}
 
             ip = []
+
+            if tool == None:
+                tool = model.get_tool_from_tool_id(sliver_tool.tool_id)
 
             logging.info('user_defined_af = %s', query.user_defined_af)
             if query.user_defined_af == message.ADDRESS_FAMILY_IPv4:
@@ -150,7 +154,7 @@ class LookupHandler(webapp.RequestHandler):
             data['city'] = sliver_tool.city
             data['country'] = sliver_tool.country
 
-            if sliver_tool.tool_extra:
+            if sliver_tool.tool_extra and tool.show_tool_extra:
                 data['tool_extra'] = sliver_tool.tool_extra
 
             if json_data != "":

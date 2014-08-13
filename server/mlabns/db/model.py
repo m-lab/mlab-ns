@@ -1,4 +1,6 @@
 from google.appengine.ext import db
+from mlabns.util import constants
+import logging
 
 # The classes defined in this file are described in detail in
 # the design doc at http://goo.gl/48S22.
@@ -111,6 +113,7 @@ class Tool(db.Model):
     # For web-based tools, this is used to build the URL the client is
     # redirected to: http://fqdn[ipv4|ipv6]:http_port
     http_port = db.StringProperty()
+    show_tool_extra = db.BooleanProperty()
 
 class Nagios(db.Model):
     key_id = db.StringProperty()
@@ -158,3 +161,11 @@ def get_slice_site_server_ids(fqdn):
 
     slice_id = '_'.join([ slice_id_part2, slice_id_part1])
     return slice_id, site_id, server_id
+
+def get_tool_from_tool_id(tool_id):
+    tools_gql = Tool.gql("WHERE tool_id = :tool_id", tool_id=tool_id)
+    logging.info("tools_gql: " + str(tools_gql))
+    for tool in tools_gql.run():
+        logging.info("tool_id: " + tool.tool_id)
+        return tool
+    return None

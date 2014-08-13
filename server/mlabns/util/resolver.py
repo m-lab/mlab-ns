@@ -120,6 +120,13 @@ class ResolverBase:
 
         return [random.choice(candidates)]
 
+class AllResolver(ResolverBase):
+    def answer_query(self, query):
+        candidates = self.get_candidates(query)
+        if len(candidates) == 0:
+            logging.error('No results found for %s.', query.tool_id)
+            return None
+        return candidates
 
 class GeoResolver(ResolverBase):
     """Chooses the server geographically closest to the client."""
@@ -305,5 +312,7 @@ def new_resolver(policy):
         return CountryResolver()
     elif policy == message.POLICY_GEO_OPTIONS:
         return GeoResolverWithOptions()
+    elif policy == message.POLICY_ALL:
+        return AllResolver()
     else:
         return RandomResolver()
