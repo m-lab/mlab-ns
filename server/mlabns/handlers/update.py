@@ -337,7 +337,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
             for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
               slice_url = nagios.url + '?show_state=1&service_name=' + \
                     item.tool_id + family + \
-		    "&plugin_output=1"
+                    "&plugin_output=1"
 
               slice_status = self.get_slice_status(slice_url)
               self.update_sliver_tools_status(slice_status, item.tool_id,
@@ -376,15 +376,15 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 else:
                     if (sliver_tool.status_ipv4 == slice_status[
                         sliver_tool.fqdn]['status'] and
-		       sliver_tool.tool_extra == slice_status[
-			sliver_tool.fqdn]['tool_extra']):
+                        sliver_tool.tool_extra == slice_status[
+                            sliver_tool.fqdn]['tool_extra']):
                         logging.info('No updates for sliver %s.',
                                       sliver_tool.fqdn)
                     else:
                         sliver_tool.status_ipv4 = \
-			  slice_status[sliver_tool.fqdn]['status']
+                          slice_status[sliver_tool.fqdn]['status']
                         sliver_tool.tool_extra = \
-			  slice_status[sliver_tool.fqdn]['tool_extra']
+                          slice_status[sliver_tool.fqdn]['tool_extra']
             elif family == StatusUpdateHandler.AF_IPV6:
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
@@ -397,15 +397,15 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 else:
                     if (sliver_tool.status_ipv6 == slice_status[
                         sliver_tool.fqdn]['status'] and
-		       sliver_tool.tool_extra == slice_status[
-			sliver_tool.fqdn]['tool_extra']):
+                        sliver_tool.tool_extra == slice_status[
+                            sliver_tool.fqdn]['tool_extra']):
                         logging.info('No updates for sliver %s.',
                                       sliver_tool.fqdn)
                     else:
                         sliver_tool.status_ipv6 = \
-			  slice_status[sliver_tool.fqdn]['status']
+                          slice_status[sliver_tool.fqdn]['status']
                         sliver_tool.tool_extra = \
-			  slice_status[sliver_tool.fqdn]['tool_extra']
+                          slice_status[sliver_tool.fqdn]['tool_extra']
             else:
                 logging.error('Unexpected address family: %s.', family)
                 continue
@@ -468,9 +468,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
             sliver_fqdn = slice_fields[0]
             if state != constants.NAGIOS_SERVICE_STATUS_OK:
                 status[sliver_fqdn] = { 'status': message.STATUS_OFFLINE,
-		  'tool_extra': tool_extra }
+                  'tool_extra': tool_extra }
             else:
                 status[sliver_fqdn] = { 'status': message.STATUS_ONLINE,
-		  'tool_extra': tool_extra }
+                  'tool_extra': tool_extra }
 
         return status
