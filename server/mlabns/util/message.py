@@ -46,7 +46,7 @@ POLICY_METRO    = 'metro'
 POLICY_RANDOM   = 'random'
 POLICY_COUNTRY  = 'country'
 POLICY_ALL      = 'all'
- 
+
 REMOTE_ADDRESS  = 'ip'
 SERVER_ID       = 'server_id'
 SERVER_PORT     = 'server_port'
@@ -145,7 +145,7 @@ class Message():
                 the signature.
 
         Raises
-            ValueError, if secret_key is None or 
+            ValueError, if secret_key is None or
                         if secret_key is not 16, 24, or 32 bytes long.
         """
         if secret_key is None:

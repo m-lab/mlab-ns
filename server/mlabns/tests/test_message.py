@@ -10,7 +10,7 @@ class MessageTestCase(unittest2.TestCase):
         class MessageMockup(message.Message):
             def add_timestamp(self):
                 self.timestamp = fake_timestamp
-                
+
         msg = MessageMockup()
         self.assertIsNone(msg.timestamp)
         msg.add_timestamp()

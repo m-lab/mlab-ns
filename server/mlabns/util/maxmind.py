@@ -69,7 +69,7 @@ def get_ipv4_geolocation(remote_addr,
     if geo_city_block is None or geo_city_block.end_ip_num < ip_num:
         logging.error('IP %s not found in the Maxmind database.', str(ip_num))
         return geo_record
-     
+
     location = city_table.get_by_key_name(geo_city_block.location_id)
     if location is None:
         logging.error(

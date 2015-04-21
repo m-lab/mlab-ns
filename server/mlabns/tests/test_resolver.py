@@ -53,28 +53,28 @@ class ResolverBaseTestCase(unittest2.TestCase):
                 return []
 
         base_resolver = ResolverBaseMockup()
-        
+
         # Case 1) List is not empty for the input address family.
         query = QueryMockup()
         query.address_family = message.ADDRESS_FAMILY_IPv6
         self.assertListEqual(['valid_candidate'],
                              base_resolver.get_candidates(query))
-        
+
         # Case 2) List is empty for input address_family and there is no
         #         user-defined address family.
         query = QueryMockup()
         query.address_family = message.ADDRESS_FAMILY_IPv4
-        query.user_defined_af = None        
+        query.user_defined_af = None
         self.assertListEqual(['valid_candidate'],
                              base_resolver.get_candidates(query))
-                
+
         # Case 3) List is empty for input address_family and user-defined
         #         address family == input address family.
         query = QueryMockup()
         query.address_family = message.ADDRESS_FAMILY_IPv4
         query.user_defined_af = message.ADDRESS_FAMILY_IPv4
         self.assertEqual(len(base_resolver.get_candidates(query)), 0)
-        
+
         # Case 4) List is empty for input address_family and user-defined
         #         address family != input address family.
         query = QueryMockup()
@@ -84,7 +84,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
                              base_resolver.get_candidates(query))
 
     def testGetCandidatesYesMemcache(self):
-                
+
         # Set up memcache stub.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
@@ -99,19 +99,19 @@ class ResolverBaseTestCase(unittest2.TestCase):
             SliverToolMockup(message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
         memcache.set('valid_tool_id', sliver_tool_list,
                      namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
-            
+
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-            
+
         base_resolver = resolver.ResolverBase()
         self.assertEqual(
-            2, len(base_resolver._get_candidates(QueryMockup(), 
+            2, len(base_resolver._get_candidates(QueryMockup(),
                                                  message.ADDRESS_FAMILY_IPv4)))
         self.assertEqual(
-            3, len(base_resolver._get_candidates(QueryMockup(), 
+            3, len(base_resolver._get_candidates(QueryMockup(),
                                                  message.ADDRESS_FAMILY_IPv6)))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
@@ -120,7 +120,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-    
+
         class SliverTool(db.Model):
             tool_id = db.StringProperty()
             status_ipv4 = db.StringProperty()
@@ -129,7 +129,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class TestEntityGroupRoot(db.Model):
             """Entity group root"""
             pass
-               
+
         # Set up datastore and memcache stubs.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
@@ -148,15 +148,15 @@ class ResolverBaseTestCase(unittest2.TestCase):
         st1.status_ipv4 = message.STATUS_ONLINE
         st1.status_ipv6 = message.STATUS_ONLINE
         st1.put()
-                        
+
         base_resolver = resolver.ResolverBase()
         self.assertEqual(
-            0, len(base_resolver._get_candidates(QueryMockup(), 
+            0, len(base_resolver._get_candidates(QueryMockup(),
                                                  message.ADDRESS_FAMILY_IPv4)))
         self.assertEqual(
-            0, len(base_resolver._get_candidates(QueryMockup(), 
+            0, len(base_resolver._get_candidates(QueryMockup(),
                                                  message.ADDRESS_FAMILY_IPv6)))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
@@ -165,7 +165,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-    
+
         class SliverTool(db.Model):
             tool_id = db.StringProperty()
             status_ipv4 = db.StringProperty()
@@ -174,14 +174,14 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class TestEntityGroupRoot(db.Model):
             """Entity group root"""
             pass
-               
+
         # Set up datastore and memcache stubs.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
         _apply_namespace_bug_workaround()
-        
+
         root = TestEntityGroupRoot(key_name='root')
         st1 = SliverTool(parent=root.key())
         st1.tool_id = 'valid_tool_id'
@@ -208,15 +208,15 @@ class ResolverBaseTestCase(unittest2.TestCase):
         st5.status_ipv4 = message.STATUS_OFFLINE
         st5.status_ipv6 = message.STATUS_OFFLINE
         st5.put()
-                        
+
         base_resolver = resolver.ResolverBase()
         self.assertEqual(
-            2, len(base_resolver._get_candidates(QueryMockup(), 
+            2, len(base_resolver._get_candidates(QueryMockup(),
                                                  message.ADDRESS_FAMILY_IPv4)))
         self.assertEqual(
-            3, len(base_resolver._get_candidates(QueryMockup(), 
+            3, len(base_resolver._get_candidates(QueryMockup(),
                                                  message.ADDRESS_FAMILY_IPv6)))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
@@ -225,7 +225,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-    
+
         class SliverTool(db.Model):
             tool_id = db.StringProperty()
             status_ipv4 = db.StringProperty()
@@ -234,14 +234,14 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class TestEntityGroupRoot(db.Model):
             """Entity group root"""
             pass
-               
+
         # Set up datastore and memcache stubs.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
         _apply_namespace_bug_workaround()
-        
+
         sliver_tool_list = [
             SliverToolMockup(message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
         memcache.set('tool_id2', sliver_tool_list,
@@ -253,20 +253,20 @@ class ResolverBaseTestCase(unittest2.TestCase):
         st1.status_ipv4 = message.STATUS_OFFLINE
         st1.status_ipv6 = message.STATUS_OFFLINE
         st1.put()
-                        
+
         base_resolver = resolver.ResolverBase()
         self.assertEqual(
-            0, len(base_resolver._get_candidates(QueryMockup(), 
+            0, len(base_resolver._get_candidates(QueryMockup(),
                                                  message.ADDRESS_FAMILY_IPv4)))
         self.assertEqual(
-            0, len(base_resolver._get_candidates(QueryMockup(), 
+            0, len(base_resolver._get_candidates(QueryMockup(),
                                                  message.ADDRESS_FAMILY_IPv6)))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
     def testGetCandidatesFromSitesYesMemcache(self):
-                
+
         # Set up memcache stub.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
@@ -286,11 +286,11 @@ class ResolverBaseTestCase(unittest2.TestCase):
                 's1', message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
         memcache.set('valid_tool_id', sliver_tool_list,
                      namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
-            
+
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-            
+
         base_resolver = resolver.ResolverBase()
         self.assertEqual(
             1, len(base_resolver._get_candidates_from_sites(
@@ -298,16 +298,16 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.assertEqual(
             2, len(base_resolver._get_candidates_from_sites(
                 QueryMockup(), message.ADDRESS_FAMILY_IPv6, ['s1'])))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
-        
+
     def testGetCandidatesFromSitesYesMemcacheButOffline(self):
 
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-    
+
         class SliverTool(db.Model):
             tool_id = db.StringProperty()
             site_id = db.StringProperty()
@@ -317,14 +317,14 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class TestEntityGroupRoot(db.Model):
             """Entity group root"""
             pass
-               
+
         # Set up datastore and memcache stubs.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
         _apply_namespace_bug_workaround()
-        
+
         sliver_tool_list = [
             SliverToolSiteMockup(
                 's2', message.STATUS_ONLINE, message.STATUS_ONLINE),
@@ -340,7 +340,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         st1.status_ipv4 = message.STATUS_ONLINE
         st1.status_ipv6 = message.STATUS_ONLINE
         st1.put()
-                        
+
         base_resolver = resolver.ResolverBase()
         self.assertEqual(
             0, len(base_resolver._get_candidates_from_sites(
@@ -348,7 +348,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.assertEqual(
             0, len(base_resolver._get_candidates_from_sites(
                 QueryMockup(), message.ADDRESS_FAMILY_IPv6, ['s1'])))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
@@ -357,7 +357,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-    
+
         class SliverTool(db.Model):
             tool_id = db.StringProperty()
             site_id = db.StringProperty()
@@ -367,14 +367,14 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class TestEntityGroupRoot(db.Model):
             """Entity group root"""
             pass
-               
+
         # Set up datastore and memcache stubs.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
         _apply_namespace_bug_workaround()
-        
+
         root = TestEntityGroupRoot(key_name='root')
         st1 = SliverTool(parent=root.key())
         st1.tool_id = 'valid_tool_id'
@@ -406,7 +406,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         st5.status_ipv4 = message.STATUS_OFFLINE
         st5.status_ipv6 = message.STATUS_OFFLINE
         st5.put()
-                        
+
         base_resolver = resolver.ResolverBase()
         self.assertEqual(
             2, len(base_resolver._get_candidates_from_sites(
@@ -414,7 +414,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.assertEqual(
             2, len(base_resolver._get_candidates_from_sites(
                 QueryMockup(), message.ADDRESS_FAMILY_IPv6, ['s1'])))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
@@ -423,7 +423,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-    
+
         class SliverTool(db.Model):
             tool_id = db.StringProperty()
             site_id = db.StringProperty()
@@ -433,14 +433,14 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class TestEntityGroupRoot(db.Model):
             """Entity group root"""
             pass
-               
+
         # Set up datastore and memcache stubs.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
         _apply_namespace_bug_workaround()
-        
+
         sliver_tool_list = [
             SliverToolSiteMockup(
                 's1', message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
@@ -454,7 +454,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         st1.status_ipv4 = message.STATUS_OFFLINE
         st1.status_ipv6 = message.STATUS_OFFLINE
         st1.put()
-                        
+
         base_resolver = resolver.ResolverBase()
         self.assertEqual(
             0, len(base_resolver._get_candidates_from_sites(
@@ -462,7 +462,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.assertEqual(
             0, len(base_resolver._get_candidates_from_sites(
                 QueryMockup(), message.ADDRESS_FAMILY_IPv6, ['s1'])))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
@@ -470,24 +470,24 @@ class ResolverBaseTestCase(unittest2.TestCase):
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'tool_id'
-            
+
         class ResolverBaseMockup(resolver.ResolverBase):
             def get_candidates(self, unused_arg):
                 return []
-        
+
         base_resolver = ResolverBaseMockup()
         query = QueryMockup()
         self.assertIsNone(base_resolver.answer_query(query))
-        
+
     def testAnswerQueryNonEmptyResult(self):
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'tool_id'
-            
+
         class ResolverBaseMockup(resolver.ResolverBase):
             def get_candidates(self, unused_arg):
                 return ['valid_candidate']
-        
+
         base_resolver = ResolverBaseMockup()
         query = QueryMockup()
         self.assertListEqual(['valid_candidate'],
@@ -496,11 +496,11 @@ class ResolverBaseTestCase(unittest2.TestCase):
 
 class GeoResolverTestCase(unittest2.TestCase):
     def testAnswerQueryNoCandidates(self):
-        
+
         class QueryMockup:
             def __init__(self):
                 self.tool_id = 'valid_tool_id'
-            
+
         class GeoResolverMockup(resolver.GeoResolver):
             def get_candidates(self, unused_arg):
                 return []
@@ -508,13 +508,13 @@ class GeoResolverTestCase(unittest2.TestCase):
         geo_resolver = GeoResolverMockup()
         self.assertIsNone(geo_resolver.answer_query(QueryMockup()))
 
-    def testAnswerQueryNoLatLon(self): 
-       
+    def testAnswerQueryNoLatLon(self):
+
         class QueryMockup:
             def __init__(self):
                 self.latitude = None
                 self.longitude = None
-             
+
         class GeoResolverMockup(resolver.GeoResolver):
             def get_candidates(self, unused_arg):
                 return ['valid_candidate']
@@ -524,72 +524,72 @@ class GeoResolverTestCase(unittest2.TestCase):
         self.assertEqual(1, len(results))
         self.assertEqual('valid_candidate', results[0])
 
-    def testAnswerQueryAllCandidatesSameSite(self): 
-       
+    def testAnswerQueryAllCandidatesSameSite(self):
+
         class QueryMockup:
             def __init__(self):
                 self.latitude = 0.0
                 self.longitude = 0.0
-             
+
         class SliverToolMockup:
             def __init__(self):
                 self.site_id = 'valid_site_id'
                 self.latitude = 2.0
                 self.longitude = 1.0
-                
+
         class GeoResolverMockup(resolver.GeoResolver):
             def get_candidates(self, unused_arg):
                 return [SliverToolMockup(), SliverToolMockup()]
-                        
+
         geo_resolver = GeoResolverMockup()
         results = geo_resolver.answer_query(QueryMockup())
         self.assertEqual(1, len(results))
         self.assertEqual(2.0, results[0].latitude)
         self.assertEqual(1.0, results[0].longitude)
 
-    def testAnswerQueryAllCandidatesDifferentSitesOneClosest(self): 
-       
+    def testAnswerQueryAllCandidatesDifferentSitesOneClosest(self):
+
         class QueryMockup:
             def __init__(self):
                 self.latitude = 0.0
                 self.longitude = 0.0
-             
+
         class SliverToolMockup:
             def __init__(self, site, lat, lon):
                 self.site_id = site
                 self.latitude = lat
                 self.longitude = lon
-                
+
         class GeoResolverMockup(resolver.GeoResolver):
             def get_candidates(self, unused_arg):
                 return [SliverToolMockup('a', 2.0, 1.0),
                         SliverToolMockup('b', 20.0, 34.9)]
-                        
+
         geo_resolver = GeoResolverMockup()
         results = geo_resolver.answer_query(QueryMockup())
         self.assertEqual(1, len(results))
         self.assertEqual(2.0, results[0].latitude)
         self.assertEqual(1.0, results[0].longitude)
 
-    def testAnswerQueryAllCandidatesDifferentSitesMultipleClosest(self): 
-       
+    def testAnswerQueryAllCandidatesDifferentSitesMultipleClosest(self):
+
         class QueryMockup:
             def __init__(self):
                 self.latitude = 0.0
                 self.longitude = 0.0
-             
+
         class SliverToolMockup:
             def __init__(self, site, lat, lon):
                 self.site_id = site
                 self.latitude = lat
                 self.longitude = lon
-                
+
         class GeoResolverMockup(resolver.GeoResolver):
             def get_candidates(self, unused_arg):
                 return [SliverToolMockup('a', 2.0, 1.0),
                         SliverToolMockup('b', 20.0, 34.9),
                         SliverToolMockup('c', 2.0, 1.0)]
-                        
+
         geo_resolver = GeoResolverMockup()
         results = geo_resolver.answer_query(QueryMockup())
         self.assertEqual(1, len(results))
@@ -599,24 +599,24 @@ class GeoResolverTestCase(unittest2.TestCase):
 
 class CountryResolverTestCase(unittest2.TestCase):
     def testAnswerQueryNoUserDefinedCountry(self):
-        
+
         class QueryMockup:
             def __init__(self):
                 self.user_defined_country = None
-            
+
         class CountryResolverMockup(resolver.CountryResolver):
             pass
 
         country_resolver = CountryResolverMockup()
         self.assertIsNone(country_resolver.answer_query(QueryMockup()))
-        
+
     def testAnswerQueryNoCandidates(self):
-        
+
         class QueryMockup:
             def __init__(self):
                 self.user_defined_country = 'valid_country'
                 self.tool_id = 'valid_tool_id'
-            
+
         class CountryResolverMockup(resolver.CountryResolver):
             def get_candidates(self, unused_arg):
                 return []
@@ -624,17 +624,17 @@ class CountryResolverTestCase(unittest2.TestCase):
         country_resolver = CountryResolverMockup()
         self.assertIsNone(country_resolver.answer_query(QueryMockup()))
 
-    def testAnswerQueryNoCandidatesInUserDefinedCountry(self): 
-       
+    def testAnswerQueryNoCandidatesInUserDefinedCountry(self):
+
         class QueryMockup:
             def __init__(self):
                 self.user_defined_country = 'valid_country'
                 self.tool_id = 'valid_tool_id'
-            
+
         class SliverToolMockup:
             def __init__(self, country):
                 self.country = country
-                
+
         class CountryResolverMockup(resolver.CountryResolver):
             def get_candidates(self, unused_arg):
                 return [SliverToolMockup('valid_country1'),
@@ -643,17 +643,17 @@ class CountryResolverTestCase(unittest2.TestCase):
         country_resolver = CountryResolverMockup()
         self.assertIsNone(country_resolver.answer_query(QueryMockup()))
 
-    def testAnswerQueryCandidatesInUserDefinedCountry(self): 
-       
+    def testAnswerQueryCandidatesInUserDefinedCountry(self):
+
         class QueryMockup:
             def __init__(self):
                 self.user_defined_country = 'valid_country'
                 self.tool_id = 'valid_tool_id'
-            
+
         class SliverToolMockup:
             def __init__(self, country):
                 self.country = country
-                
+
         class CountryResolverMockup(resolver.CountryResolver):
             def get_candidates(self, unused_arg):
                 return [SliverToolMockup('valid_country'),
@@ -664,14 +664,14 @@ class CountryResolverTestCase(unittest2.TestCase):
         self.assertEqual(1, len(result))
         self.assertEqual('valid_country', result[0].country)
 
-        
+
 class MetroResolverTestCase(unittest2.TestCase):
-    def testGetCandidatesNoSites(self):    
+    def testGetCandidatesNoSites(self):
 
         class QueryMockup:
             def __init__(self):
                 self.metro = 'metro1'
-    
+
         class Site(db.Model):
             site_id = db.StringProperty()
             metro = db.StringListProperty()
@@ -679,11 +679,11 @@ class MetroResolverTestCase(unittest2.TestCase):
         class TestEntityGroupRoot(db.Model):
             """Entity group root"""
             pass
-               
+
         # Set up datastore stub.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()        
+        self.testbed.init_datastore_v3_stub()
         _apply_namespace_bug_workaround()
 
         root = TestEntityGroupRoot(key_name='root')
@@ -691,20 +691,20 @@ class MetroResolverTestCase(unittest2.TestCase):
         st1.site_id = 's1'
         st1.metro = ['metro2']
         st1.put()
-                        
+
         metro_resolver = resolver.MetroResolver()
         self.assertEqual(
             0, len(metro_resolver._get_candidates(QueryMockup(), 'unused_arg')))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
-    def testGetCandidatesYesSites(self):    
+    def testGetCandidatesYesSites(self):
 
         class QueryMockup:
             def __init__(self):
                 self.metro = 'metro1'
-    
+
         class Site(db.Model):
             site_id = db.StringProperty()
             metro = db.StringListProperty(default=None)
@@ -712,11 +712,11 @@ class MetroResolverTestCase(unittest2.TestCase):
         class TestEntityGroupRoot(db.Model):
             """Entity group root"""
             pass
-               
+
         # Set up datastore stub.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()        
+        self.testbed.init_datastore_v3_stub()
         _apply_namespace_bug_workaround()
 
         root = TestEntityGroupRoot(key_name='root')
@@ -741,7 +741,7 @@ class MetroResolverTestCase(unittest2.TestCase):
         metro_resolver = MetroResolverMockup()
         self.assertEqual(
             2, len(metro_resolver._get_candidates(QueryMockup(), 'unused_arg')))
-                
+
         # Tear down stub.
         self.testbed.deactivate()
 
