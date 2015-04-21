@@ -183,18 +183,20 @@ class GeoResolver(ResolverBase):
 
 
 class GeoResolverWithOptions(ResolverBase):
-    """Chooses the server geographically closest to the client."""
+    """Chooses the N geographically closest servers to the client."""
 
     def answer_query(self, query):
-        """Selects the geographically closest SliverTool.
+        """Selects the top N geographically closest SliverTools to the client.
 
         Args:
             query: A LookupQuery instance.
 
         Returns:
-            A SliverTool entity in case of success, or None if there is no
+            A list of SliverTool entities on success, or None if there is no
             SliverTool available that matches the query.
         """
+        # Return no more than MAX_RESULTS SliverTools in the result.
+        MAX_RESULTS = 4
         candidates = self.get_candidates(query)
         if len(candidates) == 0:
             logging.error('No results found for %s.', query.tool_id)
@@ -238,7 +240,7 @@ class GeoResolverWithOptions(ResolverBase):
         final_results = []
         for std in sliver_tools_sorted:
             final_results.append(std.sliver_tool)
-        return final_results[:query.options_count]
+        return final_results[:MAX_RESULTS]
 
 
 class MetroResolver(ResolverBase):
