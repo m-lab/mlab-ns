@@ -52,11 +52,6 @@ class LookupQuery:
         self.metro = request.get(message.METRO, default_value=None)
         self.set_policy(request)
         self.set_sieves(request)
-        self.set_options_count(request)
-
-    def set_options_count(self, request):
-        self.options_count=int(request.get(message.OPTIONS_COUNT,\
-                                           default_value=4))
 
     def set_sieves(self, request):
         self.sieves = sieve.new_sieves_from_request(
