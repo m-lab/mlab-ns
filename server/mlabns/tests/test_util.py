@@ -43,7 +43,7 @@ class UtilTestCase(unittest2.TestCase):
         self.assertEqual(request.response.out.msg,
                          '{"status_code": "500 Internal Server Error"}')
 
-    def testSendNotFoundNoJson(self):
+    def testSendServerErrorNoJson(self):
         request = UtilTestCase.RequestMockup()
         util.send_server_error(request, output_type=message.FORMAT_HTML)
         self.assertEqual(request.error_code, 500)
