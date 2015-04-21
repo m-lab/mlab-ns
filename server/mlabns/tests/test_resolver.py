@@ -1,6 +1,7 @@
 import unittest2
 
 from google.appengine.api import memcache
+from google.appengine.api import namespace_manager
 from google.appengine.ext import db
 from google.appengine.ext import testbed
 
@@ -8,6 +9,16 @@ from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import resolver
 
+
+def _apply_namespace_bug_workaround():
+  """Apply workaround for namespace collision.
+
+  There is currently a bug that causes test code to apply changes to an
+  inconsistent data store namespace. This is a workaround that forces the
+  data store's namespace into a consistent state. This must be called after
+  activating the testbed.
+  """
+  namespace_manager.get_namespace()
 
 # Defined at top level, to avoid pickle error, when using memcache.
 class SliverToolMockup:
@@ -78,6 +89,8 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_memcache_stub()
+        _apply_namespace_bug_workaround()
+
         sliver_tool_list = [
             SliverToolMockup(message.STATUS_ONLINE, message.STATUS_OFFLINE),
             SliverToolMockup(message.STATUS_OFFLINE, message.STATUS_ONLINE),
@@ -122,7 +135,8 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
-        
+        _apply_namespace_bug_workaround()
+
         sliver_tool_list = [
             SliverToolMockup(message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
         memcache.set('valid_tool_id', sliver_tool_list,
@@ -166,6 +180,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        _apply_namespace_bug_workaround()
         
         root = TestEntityGroupRoot(key_name='root')
         st1 = SliverTool(parent=root.key())
@@ -225,6 +240,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        _apply_namespace_bug_workaround()
         
         sliver_tool_list = [
             SliverToolMockup(message.STATUS_OFFLINE, message.STATUS_OFFLINE)]
@@ -255,6 +271,8 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_memcache_stub()
+        _apply_namespace_bug_workaround()
+
         sliver_tool_list = [
             SliverToolSiteMockup(
                 's1', message.STATUS_ONLINE, message.STATUS_OFFLINE),
@@ -305,6 +323,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        _apply_namespace_bug_workaround()
         
         sliver_tool_list = [
             SliverToolSiteMockup(
@@ -354,6 +373,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        _apply_namespace_bug_workaround()
         
         root = TestEntityGroupRoot(key_name='root')
         st1 = SliverTool(parent=root.key())
@@ -419,6 +439,7 @@ class ResolverBaseTestCase(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        _apply_namespace_bug_workaround()
         
         sliver_tool_list = [
             SliverToolSiteMockup(
@@ -658,6 +679,7 @@ class MetroResolverTestCase(unittest2.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()        
+        _apply_namespace_bug_workaround()
 
         root = TestEntityGroupRoot(key_name='root')
         st1 = Site(parent=root.key())
@@ -690,6 +712,7 @@ class MetroResolverTestCase(unittest2.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()        
+        _apply_namespace_bug_workaround()
 
         root = TestEntityGroupRoot(key_name='root')
         st1 = Site(parent=root.key())
