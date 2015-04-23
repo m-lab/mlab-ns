@@ -191,6 +191,9 @@ class GeoResolverWithOptions(ResolverBase):
     def answer_query(self, query):
         """Selects the top N geographically closest SliverTools to the client.
 
+        Finds the top N closest SliverTools to the client and returns them.
+        Note that N is currently hardcoded to 4.
+
         Args:
             query: A LookupQuery instance.
 
