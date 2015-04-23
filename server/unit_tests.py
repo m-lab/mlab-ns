@@ -16,7 +16,6 @@ def main(sdk_path, test_path):
   import dev_appserver
   dev_appserver.fix_sys_path()
   suite = unittest2.loader.TestLoader().discover(test_path)
-  print suite
   unittest2.TextTestRunner(verbosity=2).run(suite)
 
 
