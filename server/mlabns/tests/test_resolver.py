@@ -42,10 +42,10 @@ class SiteMockup:
 
 class ResolverBaseTestCase(unittest2.TestCase):
     def testGetCandidates(self):
-        
+
         class QueryMockup:
             pass
-            
+
         class ResolverBaseMockup(resolver.ResolverBase):
             def _get_candidates(self, unused_arg, address_family):
                 if address_family == message.ADDRESS_FAMILY_IPv6:
@@ -520,8 +520,9 @@ class GeoResolverTestCase(unittest2.TestCase):
                 return ['valid_candidate']
 
         geo_resolver = GeoResolverMockup()
-        self.assertEqual('valid_candidate',
-                         geo_resolver.answer_query(QueryMockup()))
+        results = geo_resolver.answer_query(QueryMockup())
+        self.assertEqual(1, len(results))
+        self.assertEqual('valid_candidate', results[0])
 
     def testAnswerQueryAllCandidatesSameSite(self): 
        
@@ -541,9 +542,10 @@ class GeoResolverTestCase(unittest2.TestCase):
                 return [SliverToolMockup(), SliverToolMockup()]
                         
         geo_resolver = GeoResolverMockup()
-        result = geo_resolver.answer_query(QueryMockup())
-        self.assertEqual(2.0, result.latitude)
-        self.assertEqual(1.0, result.longitude)
+        results = geo_resolver.answer_query(QueryMockup())
+        self.assertEqual(1, len(results))
+        self.assertEqual(2.0, results[0].latitude)
+        self.assertEqual(1.0, results[0].longitude)
 
     def testAnswerQueryAllCandidatesDifferentSitesOneClosest(self): 
        
@@ -564,9 +566,10 @@ class GeoResolverTestCase(unittest2.TestCase):
                         SliverToolMockup('b', 20.0, 34.9)]
                         
         geo_resolver = GeoResolverMockup()
-        result = geo_resolver.answer_query(QueryMockup())
-        self.assertEqual(2.0, result.latitude)
-        self.assertEqual(1.0, result.longitude)
+        results = geo_resolver.answer_query(QueryMockup())
+        self.assertEqual(1, len(results))
+        self.assertEqual(2.0, results[0].latitude)
+        self.assertEqual(1.0, results[0].longitude)
 
     def testAnswerQueryAllCandidatesDifferentSitesMultipleClosest(self): 
        
@@ -588,9 +591,10 @@ class GeoResolverTestCase(unittest2.TestCase):
                         SliverToolMockup('c', 2.0, 1.0)]
                         
         geo_resolver = GeoResolverMockup()
-        result = geo_resolver.answer_query(QueryMockup())
-        self.assertEqual(2.0, result.latitude)
-        self.assertEqual(1.0, result.longitude)
+        results = geo_resolver.answer_query(QueryMockup())
+        self.assertEqual(1, len(results))
+        self.assertEqual(2.0, results[0].latitude)
+        self.assertEqual(1.0, results[0].longitude)
 
 
 class CountryResolverTestCase(unittest2.TestCase):
@@ -657,7 +661,8 @@ class CountryResolverTestCase(unittest2.TestCase):
 
         country_resolver = CountryResolverMockup()
         result = country_resolver.answer_query(QueryMockup())
-        self.assertEqual('valid_country', result.country)
+        self.assertEqual(1, len(result))
+        self.assertEqual('valid_country', result[0].country)
 
         
 class MetroResolverTestCase(unittest2.TestCase):

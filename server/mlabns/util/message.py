@@ -66,7 +66,7 @@ TOOL_ID         = 'tool_id'
 URL             = 'url'
 USER_CITY       = 'city'
 USER_COUNTRY    = 'country'
-SIEVE           = 'sieve'
+
 
 class Error(Exception): pass
 class FormatError(Error): pass
