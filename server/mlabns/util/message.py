@@ -66,7 +66,7 @@ TOOL_ID         = 'tool_id'
 URL             = 'url'
 USER_CITY       = 'city'
 USER_COUNTRY    = 'country'
-OPTIONS_COUNT   = 'options_count'
+
 
 class Error(Exception): pass
 class FormatError(Error): pass

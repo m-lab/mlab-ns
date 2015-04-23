@@ -49,11 +49,6 @@ class LookupQuery:
         self.set_geolocation(request)
         self.metro = request.get(message.METRO, default_value=None)
         self.set_policy(request)
-        self.set_options_count(request)
-
-    def set_options_count(self, request):
-        self.options_count=int(request.get(message.OPTIONS_COUNT,\
-                                           default_value=4))
 
     def set_response_format(self, request):
         self.response_format = request.get(message.RESPONSE_FORMAT,
