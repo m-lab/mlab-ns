@@ -84,7 +84,7 @@ class MaxmindTestClass(unittest2.TestCase):
     def testGetIpv4GeolocationTooSmallEndIp(self):
         class GqlResultMockup:
             def __init__(self):
-                self.end_ip_num = 16909059  # 1.2.3.3 
+                self.end_ip_num = 16909059  # 1.2.3.3
         self.assertNoneGeoRecord(
             maxmind.get_ipv4_geolocation(
                 '1.2.3.4', ipv4_table=MaxmindTestClass.ModelMockup(
@@ -94,7 +94,7 @@ class MaxmindTestClass(unittest2.TestCase):
     def testGetIpv6GeolocationTooSmallEndIp(self):
         class GqlResultMockup:
             def __init__(self):
-                self.end_ip_num = 281483566841859  # 1:2:3:3::5 >> 64 
+                self.end_ip_num = 281483566841859  # 1:2:3:3::5 >> 64
         self.assertNoneGeoRecord(
             maxmind.get_ipv6_geolocation(
                 '1:2:3:4::5', ipv6_table=MaxmindTestClass.ModelMockup(
@@ -104,8 +104,8 @@ class MaxmindTestClass(unittest2.TestCase):
     def testGetIpv4GeolocationNoLocation(self):
         class GqlResultMockup:
             def __init__(self):
-                self.end_ip_num = 16909061  # 1.2.3.5 
-                self.location_id = 'unused' 
+                self.end_ip_num = 16909061  # 1.2.3.5
+                self.location_id = 'unused'
         self.assertNoneGeoRecord(
             maxmind.get_ipv4_geolocation(
                 '1.2.3.4',
@@ -117,10 +117,10 @@ class MaxmindTestClass(unittest2.TestCase):
     def testGetIpv4GeolocationValidLocation(self):
         class GqlResultMockup:
             def __init__(self):
-                self.end_ip_num = 16909061  # 1.2.3.5 
+                self.end_ip_num = 16909061  # 1.2.3.5
                 self.location_id = 'unused'
         class Location:
-            def __init__(self): 
+            def __init__(self):
                 self.city = 'city'
                 self.country = 'country'
                 self.latitude = 'latitude'
@@ -130,7 +130,7 @@ class MaxmindTestClass(unittest2.TestCase):
         expected_geo_record.city = location.city
         expected_geo_record.country = location.country
         expected_geo_record.latitude = location.latitude
-        expected_geo_record.longitude = location.longitude 
+        expected_geo_record.longitude = location.longitude
 
         self.assertGeoRecordEqual(
             expected_geo_record,
@@ -151,7 +151,7 @@ class MaxmindTestClass(unittest2.TestCase):
                 self.longitude = location.longitude
 
         class Location:
-            def __init__(self): 
+            def __init__(self):
                 self.country = 'country'
                 self.latitude = 'latitude'
                 self.longitude = 'longitude'
@@ -160,7 +160,7 @@ class MaxmindTestClass(unittest2.TestCase):
         expected_geo_record.city = constants.UNKNOWN_CITY
         expected_geo_record.country = location.country
         expected_geo_record.latitude = location.latitude
-        expected_geo_record.longitude = location.longitude 
+        expected_geo_record.longitude = location.longitude
 
         self.assertGeoRecordEqual(
             expected_geo_record,
@@ -175,10 +175,10 @@ class MaxmindTestClass(unittest2.TestCase):
             maxmind.get_country_geolocation(
                 'unused_country',
                  country_table=MaxmindTestClass.ModelMockup()))
-        
+
     def testGetCountryGeolocationYesCountry(self):
         class Location:
-            def __init__(self): 
+            def __init__(self):
                 self.alpha2_code = 'country'
                 self.latitude = 'latitude'
                 self.longitude = 'longitude'
@@ -187,14 +187,14 @@ class MaxmindTestClass(unittest2.TestCase):
         expected_geo_record.city = constants.UNKNOWN_CITY
         expected_geo_record.country = location.alpha2_code
         expected_geo_record.latitude = location.latitude
-        expected_geo_record.longitude = location.longitude 
+        expected_geo_record.longitude = location.longitude
 
         self.assertGeoRecordEqual(
             expected_geo_record,
             maxmind.get_country_geolocation(
                 'unused_country',
                  country_table=MaxmindTestClass.ModelMockup(location=location)))
-       
+
     def testGetCityGeolocationNoCity(self):
         self.assertNoneGeoRecord(
             maxmind.get_city_geolocation(
@@ -202,10 +202,10 @@ class MaxmindTestClass(unittest2.TestCase):
                 'unused_country',
                  city_table=MaxmindTestClass.ModelMockup(
                      gql_obj=MaxmindTestClass.GqlMockup())))
-        
+
     def testGetCityGeolocationYesCity(self):
         class Location:
-            def __init__(self): 
+            def __init__(self):
                 self.city = 'city'
                 self.country = 'country'
                 self.latitude = 'latitude'
@@ -215,7 +215,7 @@ class MaxmindTestClass(unittest2.TestCase):
         expected_geo_record.city = location.city
         expected_geo_record.country = location.country
         expected_geo_record.latitude = location.latitude
-        expected_geo_record.longitude = location.longitude 
+        expected_geo_record.longitude = location.longitude
         self.assertGeoRecordEqual(
             expected_geo_record,
             maxmind.get_city_geolocation(
@@ -224,6 +224,6 @@ class MaxmindTestClass(unittest2.TestCase):
                  city_table=MaxmindTestClass.ModelMockup(
                      gql_obj=MaxmindTestClass.GqlMockup(result=location))))
 
-             
+
 if __name__ == '__main__':
     unittest2.main()

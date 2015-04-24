@@ -56,7 +56,7 @@ class LookupQuery:
         if self.response_format is None or \
             self.response_format not in message.VALID_FORMATS:
             logging.warning('Non valid response format %s.',
-                            self.response_format) 
+                            self.response_format)
             self.response_format = message.DEFAULT_RESPONSE_FORMAT
 
     def set_ip_address_and_address_family(self, request):

@@ -17,7 +17,7 @@ class UtilTestCase(unittest2.TestCase):
             self.error_code = None
         def error(self, error_code):
             self.error_code = error_code
-  
+
     def testSendNotFoundJson(self):
         request = UtilTestCase.RequestMockup()
         util.send_not_found(request, output_type=message.FORMAT_JSON)
