@@ -1,10 +1,19 @@
+import collections
+import mock
 import unittest2
 
 from mlabns.util import constants
 from mlabns.util import lookup_query
 from mlabns.util import message
 
+
 class LookupQueryTestCase(unittest2.TestCase):
+
+    def setUp(self):
+        self.mock_headers = collections.defaultdict(lambda: None)
+        self.mock_request = mock.Mock()
+        self.mock_request.get.side_effect = (
+            lambda arg, default_value: self.mock_headers[arg])
 
     def testDefaultConstructor(self):
         query = lookup_query.LookupQuery()
@@ -38,318 +47,183 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertIsNone(query.user_defined_longitude)
 
     def testSetResponseFormatNoneFormat(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return None
-
         query = lookup_query.LookupQuery()
-        query.set_response_format(RequestMockup())
+        query.set_response_format(self.mock_request)
         self.assertEqual(query.response_format,
                          message.DEFAULT_RESPONSE_FORMAT)
 
     def testSetResponseFormatNonValidFormat(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return 'non_Valid_format'
-
+        self.mock_headers[message.RESPONSE_FORMAT] = 'non_valid_format'
         query = lookup_query.LookupQuery()
-        query.set_response_format(RequestMockup())
+        query.set_response_format(self.mock_request)
         self.assertEqual(query.response_format,
                          message.DEFAULT_RESPONSE_FORMAT)
 
     def testSetResponseFormatValidFormat(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.FORMAT_HTML
-
+        self.mock_headers[message.RESPONSE_FORMAT] = message.FORMAT_HTML
         query = lookup_query.LookupQuery()
-        query.set_response_format(RequestMockup())
+        query.set_response_format(self.mock_request)
         self.assertEqual(query.response_format, message.FORMAT_HTML)
 
     def testSetUserDefinedIpAndAfNoIpNoAf(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return None
-
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertIsNone(query.user_defined_ip)
         self.assertIsNone(query.user_defined_af)
 
     def testSetUserDefinedIpAndAfNoIpNonValidAf(self):
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.ADDRESS_FAMILY:
-                    return 'non_valid_af'
-                return None
-
+        self.mock_headers[message.ADDRESS_FAMILY] = 'non_valid_af'
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertIsNone(query.user_defined_ip)
         self.assertIsNone(query.user_defined_af)
 
     def testSetUserDefinedIpAndAfNoIpValidAf4(self):
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.ADDRESS_FAMILY:
-                    return message.ADDRESS_FAMILY_IPv4
-                return None
-
+        self.mock_headers[message.ADDRESS_FAMILY] = message.ADDRESS_FAMILY_IPv4
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertIsNone(query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfNoIpValidAf6(self):
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.ADDRESS_FAMILY:
-                    return message.ADDRESS_FAMILY_IPv6
-                return None
-
+        self.mock_headers[message.ADDRESS_FAMILY] = message.ADDRESS_FAMILY_IPv6
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertIsNone(query.user_defined_ip)
 
     def testSetUserDefinedIpAndAfNonValidIpNoAf(self):
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return 'non_valid_ip'
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = 'non_valid_ip'
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertIsNone(query.user_defined_ip)
         self.assertIsNone(query.user_defined_af)
 
     def testSetUserDefinedIpAndAfNonValidIpNonValidAf(self):
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return 'non_valid_ip'
-                if arg == message.ADDRESS_FAMILY:
-                    return 'non_valid_af'
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = 'non_valid_ip'
+        self.mock_headers[message.ADDRESS_FAMILY] = 'non_valid_af'
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertIsNone(query.user_defined_ip)
         self.assertIsNone(query.user_defined_af)
 
     def testSetUserDefinedIpAndAfNonValidIpValidAf4(self):
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return 'non_valid_ip'
-                if arg == message.ADDRESS_FAMILY:
-                    return message.ADDRESS_FAMILY_IPv4
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = 'non_valid_ip'
+        self.mock_headers[message.ADDRESS_FAMILY] = message.ADDRESS_FAMILY_IPv4
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertIsNone(query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfNonValidIpValidAf6(self):
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return 'non_valid_ip'
-                if arg == message.ADDRESS_FAMILY:
-                    return message.ADDRESS_FAMILY_IPv6
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = 'non_valid_ip'
+        self.mock_headers[message.ADDRESS_FAMILY] = message.ADDRESS_FAMILY_IPv6
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertIsNone(query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfValidIpv4NoAf(self):
         valid_ipv4 = '1.2.3.4'
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return valid_ipv4
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = valid_ipv4
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv4, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfValidIpv6NoAf(self):
         valid_ipv6 = '1:2:3::4'
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return valid_ipv6
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = valid_ipv6
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv6, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv6,
                          query.user_defined_af)
 
     def testSetUserDefinedIpAndAfValidIpv4NonvalidAf(self):
         valid_ipv4 = '1.2.3.4'
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return valid_ipv4
-                if arg == message.ADDRESS_FAMILY:
-                    return 'non_valid_af'
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = valid_ipv4
+        self.mock_headers[message.ADDRESS_FAMILY] = 'non_valid_af'
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv4, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfValidIpv6NonvalidAf(self):
         valid_ipv6 = '1:2:3::4'
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return valid_ipv6
-                if arg == message.ADDRESS_FAMILY:
-                    return 'non_valid_af'
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = valid_ipv6
+        self.mock_headers[message.ADDRESS_FAMILY] = 'non_valid_af'
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv6, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfValidIpv4ValidAf4(self):
         valid_ipv4 = '1.2.3.4'
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return valid_ipv4
-                if arg == message.ADDRESS_FAMILY:
-                    return message.ADDRESS_FAMILY_IPv4
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = valid_ipv4
+        self.mock_headers[message.ADDRESS_FAMILY] = message.ADDRESS_FAMILY_IPv4
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv4, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfValidIpv4ValidAf6(self):
         valid_ipv4 = '1.2.3.4'
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return valid_ipv4
-                if arg == message.ADDRESS_FAMILY:
-                    return message.ADDRESS_FAMILY_IPv6
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = valid_ipv4
+        self.mock_headers[message.ADDRESS_FAMILY] = message.ADDRESS_FAMILY_IPv6
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv4, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfValidIpv6ValidAf4(self):
         valid_ipv6 = '1:2:3::4'
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return valid_ipv6
-                if arg == message.ADDRESS_FAMILY:
-                    return message.ADDRESS_FAMILY_IPv4
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = valid_ipv6
+        self.mock_headers[message.ADDRESS_FAMILY] = message.ADDRESS_FAMILY_IPv4
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv6, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.user_defined_af)
 
     def testSetUserDefinedIpAndAfValidIpv6ValidAf6(self):
         valid_ipv6 = '1:2:3::4'
-
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.REMOTE_ADDRESS:
-                    return valid_ipv6
-                if arg == message.ADDRESS_FAMILY:
-                    return message.ADDRESS_FAMILY_IPv6
-                return None
-
+        self.mock_headers[message.REMOTE_ADDRESS] = valid_ipv6
+        self.mock_headers[message.ADDRESS_FAMILY] = message.ADDRESS_FAMILY_IPv6
         query = lookup_query.LookupQuery()
-        query.set_user_defined_ip_and_af(RequestMockup())
+        query.set_user_defined_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv6, query.user_defined_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.user_defined_af)
 
     def testSetGaeIpAndAfNoIp(self):
-
-        class RequestMockup:
-            def __init__(self):
-                self.remote_addr = None
-
+        self.mock_request.remote_addr = None
         query = lookup_query.LookupQuery()
-        query.set_gae_ip_and_af(RequestMockup())
+        query.set_gae_ip_and_af(self.mock_request)
         self.assertIsNone(query.gae_ip)
         self.assertIsNone(query.gae_af)
 
     def testSetGaeIpAndAfNonValidIp(self):
-
-        class RequestMockup:
-            def __init__(self):
-                self.remote_addr = 'non_valid_ip'
-
+        self.mock_request.get.remote_addr = 'non_valid_ip'
         query = lookup_query.LookupQuery()
-        query.set_gae_ip_and_af(RequestMockup())
+        query.set_gae_ip_and_af(self.mock_request)
         self.assertIsNone(query.gae_ip)
         self.assertIsNone(query.gae_af)
 
     def testSetGaeIpAndAfValidIpv4(self):
         valid_ipv4 = '1.2.3.4'
-
-        class RequestMockup:
-            def __init__(self):
-                self.remote_addr = valid_ipv4
-
+        self.mock_request.remote_addr = valid_ipv4
         query = lookup_query.LookupQuery()
-        query.set_gae_ip_and_af(RequestMockup())
+        query.set_gae_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv4, query.gae_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.gae_af)
 
     def testSetGaeIpAndAfValidIpv6(self):
         valid_ipv6 = '1:2:3::4'
-
-        class RequestMockup:
-            def __init__(self):
-                self.remote_addr = valid_ipv6
-
+        self.mock_request.remote_addr = valid_ipv6
         query = lookup_query.LookupQuery()
-        query.set_gae_ip_and_af(RequestMockup())
+        query.set_gae_ip_and_af(self.mock_request)
         self.assertEqual(valid_ipv6, query.gae_ip)
         self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.gae_af)
 
     def testSetIpAddressAndAddressFamilyUserDefined(self):
-
-        class RequestMockup: pass
 
         class LookupQueryMockup(lookup_query.LookupQuery):
             def __init__(self):
@@ -361,13 +235,11 @@ class LookupQueryTestCase(unittest2.TestCase):
             def set_gae_ip_and_af(self, unused_arg): pass
 
         query = LookupQueryMockup()
-        query.set_ip_address_and_address_family(RequestMockup())
+        query.set_ip_address_and_address_family(self.mock_request)
         self.assertEqual('user_defined_ip', query.ip_address)
         self.assertEqual('user_defined_af', query.address_family)
 
     def testSetIpAddressAndAddressFamilyGAE(self):
-
-        class RequestMockup: pass
 
         class LookupQueryMockup(lookup_query.LookupQuery):
             def __init__(self):
@@ -379,13 +251,11 @@ class LookupQueryTestCase(unittest2.TestCase):
             def set_gae_ip_and_af(self, unused_arg): pass
 
         query = LookupQueryMockup()
-        query.set_ip_address_and_address_family(RequestMockup())
+        query.set_ip_address_and_address_family(self.mock_request)
         self.assertEqual('gae_ip', query.ip_address)
         self.assertEqual('gae_af', query.address_family)
 
     def testSetIpAddressAndAddressFamilyMixed(self):
-
-        class RequestMockup: pass
 
         class LookupQueryMockup(lookup_query.LookupQuery):
             def __init__(self):
@@ -398,7 +268,7 @@ class LookupQueryTestCase(unittest2.TestCase):
             def set_gae_ip_and_af(self, unused_arg): pass
 
         query = LookupQueryMockup()
-        query.set_ip_address_and_address_family(RequestMockup())
+        query.set_ip_address_and_address_family(self.mock_request)
         self.assertEqual('user_defined_ip', query.ip_address)
         self.assertIsNone(query.address_family)
 
@@ -408,23 +278,17 @@ class LookupQueryTestCase(unittest2.TestCase):
         city = 'valid_city'
         country = None
 
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.LATITUDE:
-                    return lat
-                if arg == message.LONGITUDE:
-                    return lon
-                if arg == message.CITY:
-                    return city
-                if arg == message.COUNTRY:
-                    return country
-                return None
-
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg): pass
 
+        self.mock_headers[message.LATITUDE] = lat
+        self.mock_headers[message.LONGITUDE] = lon
+        self.mock_headers[message.CITY] = city
+        self.mock_headers[message.COUNTRY] = country
+
         query = LookupQueryMockup()
-        query.set_geolocation(RequestMockup())
+        query.set_geolocation(self.mock_request)
+
         self.assertEqual(constants.GEOLOCATION_USER_DEFINED,
                          query.geolocation_type)
         self.assertEqual(lat, query.user_defined_latitude)
@@ -443,23 +307,17 @@ class LookupQueryTestCase(unittest2.TestCase):
         city = 'valid_city'
         country = None
 
-        class RequestMockup:
-            def get(self, arg, default_value=None):
-                if arg == message.LATITUDE:
-                    return lat
-                if arg == message.LONGITUDE:
-                    return lon
-                if arg == message.CITY:
-                    return city
-                if arg == message.COUNTRY:
-                    return country
-                return None
-
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg): pass
 
+        self.mock_headers[message.LATITUDE] = lat
+        self.mock_headers[message.LONGITUDE] = lon
+        self.mock_headers[message.CITY] = city
+        self.mock_headers[message.COUNTRY] = country
+
         query = LookupQueryMockup()
-        query.set_geolocation(RequestMockup())
+        query.set_geolocation(self.mock_request)
+
         self.assertEqual(constants.GEOLOCATION_USER_DEFINED,
                          query.geolocation_type)
         self.assertIsNone(query.user_defined_latitude)
@@ -478,14 +336,6 @@ class LookupQueryTestCase(unittest2.TestCase):
         city = None
         country = 'maxmind_country'
 
-        class RequestMockup:
-            def __init__(self):
-                self.country = None
-            def get(self, arg, default_value=None):
-                if arg == message.COUNTRY:
-                    return self.country
-                return None
-
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg): pass
             def set_maxmind_geolocation(
@@ -497,7 +347,7 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         query = LookupQueryMockup()
         query.user_defined_ip = 'valid_ip'
-        query.set_geolocation(RequestMockup())
+        query.set_geolocation(self.mock_request)
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
         self.assertEqual(lat, query.maxmind_latitude)
         self.assertEqual(lon, query.maxmind_longitude)
@@ -509,9 +359,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(query.maxmind_city, query.city)
         self.assertEqual(query.maxmind_country, query.country)
 
-        request = RequestMockup()
-        request.country = 'valid_country'
-        query.set_geolocation(request)
+        self.mock_headers[message.COUNTRY] = 'valid_country'
+        query.set_geolocation(self.mock_request)
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
         self.assertEqual(lat, query.maxmind_latitude)
         self.assertEqual(lon, query.maxmind_longitude)
@@ -529,10 +378,6 @@ class LookupQueryTestCase(unittest2.TestCase):
         city = None
         country = 'gae_country'
 
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return None
-
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg):
                 self.gae_latitude = lat
@@ -541,7 +386,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 self.gae_country = country
 
         query = LookupQueryMockup()
-        query.set_geolocation(RequestMockup())
+        query.set_geolocation(self.mock_request)
         self.assertEqual(constants.GEOLOCATION_APP_ENGINE,
                          query.geolocation_type)
         self.assertEqual(lat, query.gae_latitude)
@@ -560,14 +405,6 @@ class LookupQueryTestCase(unittest2.TestCase):
         city = None
         country = 'maxmind_country'
 
-        class RequestMockup:
-            def __init__(self):
-                self.country = None
-            def get(self, arg, default_value=None):
-                if arg == message.COUNTRY:
-                    return self.country
-                return None
-
         class LookupQueryMockup(lookup_query.LookupQuery):
             def set_appengine_geolocation(self, unused_arg): pass
             def set_maxmind_geolocation(
@@ -579,7 +416,7 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         query = LookupQueryMockup()
         query.user_defined_ip = 'valid_ip'
-        query.set_geolocation(RequestMockup())
+        query.set_geolocation(self.mock_request)
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
         self.assertEqual(lat, query.maxmind_latitude)
         self.assertEqual(lon, query.maxmind_longitude)
@@ -592,9 +429,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(query.maxmind_country, query.country)
 
         query = LookupQueryMockup()
-        request = RequestMockup()
-        request.country = 'valid_country'
-        query.set_geolocation(request)
+        self.mock_headers[message.COUNTRY] = 'valid_country'
+        query.set_geolocation(self.mock_request)
         self.assertEqual(constants.GEOLOCATION_MAXMIND, query.geolocation_type)
         self.assertEqual(lat, query.maxmind_latitude)
         self.assertEqual(lon, query.maxmind_longitude)
@@ -618,188 +454,126 @@ class LookupQueryTestCase(unittest2.TestCase):
         valid_city = 'valid_city'
         valid_latitude = 0.0
         valid_longitude = 3.0
-
-        class RequestMockup:
-            def __init__(self):
-                self.headers = {}
-                self.headers[message.HEADER_CITY] = valid_city
-                self.headers[message.HEADER_LAT_LONG] = '0.0,3.0'
-
+        self.mock_request.headers = {
+            message.HEADER_CITY: valid_city,
+            message.HEADER_LAT_LONG: '0.0,3.0'
+            }
         query = lookup_query.LookupQuery()
-        query.set_appengine_geolocation(RequestMockup())
+        query.set_appengine_geolocation(self.mock_request)
         self.assertEqual(valid_city, query.gae_city)
         self.assertIsNone(query.gae_country)
         self.assertEqual(valid_latitude, query.gae_latitude)
         self.assertEqual(valid_longitude, query.gae_longitude)
 
     def testSetPolicyUserDefinedGeoPolicyGeo(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.POLICY_GEO
-
+        self.mock_headers[message.POLICY] = message.POLICY_GEO
         query = lookup_query.LookupQuery()
         query.user_defined_ip = 'valid_ip'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_GEO, query.policy)
 
         query = lookup_query.LookupQuery()
         query.user_defined_latitude = 'valid_lat'
         query.user_defined_longitude = 'valid_long'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_GEO, query.policy)
 
     def testSetPolicyUserDefinedGeoPolicyNoGeo(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return 'no_geo_policy'
-
+        self.mock_headers[message.POLICY] = 'no_geo_policy'
         query = lookup_query.LookupQuery()
         query.user_defined_ip = 'valid_ip'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_GEO, query.policy)
 
         query = lookup_query.LookupQuery()
         query.user_defined_latitude = 'valid_lat'
         query.user_defined_longitude = 'valid_long'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_GEO, query.policy)
 
     def testSetPolicyUserDefinedCountryPolicyCountry(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.POLICY_COUNTRY
-
+        self.mock_headers[message.POLICY] = message.POLICY_COUNTRY
         query = lookup_query.LookupQuery()
         query.user_defined_country = 'valid_country'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_COUNTRY, query.policy)
 
     def testSetPolicyUserDefinedCountryPolicyGeo(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.POLICY_GEO
-
+        self.mock_headers[message.POLICY] = message.POLICY_GEO
         query = lookup_query.LookupQuery()
         query.user_defined_country = 'valid_country'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_GEO, query.policy)
 
     def testSetPolicyUserDefinedCountryPolicyNoGeoNoCountry(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return 'no_geo_no_country_policy'
-
+        self.mock_headers[message.POLICY] = 'no_geo_no_country_policy'
         query = lookup_query.LookupQuery()
         query.user_defined_country = 'valid_country'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_GEO, query.policy)
 
     def testSetPolicyUserDefinedMetroPolicyMetro(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.POLICY_METRO
-
+        self.mock_headers[message.POLICY] = message.POLICY_METRO
         query = lookup_query.LookupQuery()
         query.metro = 'valid_metro'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_METRO, query.policy)
 
     def testSetPolicyUserDefinedMetroPolicyNoMetro(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return 'no_metro_policy'
-
+        self.mock_headers[message.POLICY] = 'no_metro_policy'
         query = lookup_query.LookupQuery()
         query.metro = 'valid_metro'
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_METRO, query.policy)
 
     def testSetPolicyGeoPolicyNoGeo(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.POLICY_GEO
-
+        self.mock_headers[message.POLICY] = message.POLICY_GEO
         query = lookup_query.LookupQuery()
         query.latitude = 'valid_lat'
         query.longitude = None
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyCountryPolicyNoUserDefinedCountry(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.POLICY_COUNTRY
-
+        self.mock_headers[message.POLICY] = message.POLICY_COUNTRY
         query = lookup_query.LookupQuery()
         query.user_defined_country = None
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyMetroPolicyNoMetro(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.POLICY_METRO
-
+        self.mock_headers[message.POLICY] = message.POLICY_METRO
         query = lookup_query.LookupQuery()
         query.metro = None
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyPolicyRandom(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return message.POLICY_RANDOM
-
+        self.mock_headers[message.POLICY] = message.POLICY_RANDOM
         query = lookup_query.LookupQuery()
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyNoPolicy(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return None
-
         query = lookup_query.LookupQuery()
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testSetPolicyNonValidPolicy(self):
-
-        class RequestMockup:
-            def get(self, unused_arg, default_value=None):
-                return 'non_valid_policy'
-
+        self.mock_headers[message.POLICY] = 'non_valid_policy'
         query = lookup_query.LookupQuery()
-        query.set_policy(RequestMockup())
+        query.set_policy(self.mock_request)
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testInitializeFromHttpRequest(self):
         valid_metro = 'valid_metro'
         valid_tool = 'valid_tool'
-
-        class RequestMockup:
-            def __init__(self):
-                self.path = valid_tool + '/xyz/'
-                self.remote_addr = None
-                self.headers = {}
-            def get(self, arg, default_value=None):
-                if arg == message.METRO:
-                    return valid_metro
-
+        self.mock_headers[message.METRO] = valid_metro
+        self.mock_request.path = valid_tool + '/xyz/'
+        self.mock_request.remote_addr = None
+        self.mock_request.headers = {}
         query = lookup_query.LookupQuery()
-        query.initialize_from_http_request(RequestMockup())
+        query.initialize_from_http_request(self.mock_request)
         self.assertEqual(valid_tool, query.tool_id)
         self.assertEqual(valid_metro, query.metro)
 
