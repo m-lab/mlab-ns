@@ -460,7 +460,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 continue
             slice_fqdn = line_fields[0]
             state = line_fields[1]
-            tool_extra = " ".join(line_fields[2:])
+            tool_extra = " ".join(line_fields[3:])
             slice_fields = slice_fqdn.split('/')
             if len(slice_fields) != 2:
                 logging.error('Slice FQDN does not 2 fields: %s.', slice_fqdn)
