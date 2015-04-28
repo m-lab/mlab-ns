@@ -39,10 +39,6 @@ class LookupHandler(webapp.RequestHandler):
         lookup_resolver = resolver.new_resolver(query.policy)
         sliver_tools = lookup_resolver.answer_query(query)
 
-        # Shh.
-        if query.tool_id == "teapot":
-            return util.send_teapot(self, query.response_format)
-
         if sliver_tools is None:
             return util.send_not_found(self, query.response_format)
 
