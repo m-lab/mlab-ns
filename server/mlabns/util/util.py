@@ -1,12 +1,15 @@
 import json
+import os
 
 import jinja2
 
 from mlabns.util import message
 
 def _get_jinja_environment():
+    current_dir = os.path.dirname(__file__)
+    templates_dir = os.path.join(current_dir, '../templates')
     return jinja2.Environment(
-        loader=jinja2.FileSystemLoader('mlabns/templates'),
+        loader=jinja2.FileSystemLoader(templates_dir),
         extensions=['jinja2.ext.autoescape'], autoescape=True)
 
 def _get_jinja_template(template_filename):
