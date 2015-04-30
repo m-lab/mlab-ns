@@ -216,35 +216,35 @@ class LookupQueryTestCase(unittest2.TestCase):
 
     # TODO(mtlynch): These tests fail because LookupQuery actually doesn't
     # handle these cases correctly. Uncomment when the code is fixed.
-    #def testInitializeIgnoresInvalidUserDefinedLatWithValidLon(self):
-    #    user_defined_latitude = 'invalid_latitude'
-    #    user_defined_longitude = 36.0
+    """def testInitializeIgnoresInvalidUserDefinedLatWithValidLon(self):
+        user_defined_latitude = 'invalid_latitude'
+        user_defined_longitude = 36.0
 
-    #    self.mock_query_params[message.LATITUDE] = user_defined_latitude
-    #    self.mock_query_params[message.LONGITUDE] = user_defined_longitude
+        self.mock_query_params[message.LATITUDE] = user_defined_latitude
+        self.mock_query_params[message.LONGITUDE] = user_defined_longitude
 
-    #    query = lookup_query.LookupQuery()
-    #    query.initialize_from_http_request(self.mock_request)
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
 
-    #    self.assertEqual(self.mock_gae_latitude, query.latitude)
-    #    self.assertEqual(self.mock_gae_longitude, query.longitude)
-    #    self.assertEqual(self.mock_gae_city, query.city)
-    #    self.assertEqual(self.mock_gae_country, query.country)
+        self.assertEqual(self.mock_gae_latitude, query.latitude)
+        self.assertEqual(self.mock_gae_longitude, query.longitude)
+        self.assertEqual(self.mock_gae_city, query.city)
+        self.assertEqual(self.mock_gae_country, query.country)
 
-    #def testInitializeIgnoresValidUserDefinedLatWithInvalidLon(self):
-    #    user_defined_latitude = 36.0
-    #    user_defined_longitude = 'invalid_longitude'
+    def testInitializeIgnoresValidUserDefinedLatWithInvalidLon(self):
+        user_defined_latitude = 36.0
+        user_defined_longitude = 'invalid_longitude'
 
-    #    self.mock_query_params[message.LATITUDE] = user_defined_latitude
-    #    self.mock_query_params[message.LONGITUDE] = user_defined_longitude
+        self.mock_query_params[message.LATITUDE] = user_defined_latitude
+        self.mock_query_params[message.LONGITUDE] = user_defined_longitude
 
-    #    query = lookup_query.LookupQuery()
-    #    query.initialize_from_http_request(self.mock_request)
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
 
-    #    self.assertEqual(self.mock_gae_latitude, query.latitude)
-    #    self.assertEqual(self.mock_gae_longitude, query.longitude)
-    #    self.assertEqual(self.mock_gae_city, query.city)
-    #    self.assertEqual(self.mock_gae_country, query.country)
+        self.assertEqual(self.mock_gae_latitude, query.latitude)
+        self.assertEqual(self.mock_gae_longitude, query.longitude)
+        self.assertEqual(self.mock_gae_city, query.city)
+        self.assertEqual(self.mock_gae_country, query.country)"""
 
     def testInitializeIgnoresInvalidUserDefinedLatLonEvenIfCityIsValid(self):
         user_defined_latitude = 'invalid_latitude'
@@ -270,17 +270,15 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testInitializeIgnoresInvalidUserDefinedLatLonEvenIfCountryIsValid(self):
         user_defined_latitude = 'invalid_latitude'
         user_defined_longitude = 'invalid_longitude'
-        user_defined_country = 'valid_country'
+        user_defined_country = 'user_defined_country'
 
         self.mock_query_params[message.LATITUDE] = user_defined_latitude
         self.mock_query_params[message.LONGITUDE] = user_defined_longitude
         self.mock_query_params[message.COUNTRY] = user_defined_country
 
-        maxmind_latitude = 55.5
-        maxmind_longitude = 77.7
-
+        # LookupQuery confusingly ignores these values.
         maxmind.get_country_geolocation.return_value = maxmind.GeoRecord(
-            latitude=maxmind_latitude, longitude=maxmind_longitude,
+            latitude=55.7, longitude=77.7,
             country=user_defined_country)
 
         query = lookup_query.LookupQuery()
@@ -288,7 +286,9 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         #TODO(mtlynch): This is confusing behavior. If the only valid user-
         # defined field is the country name, the policy should implicitly be
-        # message.COUNTRY.
+        # message.COUNTRY. Additionally, an invalid lat/lon should be treated
+        # the same as no lat/lon, but the current implementation changes invalid
+        # lat/lon to None values, but fills in missing lat/lon from Maxmind.
         self.assertEqual(message.POLICY_GEO, query.policy)
         self.assertIsNone(query.latitude)
         self.assertIsNone(query.longitude)
