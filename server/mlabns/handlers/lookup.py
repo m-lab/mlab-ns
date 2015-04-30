@@ -352,7 +352,7 @@ class LookupHandler(webapp.RequestHandler):
             '%s,%s,%s,%s,%s,%s,%s',
             # Info about the user:
             query._user_defined_ip,
-            query._user_defined_af,
+            query.user_defined_af,
             query._gae_ip,
             query._gae_af,
             query.ip_address,
