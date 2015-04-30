@@ -23,9 +23,15 @@ class LookupQuery:
         self._gae_ip = None
         self._user_defined_ip = None
         self._gae_af = None
-        self._user_defined_af = None
+        #TODO(mtlynch): Rename user_defined_af as it refers to the AF of the
+        # M-Lab tool to look for rather than the AF of the user that made the
+        # request (whereas user_defined_ip refers to the client).
+        self.user_defined_af = None
         self._user_defined_city = None
-        self._user_defined_country = None
+        #TODO(mtlynch): We are using two country fields to store the same type
+        # of information, but using user_defined_country in some cases and
+        # country in others. We should consolidate them into a single field.
+        self.user_defined_country = None
         self._user_defined_latitude = None
         self._user_defined_longitude = None
         self._gae_city = None
@@ -69,24 +75,24 @@ class LookupQuery:
         elif self._gae_ip is not None:
             self.ip_address = self._gae_ip
 
-        if self._user_defined_af is not None:
-            self.address_family = self._user_defined_af
+        if self.user_defined_af is not None:
+            self.address_family = self.user_defined_af
         elif self._gae_af is not None:
             self.address_family = self._gae_af
 
     def _set_user_defined_ip_and_af(self, request):
       self._user_defined_ip = request.get(message.REMOTE_ADDRESS,
                                           default_value=None)
-      self._user_defined_af = request.get(message.ADDRESS_FAMILY,
-                                          default_value=None)
+      self.user_defined_af = request.get(message.ADDRESS_FAMILY,
+                                         default_value=None)
       if self._user_defined_ip:
-          self._set_ip_and_af('_user_defined_ip', '_user_defined_af')
-      if not self._user_defined_ip and self._user_defined_af:
+          self._set_ip_and_af('_user_defined_ip', 'user_defined_af')
+      if not self._user_defined_ip and self.user_defined_af:
           logging.warning(
               ('User specified an address family, but did not specify a '
                'valid IP. Ignoring address family: %s'),
-              self._user_defined_af)
-          self._user_defined_af = None
+              self.user_defined_af)
+          self.user_defined_af = None
 
     def _set_gae_ip_and_af(self, request):
         self._gae_ip = request.remote_addr
@@ -102,6 +108,10 @@ class LookupQuery:
                     'IP address is IPv4, but address family is %s.',
                     self.__dict__[af_field])
                 # The IP address has precedence over the address family.
+                # TODO(mtlynch): LookupQuery handles the user-defined AF
+                # incorrectly. The AF field refers to the tool, not the client.
+                # An IPv4 client can legally request information about an IPv6
+                # tool.
             self.__dict__[af_field] = message.ADDRESS_FAMILY_IPv4
             return
         except ipaddr.AddressValueError:
@@ -126,7 +136,7 @@ class LookupQuery:
     def _set_geolocation(self, request):
         self._set_appengine_geolocation(request)
         self._user_defined_city = request.get(message.CITY, default_value=None)
-        self._user_defined_country = request.get(message.COUNTRY,
+        self.user_defined_country = request.get(message.COUNTRY,
                                                 default_value=None)
         input_latitude = request.get(message.LATITUDE, default_value=None)
         input_longitude = request.get(message.LONGITUDE, default_value=None)
@@ -140,10 +150,10 @@ class LookupQuery:
                 logging.error('Non valid user-defined lat, long (%s, %s).',
                                input_latitude, input_longitude)
         elif self._user_defined_ip is not None or \
-            self._user_defined_country is not None:
+            self.user_defined_country is not None:
             self._geolocation_type = constants.GEOLOCATION_MAXMIND
             self._set_maxmind_geolocation(self._user_defined_ip,
-                                          self._user_defined_country,
+                                          self.user_defined_country,
                                           self._user_defined_city)
         elif self._gae_latitude is not None and self._gae_longitude is not None:
             self._geolocation_type = constants.GEOLOCATION_APP_ENGINE
@@ -154,7 +164,7 @@ class LookupQuery:
 
         if self._geolocation_type == constants.GEOLOCATION_USER_DEFINED:
             self.city = self._user_defined_city
-            self.country = self._user_defined_country
+            self.country = self.user_defined_country
             self.latitude = self._user_defined_latitude
             self.longitude = self._user_defined_longitude
         elif self._geolocation_type == constants.GEOLOCATION_MAXMIND:
@@ -215,7 +225,7 @@ class LookupQuery:
                          self.policy)
                 self.policy = message.POLICY_GEO
             return
-        if self._user_defined_country is not None:
+        if self.user_defined_country is not None:
             if self.policy != message.POLICY_COUNTRY and \
                 self.policy != message.POLICY_GEO:
                 if self.policy:
@@ -237,7 +247,7 @@ class LookupQuery:
                 self.policy = message.POLICY_RANDOM
             return
         if self.policy == message.POLICY_COUNTRY:
-            if self._user_defined_country is None:
+            if self.user_defined_country is None:
                 logging.warning('Policy country, but arg country not defined.')
                 self.policy = self._get_default_policy()
             return

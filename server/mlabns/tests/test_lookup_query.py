@@ -168,8 +168,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.mock_query_params[message.ADDRESS_FAMILY] = 'invalid_af'
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(user_defined_ipv4, query._user_defined_ip)
-        self.assertEqual(message.ADDRESS_FAMILY_IPv4, query._user_defined_af)
+        self.assertEqual(user_defined_ipv4, query.ip_address)
+        self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
 
     def testInitializeIgnoresUserDefinedAfIfItDoesNotMatchUserDefinedIpv4(
             self):
@@ -179,8 +179,8 @@ class LookupQueryTestCase(unittest2.TestCase):
             message.ADDRESS_FAMILY_IPv6)
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(user_defined_ipv4, query._user_defined_ip)
-        self.assertEqual(message.ADDRESS_FAMILY_IPv4, query._user_defined_af)
+        self.assertEqual(user_defined_ipv4, query.ip_address)
+        self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
 
     def testInitializeIgnoresUserDefinedAfIfItDoesNotMatchUserDefinedIpv6(
             self):
@@ -190,8 +190,8 @@ class LookupQueryTestCase(unittest2.TestCase):
             message.ADDRESS_FAMILY_IPv4)
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(user_defined_ipv6, query._user_defined_ip)
-        self.assertEqual(message.ADDRESS_FAMILY_IPv6, query._user_defined_af)
+        self.assertEqual(user_defined_ipv6, query.ip_address)
+        self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.user_defined_af)
 
     def testInitializeAcceptsValidUserDefinedCityAndLatLon(self):
         user_defined_city = 'user_defined_city'
@@ -315,6 +315,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(maxmind_longitude, query.longitude)
         self.assertIsNone(query.city)
         self.assertEqual(maxmind_country, query.country)
+        self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeAcceptsUserDefinedLatLonAndCountry(self):
         user_defined_latitude = 99.0
@@ -332,6 +333,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(user_defined_longitude, query.longitude)
         self.assertIsNone(query.city)
         self.assertEqual(user_defined_country, query.country)
+        self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeAcceptsGeoPolicy(self):
         self.mock_query_params[message.POLICY] = message.POLICY_GEO
@@ -351,6 +353,7 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         self.assertEqual(message.POLICY_COUNTRY, query.policy)
         self.assertEqual(user_defined_country, query.country)
+        self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeUsesMaxmindWhenUserDefinedIpv4Exists(self):
         user_defined_ip = '5.6.7.8'
