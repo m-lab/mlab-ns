@@ -66,8 +66,8 @@ class LookupQuery:
             self.response_format = message.DEFAULT_RESPONSE_FORMAT
 
     def _set_ip_address_and_address_family(self, request):
-        self._set_user_defined_ip_and_af(request)
         self._set_gae_ip_and_af(request)
+        self._set_user_defined_ip_and_af(request)
 
         # User-defined args have precedence over args provided by GAE.
         if self._user_defined_ip is not None:
@@ -85,6 +85,12 @@ class LookupQuery:
                                           default_value=None)
       self.user_defined_af = request.get(message.ADDRESS_FAMILY,
                                          default_value=None)
+      # If the user-defined IP address matches the GAE IP address (i.e. the user
+      # is just explicitly stating their own IP address in the request), then
+      # treat it as if the user did not explicitly define an IP.
+      if self._user_defined_ip == self._gae_ip:
+          self._user_defined_ip = None
+          return
       if self._user_defined_ip:
           self._set_ip_and_af('_user_defined_ip', 'user_defined_af')
       if not self._user_defined_ip and self.user_defined_af:
