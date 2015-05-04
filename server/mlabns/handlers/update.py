@@ -5,6 +5,7 @@ from google.appengine.ext.webapp import template
 
 import json
 import logging
+import re
 import time
 import urllib2
 
@@ -26,26 +27,31 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     LON_FIELD = 'longitude'
     REQUIRED_FIELDS = [ SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                         LAT_FIELD, LON_FIELD]
+    SITE_LIST_URL = 'http://ks.measurementlab.net/mlab-site-stats.json'
 
     @classmethod
-    def validate_site_json(cls, site_json):
-        """Checks if the json data from ks is well formed.
+    def is_valid_site(cls, site):
+        """Determines whether a site represents a valid, production M-Lab site.
 
         Args:
-            site_json: A json representing the site info as appears on ks.
+            site_json: A dictionary representing info for a particular site as
+            it appears on ks.
 
         Returns:
-            True if the json data is valid, False otherwise.
+            True if the site is a valid, production M-Lab site.
         """
         # TODO(claudiu) Need more robust validation.
         for field in cls.REQUIRED_FIELDS:
-            if field not in site_json:
+            if field not in site:
                 logging.error('%s does not have the required field %s.',
-                              SITE_LIST_URL, field)
+                              json.dumps(site_json), field)
                 return False
-        return True
 
-    SITE_LIST_URL = 'http://ks.measurementlab.net/mlab-site-stats.json'
+        if not re.match(r'[a-z]{3}\d{2}', site[cls.SITE_FIELD]):
+            logging.info('Ignoring non-production site: %s',
+                         site[cls.SITE_FIELD])
+            return False
+        return True
 
     def get(self):
         """Triggers the registration handler.
@@ -60,8 +66,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.error('Cannot open %s.', self.SITE_LIST_URL)
             return util.send_not_found(self)
         except (TypeError, ValueError) as e:
-            logging.error('The json format of %s in not valid.',
-                          self.SITE_LIST_URL)
+            logging.error('The json format of %s in not valid: %s',
+                          self.SITE_LIST_URL, e)
             return util.send_not_found(self)
 
         ks_site_ids = set()
@@ -69,13 +75,12 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         # Validate the data from ks.
         valid_ks_sites_json = []
         for ks_site in ks_sites_json:
-            if self.validate_site_json(ks_site):
-                valid_ks_sites_json.append(ks_site)
-                ks_site_ids.add(ks_site[self.SITE_FIELD])
-            else:
+            if not self.is_valid_site(ks_site):
                logging.error('The json format of %s is not valid.',
                              self.SITE_LIST_URL)
                continue
+            valid_ks_sites_json.append(ks_site)
+            ks_site_ids.add(ks_site[self.SITE_FIELD])
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
