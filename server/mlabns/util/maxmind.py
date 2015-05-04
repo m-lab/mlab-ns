@@ -13,11 +13,11 @@ import string
 # http://www.maxmind.com/app/csv.
 
 class GeoRecord:
-    def __init__(self):
-        self.city = None
-        self.country = None
-        self.latitude = None
-        self.longitude = None
+    def __init__(self, city=None, country=None, latitude=None, longitude=None):
+        self.city = city
+        self.country = country
+        self.latitude = latitude
+        self.longitude = longitude
 
 
 def get_ip_geolocation(remote_addr):
