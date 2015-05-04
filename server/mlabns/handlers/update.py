@@ -34,8 +34,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         """Determines whether a site represents a valid, production M-Lab site.
 
         Args:
-            site_json: A dictionary representing info for a particular site as
-            it appears on ks.
+            site: A dictionary representing info for a particular site as it
+            appears on ks.
 
         Returns:
             True if the site is a valid, production M-Lab site.
