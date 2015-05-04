@@ -30,7 +30,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     SITE_LIST_URL = 'http://ks.measurementlab.net/mlab-site-stats.json'
 
     @classmethod
-    def is_valid_site(cls, site):
+    def _is_valid_site(cls, site):
         """Determines whether a site represents a valid, production M-Lab site.
 
         Args:
@@ -75,7 +75,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         # Validate the data from ks.
         valid_ks_sites_json = []
         for ks_site in ks_sites_json:
-            if not self.is_valid_site(ks_site):
+            if not self._is_valid_site(ks_site):
                logging.error('The json format of %s is not valid.',
                              self.SITE_LIST_URL)
                continue
