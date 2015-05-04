@@ -44,7 +44,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         for field in cls.REQUIRED_FIELDS:
             if field not in site:
                 logging.error('%s does not have the required field %s.',
-                              json.dumps(site_json), field)
+                              json.dumps(site), field)
                 return False
 
         if not re.match(r'[a-z]{3}\d{2}', site[cls.SITE_FIELD]):
