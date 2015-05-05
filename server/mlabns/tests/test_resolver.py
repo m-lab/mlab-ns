@@ -1,5 +1,4 @@
 from google.appengine.api import memcache
-from google.appengine.api import namespace_manager
 from google.appengine.ext import db
 from google.appengine.ext import testbed
 
@@ -11,16 +10,6 @@ from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import resolver
 
-
-def _apply_namespace_bug_workaround():
-  """Apply workaround for namespace collision.
-
-  There is currently a bug that causes test code to apply changes to an
-  inconsistent data store namespace. This is a workaround that forces the
-  data store's namespace into a consistent state. This must be called after
-  activating the testbed.
-  """
-  namespace_manager.get_namespace()
 
 # We need to define our own class here instead of using the mock library
 # because this object needs to be pickled and Python cannot pickle
@@ -47,7 +36,6 @@ class ResolverBaseTestCase(unittest2.TestCase):
         # Set up memcache stub.
         self.testbed = testbed.Testbed()
         self.testbed.activate()
-        _apply_namespace_bug_workaround()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
 
@@ -452,7 +440,6 @@ class MetroResolverTestCase(unittest2.TestCase):
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
-        _apply_namespace_bug_workaround()
         self.testbed.init_datastore_v3_stub()
 
     def tearDown(self):
