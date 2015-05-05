@@ -76,9 +76,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         valid_ks_sites_json = []
         for ks_site in ks_sites_json:
             if not self._is_valid_site(ks_site):
-               logging.error('The json format of %s is not valid.',
-                             self.SITE_LIST_URL)
-               continue
+                continue
             valid_ks_sites_json.append(ks_site)
             ks_site_ids.add(ks_site[self.SITE_FIELD])
 
