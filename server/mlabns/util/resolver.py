@@ -42,7 +42,7 @@ class ResolverBase:
 
     def _get_candidates(self, query, address_family):
         """Returns a (possibly empty) list of available candidates."""
-
+        logging.info('Looking for %s in memcache.', query.tool_id)
         # First try to get the sliver tools from the memcache.
         sliver_tools = memcache.get(
             query.tool_id, namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
@@ -56,8 +56,11 @@ class ResolverBase:
                     (address_family == message.ADDRESS_FAMILY_IPv6 and
                     sliver_tool.status_ipv6 == message.STATUS_ONLINE):
                     candidates.append(sliver_tool)
+            logging.info('After filtering, %d candidates match criteria.',
+                         len(candidates))
             return candidates
-        logging.info('Sliver tools not found in memcache.')
+        logging.info(
+            'Sliver tools not found in memcache, falling back to data store.')
 
         # Get the sliver tools from datastore.
         status_field = 'status_' + address_family
@@ -66,12 +69,12 @@ class ResolverBase:
             'AND ' + status_field + ' = :status',
             tool_id=query.tool_id,
             status=message.STATUS_ONLINE)
-        logging.info('Found (%s candidates)', candidates.count())
+        logging.info('Found %s candidates in data store', candidates.count())
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
 
     def _get_candidates_from_sites(self, query, address_family, site_id_list):
         """Returns a (possibly empty) list of available candidates."""
-
+        logging.info('Looking for %s in memcache', query.tool_id)
         # First try to get the sliver tools from the cache.
         sliver_tools = memcache.get(
             query.tool_id, namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
@@ -86,8 +89,11 @@ class ResolverBase:
                     (address_family == message.ADDRESS_FAMILY_IPv6 and
                     sliver_tool.status_ipv6 == message.STATUS_ONLINE)):
                     candidates.append(sliver_tool)
+            logging.info('After filtering, %d candidates match criteria.',
+                         len(candidates))
             return candidates
-        logging.info('Sliver tools not found in memcache.')
+        logging.info(
+            'Sliver tools not found in memcache, falling back to data store.')
 
         # Get the sliver tools from datastore.
         status_field = 'status_' + address_family
@@ -98,7 +104,7 @@ class ResolverBase:
             tool_id=query.tool_id,
             status=message.STATUS_ONLINE,
             site_id_list=site_id_list)
-        logging.info('Found (%s candidates)', candidates.count())
+        logging.info('Found %s candidates in data store', candidates.count())
         return candidates.fetch(constants.MAX_FETCHED_RESULTS)
 
     def answer_query(self, query):

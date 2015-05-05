@@ -164,8 +164,7 @@ def get_slice_site_server_ids(fqdn):
 
 def get_tool_from_tool_id(tool_id):
     tools_gql = Tool.gql("WHERE tool_id = :tool_id", tool_id=tool_id)
-    logging.info("tools_gql: " + str(tools_gql))
     for tool in tools_gql.run():
-        logging.info("tool_id: " + tool.tool_id)
         return tool
+    logging.info('Tool %s not found in data store.', tool_id)
     return None
