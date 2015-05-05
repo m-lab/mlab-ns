@@ -379,6 +379,25 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(maxmind_latitude, query.latitude)
         self.assertEqual(maxmind_longitude, query.longitude)
 
+    def testInitializeUsesAppEngineGeoDataWhenUserDefinedIpv4MatchesRequestIp(
+            self):
+        # Simulate when the client supplies an explicit IPv4 address in the URL
+        # and it matches the source IP of the web request (i.e. the user
+        # explicitly declared their own IP address).
+        user_defined_ip = self.mock_request_ip
+        self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ip
+
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+        self.assertEqual(message.POLICY_GEO, query.policy)
+        self.assertEqual(self.mock_gae_city, query.city)
+        self.assertEqual(self.mock_gae_country, query.country)
+        self.assertEqual(self.mock_gae_latitude, query.latitude)
+        self.assertEqual(self.mock_gae_longitude, query.longitude)
+
+        # Verify we didn't retrieve any geoip information from Maxmind.
+        self.assertFalse(maxmind.get_ip_geolocation.called)
+
     def testInitializeUsesMaxmindWhenUserDefinedIpv6Exists(self):
         user_defined_ip = '1:2:3::4'
         self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ip
