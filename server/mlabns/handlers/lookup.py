@@ -347,14 +347,11 @@ class LookupHandler(webapp.RequestHandler):
         # included in the request_log object.
         logging.info(
             '[lookup]'
-            '%s,%s,%s,%s,%s,%s,%s,'
+            '%s,%s,%s,%s,'
             '%s,'
             '%s,%s,%s,%s,%s,%s,%s',
             # Info about the user:
-            query._user_defined_ip,
-            query.user_defined_af,
-            query._gae_ip,
-            query._gae_af,
+            query.tool_address_family,
             query.ip_address,
             query.address_family,
             user_agent,
