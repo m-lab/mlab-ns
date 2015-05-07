@@ -190,7 +190,8 @@ class LookupQuery:
             request: A webapp.Request instance.
 
         Returns:
-            (lat, lon) as a 2-tuple if the user provided valid values for both.
+            (lat, lon) as a 2-tuple of floats if the user provided valid values
+            for both latitude and longitude.
             (None, None) if the values were not present or not valid.
         """
         MAX_LATITUDE_ABSOLUTE = 90.0
