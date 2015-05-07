@@ -141,20 +141,15 @@ class LookupQuery:
 
     def _set_geolocation(self, request):
         self._set_appengine_geolocation(request)
-        self._user_defined_city = request.get(message.CITY, default_value=None)
-        self.user_defined_country = request.get(message.COUNTRY,
-                                                default_value=None)
-        input_latitude = request.get(message.LATITUDE, default_value=None)
-        input_longitude = request.get(message.LONGITUDE, default_value=None)
+        self._user_defined_city = request.get(message.CITY)
+        self.user_defined_country = request.get(message.COUNTRY)
+        input_latitude, input_longitude = self._get_user_defined_lat_lon(
+            request)
 
-        if input_latitude is not None and input_longitude is not None:
+        if (input_latitude is not None) and (input_longitude is not None):
             self._geolocation_type = constants.GEOLOCATION_USER_DEFINED
-            try:
-                self._user_defined_latitude = float(input_latitude)
-                self._user_defined_longitude = float(input_longitude)
-            except ValueError:
-                logging.error('Non valid user-defined lat, long (%s, %s).',
-                               input_latitude, input_longitude)
+            self._user_defined_latitude = input_latitude
+            self._user_defined_longitude = input_longitude
         elif self._user_defined_ip is not None or \
             self.user_defined_country is not None:
             self._geolocation_type = constants.GEOLOCATION_MAXMIND
@@ -183,6 +178,45 @@ class LookupQuery:
             self.country = self._gae_country
             self.latitude = self._gae_latitude
             self.longitude = self._gae_longitude
+
+    def _get_user_defined_lat_lon(self, request):
+        """Retrieves and validates the user-defined lat/lon from the request.
+
+        Retrieves the lat/lon fields from the query string of the request and
+        validates that the values are in the correct format and in the legal
+        range.
+
+        Args:
+            request: A webapp.Request instance.
+
+        Returns:
+            (lat, lon) as a 2-tuple of floats if the user provided valid values
+            for both latitude and longitude.
+            (None, None) if the values were not present or not valid.
+        """
+        MAX_LATITUDE_ABSOLUTE = 90.0
+        MAX_LONGITUDE_ABSOLUTE = 180.0
+        input_latitude = request.get(message.LATITUDE)
+        input_longitude = request.get(message.LONGITUDE)
+
+        if not input_latitude or not input_longitude:
+            return None, None
+
+        try:
+            latitude = float(input_latitude)
+            longitude = float(input_longitude)
+        except ValueError:
+            logging.error('Invalid user-defined lat, long (%s, %s).',
+                           input_latitude, input_longitude)
+            return None, None
+
+        if ((abs(latitude) > MAX_LATITUDE_ABSOLUTE) or
+                (abs(longitude) > MAX_LONGITUDE_ABSOLUTE)):
+            logging.error('Lat/long out of range (%f, %f).',
+                           latitude, longitude)
+            return None, None
+
+        return latitude, longitude
 
     def _set_maxmind_geolocation(self, ip_address, country, city):
         geo_record = maxmind.GeoRecord()
