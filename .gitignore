@@ -1,2 +1,10 @@
 server/app.yaml
 server/config.py
+
+# Nagios credentials should not be under source control as the credentials are
+# secret.
+server/mlabns/conf/nagios.csv
+
+# Ignore log files from the Datastore bulkloader
+bulkloader-log*
+bulkloader-progress*

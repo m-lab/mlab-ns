@@ -1,0 +1,8 @@
+tool_id,slice_id,http_port,show_tool_extra
+ndt,iupui_ndt,7123,False
+mobiperf,michigan_1,,False
+npad,iupui_npad,8000,False
+echo,mlab_utility,,False
+ooni,mlab_ooni,,True
+glasnost,mpisws_broadband,19981,False
+neubot,mlab_neubot,8080,False
