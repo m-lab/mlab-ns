@@ -11,6 +11,8 @@ class SliverTool(db.Model):
     site_id = db.StringProperty()
     server_id = db.StringProperty()
     server_port = db.StringProperty()
+    # TODO(mtlynch) Delete http_port. It seems to be an old, unused version of
+    # server_port.
     http_port = db.StringProperty()
     tool_extra = db.StringProperty()
 
@@ -38,6 +40,14 @@ class SliverTool(db.Model):
 
     # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
+
+    def __repr__(self):
+        return (
+            '<tool_id={tool_id},site_id={site_id},slice_id={slice_id},'
+            'lat/lon=({latitude},{longitude}),geo={city},{country}>'.format(
+                tool_id=self.tool_id, site_id=self.site_id,
+                slice_id=self.slice_id, latitude=self.latitude,
+                longitude=self.longitude, city=self.city, country=self.country))
 
 class Site(db.Model):
     site_id = db.StringProperty()
