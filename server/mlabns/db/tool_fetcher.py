@@ -1,3 +1,4 @@
+from functools import partial
 import logging
 
 from google.appengine.api import memcache
@@ -39,6 +40,11 @@ def _filter_by_status(tools, address_family, status):
                 # Exit as soon as the tool matches any set of criteria
                 break
     return filtered
+
+
+def _filter_by_country(tools, country):
+    """Filters sliver tools based on the tool's country."""
+    return filter(lambda t: t.country == country, tools)
 
 
 def _find_site_ids_for_metro(metro):
@@ -98,13 +104,54 @@ class ToolFetcher(object):
         if results:
             return results
 
+        logging.info(
+            'Sliver tools not found in memcache, falling back to data store.')
         return self._datastore_fetcher.fetch(tool_properties)
 
 
 class ToolFetcherMemcache(object):
+    """Fetches SliverTool objects from the AppEngine Memcache."""
 
     def fetch(self, tool_properties):
-        raise NotImplementedError()
+        """Fetch SliverTool objects from the Memcache with specified criteria.
+
+        Args:
+            tool_properties: A set of criteria that specifies what subset of
+                SliverTools to retrieve from Memcache.
+
+        Returns:
+            A list of SliverTool objects that match the specified criteria.
+        """
+        tool_filters = []
+        if tool_properties.status:
+            tool_filters.append(
+                    partial(_filter_by_status,
+                            address_family=tool_properties.address_family,
+                            status=tool_properties.status))
+        if tool_properties.country:
+            tool_filters.append(
+                    partial(_filter_by_country,
+                            country=tool_properties.country))
+        if tool_properties.metro:
+            # Can't filter by metro without hitting the Datastore because
+            # Memcache does not have metro -> site ID mapping.
+            return []
+
+        sliver_tools = memcache.get(
+            tool_properties.tool_id,
+            namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
+        if sliver_tools:
+            logging.info('Sliver tools found in memcache (%d results).',
+                         len(sliver_tools))
+
+            candidates = sliver_tools
+            for tool_filter in tool_filters:
+                candidates = tool_filter(candidates)
+
+            logging.info('After filtering, %d candidates match criteria.',
+                         len(candidates))
+            return candidates
+        return []
 
 
 class ToolFetcherDatastore(object):
@@ -146,4 +193,5 @@ class ToolFetcherDatastore(object):
             results = _filter_by_status(
                 results, tool_properties.address_family, tool_properties.status)
 
+        logging.info('%d sliver tools found in Datastore.', len(results))
         return results
