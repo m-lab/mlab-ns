@@ -11,8 +11,6 @@ class SliverTool(db.Model):
     site_id = db.StringProperty()
     server_id = db.StringProperty()
     server_port = db.StringProperty()
-    # TODO(mtlynch) Delete http_port. It seems to be an old, unused version of
-    # server_port.
     http_port = db.StringProperty()
     tool_extra = db.StringProperty()
 
