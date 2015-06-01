@@ -474,7 +474,7 @@ class RandomResolverTestCase(ResolverTestCaseBase):
         tool_fetcher_patch.start()
         self.resolver = resolver.RandomResolver()
 
-    def testAnswerQueryChoosesRandomlyAmoungOnlineTools(self):
+    def testAnswerQueryChoosesRandomlyAmongOnlineTools(self):
         query = lookup_query.LookupQuery()
         query.tool_id = _TOOL_ID
 
@@ -532,7 +532,7 @@ class MetroResolverTestCase(ResolverTestCaseBase):
         # Result should be None when there are no matches.
         self.assertIsNone(query_results)
 
-    def testAnswerQueryChoosesRandomlyAmoungToolsInMetro(self):
+    def testAnswerQueryChoosesRandomlyAmongToolsInMetro(self):
         query = lookup_query.LookupQuery()
         query.tool_id = _TOOL_ID
         query.metro = 'aaa'
@@ -578,7 +578,7 @@ class CountryResolverTestCase(ResolverTestCaseBase):
         # Result should be None when there are no matches.
         self.assertIsNone(query_results)
 
-    def testAnswerQueryChoosesRandomlyAmoungToolsInCountry(self):
+    def testAnswerQueryChoosesRandomlyAmongToolsInCountry(self):
         country = 'valid_country'
         query = lookup_query.LookupQuery()
         query.tool_id = _TOOL_ID
