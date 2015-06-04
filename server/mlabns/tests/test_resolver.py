@@ -179,6 +179,29 @@ class AllResolverTestCase(ResolverTestCaseBase):
                                         query_results_expected,
                                         tool_properties_expected)
 
+    def testAnswerQueryWhenMatchingToolsExistAndQuerySpecifiesAf(self):
+        """Resolver should take into account address family when specified."""
+        query = lookup_query.LookupQuery()
+        query.tool_id = _TOOL_ID
+        query.tool_address_family = message.ADDRESS_FAMILY_IPv6
+
+        mock_fetched_tools = [_createSliverTool(_TOOL_ID),
+                              _createSliverTool(_TOOL_ID)]
+
+        # AllResolver should not do any additional filtering on the tools it
+        # fetched.
+        query_results_expected = mock_fetched_tools
+
+        # Make sure the resolver is fetching only tools with IPv6 interface
+        # online that match the specified tool ID.
+        tool_properties_expected = tool_fetcher.ToolProperties(
+            tool_id=_TOOL_ID, address_family=message.ADDRESS_FAMILY_IPv6,
+            status=message.STATUS_ONLINE)
+
+        self.assertQueryResultMultiTool(query, mock_fetched_tools,
+                                        query_results_expected,
+                                        tool_properties_expected)
+
     def testAnswerQueryWhenNoToolsMatchToolId(self):
         tool_id = 'non_existent_tool'
         query = lookup_query.LookupQuery()
@@ -218,6 +241,28 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         # specified tool ID.
         tool_properties_expected = tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
+
+        mock_fetched_tools = [close_tool, far_tool]
+        self.assertQueryResultSingleTool(query, mock_fetched_tools, close_tool,
+                                         tool_properties_expected)
+
+    def testAnswerQueryWhenSingleToolIsClosestAndQuerySpecifiesAf(self):
+        query = lookup_query.LookupQuery()
+        query.tool_id = _TOOL_ID
+        query.latitude = 0.0
+        query.longitude = 0.0
+        query.tool_address_family = message.ADDRESS_FAMILY_IPv4
+
+        close_tool = _createSliverTool(
+            _TOOL_ID, site_id='abc01', latitude=1.0, longitude=1.0)
+        far_tool = _createSliverTool(
+            _TOOL_ID, site_id='cba01', latitude=5.0, longitude=5.0)
+
+        # Make sure the resolver is fetching only online tools that match the
+        # specified tool ID.
+        tool_properties_expected = tool_fetcher.ToolProperties(
+            tool_id=_TOOL_ID, address_family=message.ADDRESS_FAMILY_IPv4,
+            status=message.STATUS_ONLINE)
 
         mock_fetched_tools = [close_tool, far_tool]
         self.assertQueryResultSingleTool(query, mock_fetched_tools, close_tool,
@@ -477,6 +522,7 @@ class RandomResolverTestCase(ResolverTestCaseBase):
     def testAnswerQueryChoosesRandomlyAmongOnlineTools(self):
         query = lookup_query.LookupQuery()
         query.tool_id = _TOOL_ID
+        query.tool_address_family = message.ADDRESS_FAMILY_IPv6
 
         mock_fetched_tools = (
             _createSliverTool(_TOOL_ID, site_id='aaa01'),
@@ -490,7 +536,8 @@ class RandomResolverTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
         tool_properties_expected = tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, address_family=message.ADDRESS_FAMILY_IPv6,
+            status=message.STATUS_ONLINE)
 
         self.assertQueryResultSingleToolWithRandomSelection(
             query, mock_fetched_tools, filtered_tools_expected,
@@ -536,6 +583,7 @@ class MetroResolverTestCase(ResolverTestCaseBase):
         query = lookup_query.LookupQuery()
         query.tool_id = _TOOL_ID
         query.metro = 'aaa'
+        query.tool_address_family = message.ADDRESS_FAMILY_IPv4
 
         mock_fetched_tools = (
             _createSliverTool(_TOOL_ID, site_id='aaa01'),
@@ -547,7 +595,8 @@ class MetroResolverTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID in the specified metro.
         tool_properties_expected = tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID, status=message.STATUS_ONLINE, metro=query.metro)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE,
+            address_family=message.ADDRESS_FAMILY_IPv4, metro=query.metro)
 
         self.assertQueryResultSingleToolWithRandomSelection(
             query, mock_fetched_tools, filtered_tools_expected,
@@ -582,6 +631,7 @@ class CountryResolverTestCase(ResolverTestCaseBase):
         country = 'valid_country'
         query = lookup_query.LookupQuery()
         query.tool_id = _TOOL_ID
+        query.tool_address_family = message.ADDRESS_FAMILY_IPv4
         query.country = country
 
         mock_fetched_tools = (
@@ -594,7 +644,8 @@ class CountryResolverTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID in the specified country.
         tool_properties_expected = tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID, status=message.STATUS_ONLINE, country=country)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE,
+            address_family=message.ADDRESS_FAMILY_IPv4, country=country)
 
         self.assertQueryResultSingleToolWithRandomSelection(
             query, mock_fetched_tools, filtered_tools_expected,

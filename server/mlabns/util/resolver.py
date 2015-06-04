@@ -22,8 +22,8 @@ def _tool_properties_from_query(query):
     """
     tool_properties = tool_fetcher.ToolProperties(
         tool_id=query.tool_id, status=message.STATUS_ONLINE)
-    if query.address_family:
-        tool_properties.address_family = query.address_family
+    if query.tool_address_family:
+        tool_properties.address_family = query.tool_address_family
     return tool_properties
 
 
