@@ -11,7 +11,7 @@ from mlabns.util import message
 
 class LookupQueryTestCase(unittest2.TestCase):
 
-    def mock_get(self, arg, default_value):
+    def mock_get(self, arg, default_value=None):
         """Mock method to replace the GAE get() API for web requests."""
         if arg in self.mock_query_params:
             return self.mock_query_params[arg]
@@ -65,7 +65,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertIsNone(query.metro)
         self.assertIsNone(query.response_format)
         self.assertIsNone(query.ip_address)
-        self.assertIsNone(query.address_family)
+        self.assertIsNone(query.tool_address_family)
         self.assertIsNone(query.city)
         self.assertIsNone(query.country)
         self.assertIsNone(query.latitude)
@@ -82,7 +82,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertIsNone(query.metro)
         self.assertEqual(message.DEFAULT_RESPONSE_FORMAT, query.response_format)
         self.assertEqual(self.mock_request_ip, query.ip_address)
-        self.assertEqual(self.mock_request_af, query.address_family)
+        self.assertIsNone(query.tool_address_family)
         self.assertEqual(self.mock_gae_city, query.city)
         self.assertEqual(self.mock_gae_country, query.country)
         self.assertEqual(self.mock_gae_latitude, query.latitude)
@@ -111,92 +111,67 @@ class LookupQueryTestCase(unittest2.TestCase):
         query.initialize_from_http_request(self.mock_request)
         self.assertEqual(query.response_format, message.FORMAT_HTML)
 
-    def testInitializeIgnoresInvalidUserDefinedAfOnly(self):
+    def testInitializeIgnoresInvalidUserDefinedAf(self):
         """An invalid user-defined AF should be ignored."""
         self.mock_query_params[message.ADDRESS_FAMILY] = 'invalid_af'
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
         self.assertEqual(self.mock_request_ip, query.ip_address)
-        self.assertEqual(self.mock_request_af, query.address_family)
+        self.assertIsNone(query.tool_address_family)
 
-    def testInitializeIgnoresUserDefinedAfOnly(self):
-        """A user-defined AF should be ignored if user-defined IP is absent."""
-        self.mock_query_params[message.ADDRESS_FAMILY] = (
-            message.ADDRESS_FAMILY_IPv6)
+    def testInitializeAcceptsValidToolAfv4(self):
+        user_defined_af = message.ADDRESS_FAMILY_IPv4
+        self.mock_query_params[message.ADDRESS_FAMILY] = user_defined_af
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(self.mock_request_ip, query.ip_address)
-        self.assertEqual(self.mock_request_af, query.address_family)
+        self.assertEqual(user_defined_af, query.tool_address_family)
 
-    def testInitializeIgnoresInvalidUserDefinedIpOnly(self):
+    def testInitializeAcceptsValidToolAfv6(self):
+        user_defined_af = message.ADDRESS_FAMILY_IPv6
+        self.mock_query_params[message.ADDRESS_FAMILY] = user_defined_af
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+        self.assertEqual(user_defined_af, query.tool_address_family)
+
+    def testInitializeIgnoresInvalidUserDefinedIp(self):
         """Ignore an invalid user-defined IP address."""
         self.mock_query_params[message.REMOTE_ADDRESS] = 'invalid_ip'
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
         self.assertEqual(self.mock_request_ip, query.ip_address)
-        self.assertEqual(self.mock_request_af, query.address_family)
 
-    def testInitializeIgnoresInvalidUserDefinedIpWithValidAf(self):
-        """Ignore an invalid user-defined IP even if AF is valid."""
-        self.mock_query_params[message.REMOTE_ADDRESS] = 'invalid_ip'
-        self.mock_query_params[message.ADDRESS_FAMILY] = (
-            message.ADDRESS_FAMILY_IPv4)
-        query = lookup_query.LookupQuery()
-        query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(self.mock_request_ip, query.ip_address)
-        self.assertEqual(self.mock_request_af, query.address_family)
-
-    def testInitializeDeducesAfFromUserDefinedIpv4(self):
+    def testInitializeAcceptsUserDefinedAfEvenWhenItDoesNotMatchUserDefinedIpv4(
+            self):
+        # The address family query parameter refers to the address family of the
+        # tool, while the IP refers to the client's IP. It is legal to specify
+        # an IPv4 client that wants an IPv6 tool.
         user_defined_ipv4 = '9.8.7.6'
+        user_defined_af = message.ADDRESS_FAMILY_IPv6
         self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ipv4
+        self.mock_query_params[message.ADDRESS_FAMILY] = user_defined_af
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
         self.assertEqual(user_defined_ipv4, query.ip_address)
-        self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.address_family)
+        self.assertEqual(user_defined_af, query.tool_address_family)
 
-    def testInitializeDeducesAfFromUserDefinedIpv6(self):
+    def testInitializeAcceptsUserDefinedAfEvenWhenItDoesNotMatchUserDefinedIpv6(
+            self):
+        # The address family query parameter refers to the address family of the
+        # tool, while the IP refers to the client's IP. It is legal to specify
+        # an IPv6 client that wants an IPv4 tool.
         user_defined_ipv6 = '1:2:3::4'
+        user_defined_af = message.ADDRESS_FAMILY_IPv4
         self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ipv6
+        self.mock_query_params[message.ADDRESS_FAMILY] = user_defined_af
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
         self.assertEqual(user_defined_ipv6, query.ip_address)
-        self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.address_family)
-
-    def testInitializeDeducesAfFromUserDefinedIpv4AndIgnoresInvalidAf(self):
-        user_defined_ipv4 = '9.8.7.6'
-        self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ipv4
-        self.mock_query_params[message.ADDRESS_FAMILY] = 'invalid_af'
-        query = lookup_query.LookupQuery()
-        query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(user_defined_ipv4, query.ip_address)
-        self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
-
-    def testInitializeIgnoresUserDefinedAfIfItDoesNotMatchUserDefinedIpv4(
-            self):
-        user_defined_ipv4 = '9.8.7.6'
-        self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ipv4
-        self.mock_query_params[message.ADDRESS_FAMILY] = (
-            message.ADDRESS_FAMILY_IPv6)
-        query = lookup_query.LookupQuery()
-        query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(user_defined_ipv4, query.ip_address)
-        self.assertEqual(message.ADDRESS_FAMILY_IPv4, query.user_defined_af)
-
-    def testInitializeIgnoresUserDefinedAfIfItDoesNotMatchUserDefinedIpv6(
-            self):
-        user_defined_ipv6 = '1:2:3::4'
-        self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ipv6
-        self.mock_query_params[message.ADDRESS_FAMILY] = (
-            message.ADDRESS_FAMILY_IPv4)
-        query = lookup_query.LookupQuery()
-        query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(user_defined_ipv6, query.ip_address)
-        self.assertEqual(message.ADDRESS_FAMILY_IPv6, query.user_defined_af)
+        self.assertEqual(user_defined_af, query.tool_address_family)
 
     def testInitializeAcceptsValidUserDefinedCityAndLatLon(self):
         user_defined_city = 'user_defined_city'
-        user_defined_latitude = 0.0
-        user_defined_longitude = 4.3
+        user_defined_latitude = '0.0'
+        user_defined_longitude = '4.3'
 
         self.mock_query_params[message.CITY] = user_defined_city
         self.mock_query_params[message.LATITUDE] = user_defined_latitude
@@ -211,14 +186,77 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_GEO, query.policy)
         self.assertEqual(user_defined_city, query.city)
         self.assertIsNone(query.country)
-        self.assertEqual(user_defined_latitude, query.latitude)
-        self.assertEqual(user_defined_longitude, query.longitude)
+        self.assertEqual(float(user_defined_latitude), query.latitude)
+        self.assertEqual(float(user_defined_longitude), query.longitude)
 
-    # TODO(mtlynch): These tests fail because LookupQuery actually doesn't
-    # handle these cases correctly. Uncomment when the code is fixed.
-    """def testInitializeIgnoresInvalidUserDefinedLatWithValidLon(self):
+    def testInitializeIgnoresInvalidUserDefinedLatWithValidLon(self):
+        """If lat is invalid, but lon is valid, ignore both."""
         user_defined_latitude = 'invalid_latitude'
-        user_defined_longitude = 36.0
+        user_defined_longitude = '36.0'
+
+        self.mock_query_params[message.LATITUDE] = user_defined_latitude
+        self.mock_query_params[message.LONGITUDE] = user_defined_longitude
+
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+
+        self.assertEqual(self.mock_gae_latitude, query.latitude)
+        self.assertEqual(self.mock_gae_longitude, query.longitude)
+        self.assertEqual(self.mock_gae_city, query.city)
+        self.assertEqual(self.mock_gae_country, query.country)
+
+    def testInitializeIgnoresTooNegativeLatitude(self):
+        """Ignore a latitude that's below the -90 -> +90 valid range."""
+        user_defined_latitude = '-90.1'
+        user_defined_longitude = '100.2'
+
+        self.mock_query_params[message.LATITUDE] = user_defined_latitude
+        self.mock_query_params[message.LONGITUDE] = user_defined_longitude
+
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+
+        self.assertEqual(self.mock_gae_latitude, query.latitude)
+        self.assertEqual(self.mock_gae_longitude, query.longitude)
+        self.assertEqual(self.mock_gae_city, query.city)
+        self.assertEqual(self.mock_gae_country, query.country)
+
+    def testInitializeIgnoresTooPositiveLatitude(self):
+        """Ignore a latitude that's above the -90 -> +90 valid range."""
+        user_defined_latitude = '90.1'
+        user_defined_longitude = '36.0'
+
+        self.mock_query_params[message.LATITUDE] = user_defined_latitude
+        self.mock_query_params[message.LONGITUDE] = user_defined_longitude
+
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+
+        self.assertEqual(self.mock_gae_latitude, query.latitude)
+        self.assertEqual(self.mock_gae_longitude, query.longitude)
+        self.assertEqual(self.mock_gae_city, query.city)
+        self.assertEqual(self.mock_gae_country, query.country)
+
+    def testInitializeIgnoresTooNegativeLongitude(self):
+        """Ignore a longitude that's below the -180 -> +180 valid range."""
+        user_defined_latitude = '15.5'
+        user_defined_longitude = '-180.01'
+
+        self.mock_query_params[message.LATITUDE] = user_defined_latitude
+        self.mock_query_params[message.LONGITUDE] = user_defined_longitude
+
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+
+        self.assertEqual(self.mock_gae_latitude, query.latitude)
+        self.assertEqual(self.mock_gae_longitude, query.longitude)
+        self.assertEqual(self.mock_gae_city, query.city)
+        self.assertEqual(self.mock_gae_country, query.country)
+
+    def testInitializeIgnoresTooPositiveLongitude(self):
+        """Ignore a longitude that's above the -180 -> +180 valid range."""
+        user_defined_latitude = '15.5'
+        user_defined_longitude = '180.1'
 
         self.mock_query_params[message.LATITUDE] = user_defined_latitude
         self.mock_query_params[message.LONGITUDE] = user_defined_longitude
@@ -232,7 +270,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(self.mock_gae_country, query.country)
 
     def testInitializeIgnoresValidUserDefinedLatWithInvalidLon(self):
-        user_defined_latitude = 36.0
+        """If lat is valid, but lon is invalid, ignore both."""
+        user_defined_latitude = '36.0'
         user_defined_longitude = 'invalid_longitude'
 
         self.mock_query_params[message.LATITUDE] = user_defined_latitude
@@ -244,7 +283,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(self.mock_gae_latitude, query.latitude)
         self.assertEqual(self.mock_gae_longitude, query.longitude)
         self.assertEqual(self.mock_gae_city, query.city)
-        self.assertEqual(self.mock_gae_country, query.country)"""
+        self.assertEqual(self.mock_gae_country, query.country)
 
     def testInitializeIgnoresInvalidUserDefinedLatLonEvenIfCityIsValid(self):
         user_defined_latitude = 'invalid_latitude'
@@ -258,14 +297,13 @@ class LookupQueryTestCase(unittest2.TestCase):
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
 
-        # Can't geolocate just a city, so use a random site.
-        self.assertEqual(message.POLICY_RANDOM, query.policy)
-        self.assertIsNone(query.latitude)
-        self.assertIsNone(query.longitude)
-        #TODO(mtlynch): This is confusing behavior. If we're going to use a
-        # random site, the city field should be None.
-        self.assertEqual(user_defined_city, query.city)
-        self.assertIsNone(query.country)
+        # Lat/lon is invalid, user-defined city is ignored if there's no
+        # country to go with it. Treat this as if the request specified nothing.
+        self.assertEqual(message.POLICY_GEO, query.policy)
+        self.assertEqual(self.mock_gae_city, query.city)
+        self.assertEqual(self.mock_gae_country, query.country)
+        self.assertEqual(self.mock_gae_latitude, query.latitude)
+        self.assertEqual(self.mock_gae_longitude, query.longitude)
 
     def testInitializeIgnoresInvalidUserDefinedLatLonEvenIfCountryIsValid(self):
         user_defined_latitude = 'invalid_latitude'
@@ -276,9 +314,10 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.mock_query_params[message.LONGITUDE] = user_defined_longitude
         self.mock_query_params[message.COUNTRY] = user_defined_country
 
-        # LookupQuery confusingly ignores these values.
+        maxmind_latitude = 55.5
+        maxmind_longitude = 77.7
         maxmind.get_country_geolocation.return_value = maxmind.GeoRecord(
-            latitude=55.7, longitude=77.7,
+            latitude=maxmind_latitude, longitude=maxmind_longitude,
             country=user_defined_country)
 
         query = lookup_query.LookupQuery()
@@ -286,12 +325,10 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         #TODO(mtlynch): This is confusing behavior. If the only valid user-
         # defined field is the country name, the policy should implicitly be
-        # message.COUNTRY. Additionally, an invalid lat/lon should be treated
-        # the same as no lat/lon, but the current implementation changes invalid
-        # lat/lon to None values, but fills in missing lat/lon from Maxmind.
+        # message.COUNTRY.
         self.assertEqual(message.POLICY_GEO, query.policy)
-        self.assertIsNone(query.latitude)
-        self.assertIsNone(query.longitude)
+        self.assertEqual(maxmind_latitude, query.latitude)
+        self.assertEqual(maxmind_longitude, query.longitude)
         self.assertIsNone(query.city)
         self.assertEqual(user_defined_country, query.country)
 
@@ -318,8 +355,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeAcceptsUserDefinedLatLonAndCountry(self):
-        user_defined_latitude = 99.0
-        user_defined_longitude = 100.0
+        user_defined_latitude = '89.0'
+        user_defined_longitude = '100.0'
         user_defined_country = 'user_defined_country'
 
         self.mock_query_params[message.LATITUDE] = user_defined_latitude
@@ -329,8 +366,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
 
-        self.assertEqual(user_defined_latitude, query.latitude)
-        self.assertEqual(user_defined_longitude, query.longitude)
+        self.assertEqual(float(user_defined_latitude), query.latitude)
+        self.assertEqual(float(user_defined_longitude), query.longitude)
         self.assertIsNone(query.city)
         self.assertEqual(user_defined_country, query.country)
         self.assertEqual(user_defined_country, query.user_defined_country)

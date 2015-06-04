@@ -1,11 +1,11 @@
 from functools import partial
 import logging
 
-from google.appengine.api import memcache
-
 from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import message
+
+from google.appengine.api import memcache
 
 
 def _filter_by_status(tools, address_family, status):
@@ -77,6 +77,10 @@ class ToolProperties(object):
         self.address_family = address_family
         self.metro = metro
         self.country = country
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self.__dict__ == other.__dict__)
 
 
 class ToolFetcher(object):
