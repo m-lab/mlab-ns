@@ -74,8 +74,12 @@ class GeoResolver(ResolverBase):
 
         if (query.latitude is None) or (query.longitude is None):
             logging.warning(
-                'No latitude/longitude, return a random sliver tool.')
-            return [random.choice(candidates)]
+                'No latitude/longitude, return random sliver tool(s).')
+            if len(candidates) <= max_results:
+                random.shuffle(candidates)
+                return candidates
+            else:
+                return random.sample(candidates, max_results)
 
         # Pre-shuffle the candidates to randomize the order of equidistant
         # results.
