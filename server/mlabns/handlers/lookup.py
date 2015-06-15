@@ -175,11 +175,11 @@ class LookupHandler(webapp.RequestHandler):
                 if sliver_tool.status_ipv6 == message.STATUS_ONLINE:
                     ips.append(sliver_tool.sliver_ipv6)
 
-            if sliver_tool.http_port is not None:
+            if sliver_tool.http_port:
                 data['url'] = _create_tool_url(sliver_tool.fqdn,
                                                query.tool_address_family,
                                                sliver_tool.http_port)
-            if sliver_tool.server_port is not None:
+            if sliver_tool.server_port:
                 data['port'] = sliver_tool.server_port
 
             data['fqdn'] = _create_af_aware_fqdn(sliver_tool.fqdn,
@@ -241,7 +241,7 @@ class LookupHandler(webapp.RequestHandler):
 
         sliver_tool = sliver_tools[0]
 
-        if sliver_tool.http_port is not None:
+        if sliver_tool.http_port:
             url = _create_tool_url(sliver_tool.fqdn, query.tool_address_family,
                                    sliver_tool.http_port)
             return self.redirect(url)
@@ -271,7 +271,7 @@ class LookupHandler(webapp.RequestHandler):
         destination_site_dict['longitude'] = sliver_tool.longitude
 
         # For web-based tools set this to the URL.
-        if sliver_tool.http_port is not None:
+        if sliver_tool.http_port:
             url = _create_tool_url(sliver_tool.fqdn, query.tool_address_family,
                                    sliver_tool.http_port)
             destination_info = ('<a class="footer" href=' + url + '>' + url +
