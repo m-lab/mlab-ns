@@ -352,7 +352,6 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(maxmind_longitude, query.longitude)
         self.assertIsNone(query.city)
         self.assertEqual(maxmind_country, query.country)
-        self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeAcceptsUserDefinedLatLonAndCountry(self):
         user_defined_latitude = '89.0'
@@ -370,7 +369,25 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(float(user_defined_longitude), query.longitude)
         self.assertIsNone(query.city)
         self.assertEqual(user_defined_country, query.country)
-        self.assertEqual(user_defined_country, query.user_defined_country)
+        self.assertEqual(message.POLICY_GEO, query.policy)
+
+    def testInitializeAcceptsUserDefinedLatLonAndEmptyCountry(self):
+        """Treat empty country names the same as no specified country."""
+        user_defined_latitude = '89.0'
+        user_defined_longitude = '100.0'
+
+        self.mock_query_params[message.LATITUDE] = user_defined_latitude
+        self.mock_query_params[message.LONGITUDE] = user_defined_longitude
+        self.mock_query_params[message.COUNTRY] = ''
+
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+
+        self.assertEqual(float(user_defined_latitude), query.latitude)
+        self.assertEqual(float(user_defined_longitude), query.longitude)
+        self.assertIsNone(query.city)
+        self.assertIsNone(query.country)
+        self.assertEqual(message.POLICY_GEO, query.policy)
 
     def testInitializeAcceptsGeoPolicy(self):
         self.mock_query_params[message.POLICY] = message.POLICY_GEO
@@ -390,7 +407,6 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         self.assertEqual(message.POLICY_COUNTRY, query.policy)
         self.assertEqual(user_defined_country, query.country)
-        self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeUsesMaxmindWhenUserDefinedIpv4Exists(self):
         user_defined_ip = '5.6.7.8'
