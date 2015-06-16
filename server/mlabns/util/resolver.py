@@ -57,9 +57,6 @@ class GeoResolver(ResolverBase):
     def _get_closest_n_candidates(self, query, max_results):
         """Selects the top N geographically closest SliverTools to the client.
 
-        Finds the top N closest SliverTools to the client and returns them.
-        Note that N is currently hardcoded to 4.
-
         Args:
             query: A LookupQuery instance.
             max_results: The maximum number of candidates to return.
@@ -74,8 +71,8 @@ class GeoResolver(ResolverBase):
 
         if (query.latitude is None) or (query.longitude is None):
             logging.warning(
-                'No latitude/longitude, return a random sliver tool.')
-            return [random.choice(candidates)]
+                'No latitude/longitude, return random sliver tool(s).')
+            return random.sample(candidates, min(len(candidates), max_results))
 
         # Pre-shuffle the candidates to randomize the order of equidistant
         # results.
