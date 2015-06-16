@@ -11,7 +11,7 @@ from mlabns.util import message
 
 class LookupQueryTestCase(unittest2.TestCase):
 
-    def mock_get(self, arg, default_value=None):
+    def mock_get(self, arg, default_value=''):
         """Mock method to replace the GAE get() API for web requests."""
         if arg in self.mock_query_params:
             return self.mock_query_params[arg]
