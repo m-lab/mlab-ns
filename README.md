@@ -6,8 +6,8 @@ To deploy code updates to mlab-ns or to deploy mlab-ns to a fresh GCP test proje
 To deploy to the standard mlab-ns testing environment (mlab-nstesting.appspot.com), follow the instructions below with no modifications. To deploy to a different testing environment, you must edit server/app.yaml.testing to update the "application" field to your test environment's GCP project ID.
 
 ```
-git clone https://code.google.com/p/m-lab.ns/ mlab-ns-testing
-cd mlab-ns-testing
+git clone https://github.com/m-lab/mlab-ns.git mlabns-testing
+cd mlabns-testing
 python environment_bootstrap.py testing
 ~/google_appengine/appcfg.py --oauth2 update server/
 ```
@@ -15,8 +15,8 @@ python environment_bootstrap.py testing
 ## Live environment
 
 ```
-git clone https://code.google.com/p/m-lab.ns/ mlab-ns-live
-cd mlab-ns-live
+git clone https://github.com/m-lab/mlab-ns.git mlabns-live
+cd mlabns-live
 python environment_bootstrap.py live
 
 # Verify all tests are passing
