@@ -143,6 +143,7 @@ class ResolverTestCaseBase(unittest.TestCase):
 
         # Mock out random behavior to allow deterministic test results
         with mock.patch('random.sample') as mock_random:
+            # Make random.sample yield the k last elements of the set
             mock_random.side_effect = lambda x, k: x[-k:]
 
             query_results_expected = filtered_tool_candidates[-sample_size:]
@@ -553,6 +554,34 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
 
         self.assertQueryResultMultiToolWithRandomSample(
             query, mock_fetched_tools, filtered_tools_expected, 4,
+            tool_properties_expected)
+
+    def testAnswerQueryReturnsRandomSubsetWhenQueryIsMissingLatLonLowCandidates(
+        self):
+        """When lat/lon is missing, expect a random subset of tools.
+
+        If the number of matching candidates is lower than the number of tools
+        requested, return all the matching candidates.
+        """
+        query = lookup_query.LookupQuery()
+        query.tool_id = _TOOL_ID
+
+        mock_fetched_tools = [
+            _createSliverTool(
+                _TOOL_ID, site_id='abc01', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc02', latitude=1.0, longitude=1.0)]
+        # When lat/lon is missing, resolver performs no additional filtering
+        # after fetch
+        filtered_tools_expected = mock_fetched_tools
+
+        tool_properties_expected = tool_fetcher.ToolProperties(
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
+
+        # Normally we expect a random sample of 4, but there are only 2
+        # candidates in the set
+        self.assertQueryResultMultiToolWithRandomSample(
+            query, mock_fetched_tools, filtered_tools_expected, 2,
             tool_properties_expected)
 
 
