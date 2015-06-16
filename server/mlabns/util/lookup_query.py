@@ -97,7 +97,8 @@ class LookupQuery:
             self._ip_is_explicit = False
 
     def _set_tool_address_family(self, request):
-        tool_address_family = request.get(message.ADDRESS_FAMILY)
+        tool_address_family = request.get(message.ADDRESS_FAMILY,
+                                          default_value=None)
         valid_address_families = (message.ADDRESS_FAMILY_IPv4,
                                   message.ADDRESS_FAMILY_IPv6)
         if tool_address_family in valid_address_families:
@@ -105,8 +106,9 @@ class LookupQuery:
 
     def _set_geolocation(self, request):
         self._set_appengine_geolocation(request)
-        self._user_defined_city = request.get(message.CITY)
-        self.user_defined_country = request.get(message.COUNTRY)
+        self._user_defined_city = request.get(message.CITY, default_value=None)
+        self.user_defined_country = request.get(message.COUNTRY,
+                                                default_value=None)
         input_latitude, input_longitude = self._get_user_defined_lat_lon(
             request)
 
@@ -163,8 +165,8 @@ class LookupQuery:
         """
         MAX_LATITUDE_ABSOLUTE = 90.0
         MAX_LONGITUDE_ABSOLUTE = 180.0
-        input_latitude = request.get(message.LATITUDE)
-        input_longitude = request.get(message.LONGITUDE)
+        input_latitude = request.get(message.LATITUDE, default_value=None)
+        input_longitude = request.get(message.LONGITUDE, default_value=None)
 
         if not input_latitude or not input_longitude:
             return None, None
