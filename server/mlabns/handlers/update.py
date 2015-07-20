@@ -12,6 +12,7 @@ import urllib2
 from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import message
+from mlabns.util import production_check
 from mlabns.util import util
 
 
@@ -47,7 +48,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                               json.dumps(site), field)
                 return False
 
-        if not re.match(r'[a-z]{3}\d{2}', site[cls.SITE_FIELD]):
+        if not production_check.is_production_site(site[cls.SITE_FIELD]):
             logging.info('Ignoring non-production site: %s',
                          site[cls.SITE_FIELD])
             return False
@@ -199,6 +200,9 @@ class IPUpdateHandler(webapp.RequestHandler):
             fqdn = line_fields[0]
             ipv4 = line_fields[1]
             ipv6 = line_fields[2]
+
+            if not production_check.is_production_slice(fqdn):
+              continue
 
             sliver_tool_gql = model.SliverTool.gql('WHERE fqdn=:fqdn',
                                                    fqdn=fqdn)

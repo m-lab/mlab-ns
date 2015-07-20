@@ -49,7 +49,7 @@ class LookupQuery:
         #TODO(mtlynch): We are using two country fields to store the same type
         # of information, but using user_defined_country in some cases and
         # country in others. We should consolidate them into a single field.
-        self.user_defined_country = None
+        self._user_defined_country = None
         self._user_defined_latitude = None
         self._user_defined_longitude = None
         self._gae_city = None
@@ -107,8 +107,7 @@ class LookupQuery:
     def _set_geolocation(self, request):
         self._set_appengine_geolocation(request)
         self._user_defined_city = request.get(message.CITY, default_value=None)
-        self.user_defined_country = request.get(message.COUNTRY,
-                                                default_value=None)
+        self._user_defined_country = request.get(message.COUNTRY)
         input_latitude, input_longitude = self._get_user_defined_lat_lon(
             request)
 
@@ -116,14 +115,14 @@ class LookupQuery:
             self._geolocation_type = constants.GEOLOCATION_USER_DEFINED
             self._user_defined_latitude = input_latitude
             self._user_defined_longitude = input_longitude
-        elif self._ip_is_explicit or self.user_defined_country:
+        elif self._ip_is_explicit or self._user_defined_country:
             if self._ip_is_explicit:
               ip_address_to_geolocate = self.ip_address
             else:
               ip_address_to_geolocate = None
             self._geolocation_type = constants.GEOLOCATION_MAXMIND
             self._set_maxmind_geolocation(ip_address_to_geolocate,
-                                          self.user_defined_country,
+                                          self._user_defined_country,
                                           self._user_defined_city)
         elif self._gae_latitude and self._gae_longitude:
             self._geolocation_type = constants.GEOLOCATION_APP_ENGINE
@@ -134,7 +133,7 @@ class LookupQuery:
 
         if self._geolocation_type == constants.GEOLOCATION_USER_DEFINED:
             self.city = self._user_defined_city
-            self.country = self.user_defined_country
+            self.country = self._user_defined_country or None
             self.latitude = self._user_defined_latitude
             self.longitude = self._user_defined_longitude
         elif self._geolocation_type == constants.GEOLOCATION_MAXMIND:
@@ -234,13 +233,13 @@ class LookupQuery:
                          self.policy)
                 self.policy = message.POLICY_GEO
             return
-        if self.user_defined_country is not None:
+        if self._user_defined_country:
             if self.policy != message.POLICY_COUNTRY and \
                 self.policy != message.POLICY_GEO:
                 if self.policy:
                     logging.warning(
-                        'Country user-defined, but policy is %s.',
-                        self.policy)
+                        'Country user-defined (%s), but policy is %s.',
+                        self._user_defined_country, self.policy)
                 self.policy = message.POLICY_GEO
             return
         if self.metro is not None:
@@ -256,7 +255,7 @@ class LookupQuery:
                 self.policy = message.POLICY_RANDOM
             return
         if self.policy == message.POLICY_COUNTRY:
-            if self.user_defined_country is None:
+            if not self._user_defined_country:
                 logging.warning('Policy country, but arg country not defined.')
                 self.policy = self._get_default_policy()
             return

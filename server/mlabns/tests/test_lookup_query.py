@@ -352,7 +352,6 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(maxmind_longitude, query.longitude)
         self.assertIsNone(query.city)
         self.assertEqual(maxmind_country, query.country)
-        self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeAcceptsUserDefinedLatLonAndCountry(self):
         user_defined_latitude = '89.0'
@@ -370,7 +369,6 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(float(user_defined_longitude), query.longitude)
         self.assertIsNone(query.city)
         self.assertEqual(user_defined_country, query.country)
-        self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeAcceptsGeoPolicy(self):
         self.mock_query_params[message.POLICY] = message.POLICY_GEO
@@ -390,7 +388,6 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         self.assertEqual(message.POLICY_COUNTRY, query.policy)
         self.assertEqual(user_defined_country, query.country)
-        self.assertEqual(user_defined_country, query.user_defined_country)
 
     def testInitializeUsesMaxmindWhenUserDefinedIpv4Exists(self):
         user_defined_ip = '5.6.7.8'
