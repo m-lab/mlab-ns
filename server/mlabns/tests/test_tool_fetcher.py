@@ -59,7 +59,7 @@ class ToolFetcherCommonTests(object):
 
     def createSliverTool(self, tool_id, site_id=None, status_ipv4=None,
                          status_ipv6=None, latitude=None, longitude=None,
-                         country=None, fqdn=""):
+                         country=None, fqdn=''):
         tool = model.SliverTool()
         tool.tool_id = tool_id
         tool.site_id = site_id
@@ -131,7 +131,8 @@ class ToolFetcherCommonTests(object):
         self.initToolIdSiteGroup()
         tool_properties = tool_fetcher.ToolProperties(tool_id='mock_tool_a')
         for tool in self.fetcher.fetch(tool_properties):
-          self.assertTrue("mlab2" not in tool.fqdn)
+          self.assertTrue('mlab1' in tool.fqdn)
+          self.assertFalse('mlab2' in tool.fqdn)
 
     def testFetchToolA(self):
         self.initToolIdSiteGroup()

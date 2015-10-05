@@ -65,7 +65,7 @@ def _filter_choose_one_host_per_site(tools):
         else:
             sites[tool.site_id] = min(sites[tool.site_id], tool,
                                       key=lambda t: t.fqdn)
-    return [ tool for tool in sites.values() ]
+    return [tool for tool in sites.values()]
 
 def _find_site_ids_for_metro(metro):
     """Determine which site IDs are present in a given metro.
