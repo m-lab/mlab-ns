@@ -46,6 +46,26 @@ def _filter_by_country(tools, country):
     """Filters sliver tools based on the tool's country."""
     return filter(lambda t: t.country == country, tools)
 
+def _filter_choose_one_host_per_site(tools):
+    """Filters to make sure only one host is returned per site_id.
+
+    This filter should be run after _filter_by_status if you want to make sure
+    the chosen site is up.
+
+    Args:
+        tools: The list of tools to filter.
+
+    Returns:
+        A list containing a unique tool for each site.
+    """
+    sites = {}
+    for tool in tools:
+        if tool.site_id not in sites:
+            sites[tool.site_id] = tool
+        else:
+            sites[tool.site_id] = min(sites[tool.site_id], tool,
+                                      key=lambda t: t.fqdn)
+    return [ tool for tool in sites.values() ]
 
 def _find_site_ids_for_metro(metro):
     """Determine which site IDs are present in a given metro.
@@ -140,6 +160,7 @@ class ToolFetcherMemcache(object):
             # Can't filter by metro without hitting the Datastore because
             # Memcache does not have metro -> site ID mapping.
             return []
+        tool_filters.append(_filter_choose_one_host_per_site)
 
         sliver_tools = memcache.get(
             tool_properties.tool_id,
@@ -196,6 +217,7 @@ class ToolFetcherDatastore(object):
         if tool_properties.status:
             results = _filter_by_status(
                 results, tool_properties.address_family, tool_properties.status)
+        results = _filter_choose_one_host_per_site(results)
 
         logging.info('%d sliver tools found in Datastore.', len(results))
         return results

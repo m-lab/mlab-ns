@@ -59,7 +59,7 @@ class ToolFetcherCommonTests(object):
 
     def createSliverTool(self, tool_id, site_id=None, status_ipv4=None,
                          status_ipv6=None, latitude=None, longitude=None,
-                         country=None):
+                         country=None, fqdn=""):
         tool = model.SliverTool()
         tool.tool_id = tool_id
         tool.site_id = site_id
@@ -68,6 +68,7 @@ class ToolFetcherCommonTests(object):
         tool.latitude = latitude
         tool.longitude = longitude
         tool.country = country
+        tool.fqdn = fqdn
         self.created_tools.append(tool)
 
     def insertCreatedTools(self):
@@ -87,32 +88,50 @@ class ToolFetcherCommonTests(object):
         self.createSliverTool(
             tool_id='mock_tool_a', site_id='abc01', country='CountryA',
             status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE)
+            status_ipv6=message.STATUS_ONLINE,
+            fqdn='mock_tool_a.mlab1.abc01.measurement-lab.org')
+        self.createSliverTool(
+            tool_id='mock_tool_a', site_id='abc01', country='CountryA',
+            status_ipv4=message.STATUS_ONLINE,
+            status_ipv6=message.STATUS_ONLINE,
+            fqdn='mock_tool_a.mlab2.abc01.measurement-lab.org')
         self.createSliverTool(
             tool_id='mock_tool_b', site_id='abc01', country='CountryA',
             status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE)
+            status_ipv6=message.STATUS_ONLINE,
+            fqdn='mock_tool_b.mlab1.abc01.measurement-lab.org')
         self.createSliverTool(
             tool_id='mock_tool_c', site_id='abc01', country='CountryA',
             status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE)
+            status_ipv6=message.STATUS_ONLINE,
+            fqdn='mock_tool_b.mlab1.abc01.measurement-lab.org')
         self.createSliverTool(
             tool_id='mock_tool_a', site_id='abc02', country='CountryA',
             status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_OFFLINE)
+            status_ipv6=message.STATUS_OFFLINE,
+            fqdn='mock_tool_a.mlab1.abc02.measurement-lab.org')
         self.createSliverTool(
             tool_id='mock_tool_b', site_id='abc02', country='CountryA',
             status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_OFFLINE)
+            status_ipv6=message.STATUS_OFFLINE,
+            fqdn='mock_tool_b.mlab1.abc02.measurement-lab.org')
         self.createSliverTool(
             tool_id='mock_tool_a', site_id='abc03', country='CountryA',
             status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_OFFLINE)
+            status_ipv6=message.STATUS_OFFLINE,
+            fqdn='mock_tool_a.mlab1.abc03.measurement-lab.org')
         self.createSliverTool(
             tool_id='mock_tool_c', site_id='abc03', country='CountryA',
             status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_OFFLINE)
+            status_ipv6=message.STATUS_OFFLINE,
+            fqdn='mock_tool_c.mlab1.abc03.measurement-lab.org')
         self.insertCreatedTools()
+
+    def testOnlyReturnMlab1(self):
+        self.initToolIdSiteGroup()
+        tool_properties = tool_fetcher.ToolProperties(tool_id='mock_tool_a')
+        for tool in self.fetcher.fetch(tool_properties):
+          self.assertTrue("mlab2" not in tool.fqdn)
 
     def testFetchToolA(self):
         self.initToolIdSiteGroup()
