@@ -1,0 +1,3 @@
+[submodule "server/mlabns/third_party/pygeoip"]
+	path = server/mlabns/third_party/pygeoip
+	url = https://github.com/appliedsec/pygeoip.git
