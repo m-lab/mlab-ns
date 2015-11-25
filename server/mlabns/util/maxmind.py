@@ -5,8 +5,14 @@ from mlabns.third_party import ipaddr
 from mlabns.util import constants
 
 import logging
+import os
 import socket
 import string
+import sys
+
+sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__),
+    "../third_party/pygeoip")))
+import pygeoip
 
 # For more details about the decimal representation of the IP addresses
 # used in the CVS files and the conversion algorithm see
@@ -20,34 +26,76 @@ class GeoRecord:
         self.longitude = longitude
 
 
-def get_ip_geolocation(remote_addr):
+def get_ip_geolocation(remote_addr,
+        db_type=constants.GEOLOCATION_MAXMIND_USE_FILE):
     """Returns the geolocation data associated with an IP address.
 
     Args:
         remote_addr: A string describing an IPv4 or IPv6 address.
+        db_type: An indicator whether to use the Mamind datastore or file.
 
     Returns:
         A GeoRecord if the geolocation data is found in the db,
         otherwise an empty GeoRecord.
     """
-    try:
-        return get_ipv4_geolocation(remote_addr)
-    except ipaddr.AddressValueError:
-        pass
 
-    try:
-        return get_ipv6_geolocation(remote_addr)
-    except ipaddr.AddressValueError:
-        pass
+    if db_type == constants.GEOLOCATION_MAXMIND_USE_FILE:
+        try:
+            return get_ip_geolocation_datafile(remote_addr)
+        except socket.error:
+            pass
+    elif db_type == constants.GEOLOCATION_MAXMIND_USE_DATASTORE:
+        try:
+            return get_ipv4_geolocation_datastore(remote_addr)
+        except ipaddr.AddressValueError:
+            pass
+
+        try:
+            return get_ipv6_geolocation_datastore(remote_addr)
+        except ipaddr.AddressValueError:
+            pass
 
     # Return an empty GeoRecord.
     logging.warning('Returning empty record')
     return GeoRecord()
 
-def get_ipv4_geolocation(remote_addr,
-                         ipv4_table=model.MaxmindCityBlock,
-                         city_table=model.MaxmindCityLocation):
-    """Returns the geolocation data associated with an IPv4 address.
+def get_ip_geolocation_datafile(remote_addr,
+        city_file=constants.GEOLOCATION_MAXMIND_CITY_FILE):
+    """Returns the geolocation data associated with an IPv4 address retrieved
+    from the Maxmind database through the pygeoip module.
+
+    Args:
+        remote_addr: A string describing an IP address (v4 or v6).
+        city_file: The path to the Maxmind .dat file.
+
+    Returns:
+        A GeoRecord containing the geolocation data if is found in the db,
+        otherwise an empty GeoRecord.
+
+    Raises:
+        socket.error, if 'remote_addr' is not a valid IP address.
+    """
+    geo_record = GeoRecord()
+
+    geo_city_block = pygeoip.GeoIP(city_file,
+        flags=pygeoip.const.MEMORY_CACHE).record_by_addr(remote_addr)
+
+    if geo_city_block is None:
+        logging.error('IP %s not found in the Maxmind database.',
+            str(remote_addr))
+        return geo_record
+
+    geo_record.city = geo_city_block['city']
+    geo_record.country = geo_city_block['country_code']
+    geo_record.latitude = geo_city_block['latitude']
+    geo_record.longitude = geo_city_block['longitude']
+    return geo_record
+
+def get_ipv4_geolocation_datastore(remote_addr,
+        ipv4_table=model.MaxmindCityBlock,
+        city_table=model.MaxmindCityLocation):
+    """Returns the geolocation data associated with an IPv4 address retrieved
+    from the Maxmind database in the GAE Datastore.
 
     Args:
         remote_addr: A string describing an IPv4 address.
@@ -82,7 +130,7 @@ def get_ipv4_geolocation(remote_addr,
     geo_record.longitude = location.longitude
     return geo_record
 
-def get_ipv6_geolocation(remote_addr,
+def get_ipv6_geolocation_datastore(remote_addr,
                          ipv6_table=model.MaxmindCityBlockv6):
     """Returns the geolocation data associated with an IPv6 address.
 
@@ -164,4 +212,3 @@ def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
     geo_record.latitude = location.latitude
     geo_record.longitude = location.longitude
     return geo_record
-

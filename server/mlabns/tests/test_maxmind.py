@@ -4,7 +4,6 @@ from mlabns.third_party import ipaddr
 from mlabns.util import constants
 from mlabns.util import maxmind
 
-
 class GeoRecordTestCase(unittest2.TestCase):
     def testDefaultConstructor(self):
         geo_record = maxmind.GeoRecord()
@@ -44,70 +43,89 @@ class MaxmindTestClass(unittest2.TestCase):
         self.assertEqual(geo_record1.latitude, geo_record2.latitude)
         self.assertEqual(geo_record1.longitude, geo_record2.longitude)
 
-    def testGetGeolocationNotValidAddress(self):
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation('non_valid_ip'))
+    def testGetGeolocationDatastoreNotValidAddress(self):
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation('non_valid_ip',
+            db_type=constants.GEOLOCATION_MAXMIND_USE_DATASTORE))
 
-    def testGetIpv4GeolocationNotValidAddress(self):
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation, None)
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation, 'abc')
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation, '')
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation, '12.3.4')
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation, '1.2.3.256')
+    def testGetGeolocationDatafileNotValidAddress(self):
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation('non_valid_ip',
+            db_type=constants.GEOLOCATION_MAXMIND_USE_FILE))
 
-    def testGetIpv6GeolocationNotValidAddress(self):
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation, None)
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation, 'abc')
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation, '')
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation, '1.2.3.4')
-        self.assertRaises(
-            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation, '1::1::1')
+    def testGetGeolocationDatafileNonExistentAddress(self):
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation('0.0.0.0',
+            db_type=constants.GEOLOCATION_MAXMIND_USE_FILE))
 
-    def testGetIpv4GeolocationNoIp(self):
+    def testGetIpv4GeolocationDatastoreNotValidAddress(self):
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation_datastore,
+                None)
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation_datastore,
+                'abc')
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation_datastore,
+                '')
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation_datastore,
+                '12.3.4')
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv4_geolocation_datastore,
+                '1.2.3.256')
+
+    def testGetIpv6GeolocationDatastoreNotValidAddress(self):
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation_datastore,
+                None)
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation_datastore,
+                'abc')
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation_datastore,
+                '')
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation_datastore,
+                '1.2.3.4')
+        self.assertRaises(
+            ipaddr.AddressValueError, maxmind.get_ipv6_geolocation_datastore,
+                '1::1::1')
+
+    def testGetIpv4GeolocationDatastoreNoIp(self):
         self.assertNoneGeoRecord(
-            maxmind.get_ipv4_geolocation(
+            maxmind.get_ipv4_geolocation_datastore(
                 '1.2.3.4', ipv4_table=MaxmindTestClass.ModelMockup()))
 
-    def testGetIpv6GeolocationNoIp(self):
+    def testGetIpv6GeolocationDatastoreNoIp(self):
         self.assertNoneGeoRecord(
-            maxmind.get_ipv6_geolocation(
+            maxmind.get_ipv6_geolocation_datastore(
                 '::1', ipv6_table=MaxmindTestClass.ModelMockup()))
 
-    def testGetIpv4GeolocationTooSmallEndIp(self):
+    def testGetIpv4GeolocationDatastoreTooSmallEndIp(self):
         class GqlResultMockup:
             def __init__(self):
                 self.end_ip_num = 16909059  # 1.2.3.3
         self.assertNoneGeoRecord(
-            maxmind.get_ipv4_geolocation(
+            maxmind.get_ipv4_geolocation_datastore(
                 '1.2.3.4', ipv4_table=MaxmindTestClass.ModelMockup(
                     gql_obj=MaxmindTestClass.GqlMockup(
                         result=GqlResultMockup()))))
 
-    def testGetIpv6GeolocationTooSmallEndIp(self):
+    def testGetIpv6GeolocationDatastoreTooSmallEndIp(self):
         class GqlResultMockup:
             def __init__(self):
                 self.end_ip_num = 281483566841859  # 1:2:3:3::5 >> 64
         self.assertNoneGeoRecord(
-            maxmind.get_ipv6_geolocation(
+            maxmind.get_ipv6_geolocation_datastore(
                 '1:2:3:4::5', ipv6_table=MaxmindTestClass.ModelMockup(
                     gql_obj=MaxmindTestClass.GqlMockup(
                         result=GqlResultMockup()))))
 
-    def testGetIpv4GeolocationNoLocation(self):
+    def testGetIpv4GeolocationDatastoreNoLocation(self):
         class GqlResultMockup:
             def __init__(self):
                 self.end_ip_num = 16909061  # 1.2.3.5
                 self.location_id = 'unused'
         self.assertNoneGeoRecord(
-            maxmind.get_ipv4_geolocation(
+            maxmind.get_ipv4_geolocation_datastore(
                 '1.2.3.4',
                  ipv4_table=MaxmindTestClass.ModelMockup(
                      gql_obj=MaxmindTestClass.GqlMockup(
@@ -134,7 +152,7 @@ class MaxmindTestClass(unittest2.TestCase):
 
         self.assertGeoRecordEqual(
             expected_geo_record,
-            maxmind.get_ipv4_geolocation(
+            maxmind.get_ipv4_geolocation_datastore(
                 '1.2.3.4',
                  ipv4_table=MaxmindTestClass.ModelMockup(
                      gql_obj=MaxmindTestClass.GqlMockup(
@@ -164,7 +182,7 @@ class MaxmindTestClass(unittest2.TestCase):
 
         self.assertGeoRecordEqual(
             expected_geo_record,
-            maxmind.get_ipv6_geolocation(
+            maxmind.get_ipv6_geolocation_datastore(
                 '1:2:3:4::5',
                  ipv6_table=MaxmindTestClass.ModelMockup(
                      gql_obj=MaxmindTestClass.GqlMockup(
