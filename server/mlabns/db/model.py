@@ -80,20 +80,6 @@ class MaxmindCityLocation(db.Model):
     longitude = db.FloatProperty()
     when = db.DateTimeProperty(auto_now=True)
 
-class MaxmindCityBlock(db.Model):
-    start_ip_num = db.IntegerProperty()
-    end_ip_num = db.IntegerProperty()
-    location_id = db.StringProperty()
-    when = db.DateTimeProperty(auto_now=True)
-
-class MaxmindCityBlockv6(db.Model):
-    start_ip_num = db.IntegerProperty()
-    end_ip_num = db.IntegerProperty()
-    country = db.StringProperty()
-    latitude = db.FloatProperty()
-    longitude = db.FloatProperty()
-    when = db.DateTimeProperty(auto_now=True)
-
 class CountryCode(db.Model):
     name = db.StringProperty()
     alpha2_code = db.StringProperty()
