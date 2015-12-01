@@ -49,9 +49,9 @@ def get_ip_geolocation(ip_address):
         # 2.) TypeError: Passed a non-string IP address, such as None.
         geo_city_block = pygeoip.GeoIP(constants.GEOLOCATION_MAXMIND_CITY_FILE,
                 flags=pygeoip.const.STANDARD).record_by_addr(ip_address)
-    except (socket.error, TypeError) as exception_message:
+    except (socket.error, TypeError) as e:
         logging.error('MaxMind Geolocation failed on query (%s) with error: %s',
-                ip_address, exception_message)
+                ip_address, e)
         return GeoRecord()
 
     if not geo_city_block:
