@@ -5,6 +5,7 @@ from mlabns.third_party import ipaddr
 from mlabns.util import constants
 from mlabns.util import maxmind
 
+
 class GeoRecordTestCase(unittest2.TestCase):
     def testDefaultConstructor(self):
         geo_record = maxmind.GeoRecord()
@@ -12,6 +13,40 @@ class GeoRecordTestCase(unittest2.TestCase):
         self.assertIsNone(geo_record.country)
         self.assertIsNone(geo_record.latitude)
         self.assertIsNone(geo_record.longitude)
+
+    def testEqualToComparisonMethodIdenticalRecords(self):
+        geo_record_1 = maxmind.GeoRecord()
+        geo_record_1.city = "Greenwich, London"
+        geo_record_1.country = "UK"
+        geo_record_1.latitude = 51.4800
+        geo_record_1.longitude = 0.0000
+
+        geo_record_2 = maxmind.GeoRecord()
+        geo_record_2.city = geo_record_1.city
+        geo_record_2.country = geo_record_1.country
+        geo_record_2.latitude = geo_record_1.latitude
+        geo_record_2.longitude = geo_record_1.longitude
+
+        with self.assertRaises(AssertionError):
+            self.assertNotEqual(geo_record_1, geo_record_2)
+        self.assertEqual(geo_record_1, geo_record_2)
+
+    def testEqualToComparisonMethodDifferentRecords(self):
+        geo_record_1 = maxmind.GeoRecord()
+        geo_record_1.city = "Greenwich, London"
+        geo_record_1.country = "UK"
+        geo_record_1.latitude = 51.4800
+        geo_record_1.longitude = 0.0000
+
+        geo_record_2 = maxmind.GeoRecord()
+        geo_record_2.city = geo_record_1.city
+        geo_record_2.country = geo_record_1.country
+        geo_record_2.latitude = geo_record_1.latitude
+        geo_record_2.longitude = 99.9999
+
+        with self.assertRaises(AssertionError):
+            self.assertEqual(geo_record_1, geo_record_2)
+        self.assertNotEqual(geo_record_1, geo_record_2)
 
 class MaxmindTestClass(unittest2.TestCase):
     class GqlMockup:
@@ -38,12 +73,6 @@ class MaxmindTestClass(unittest2.TestCase):
         self.assertIsNone(geo_record.latitude)
         self.assertIsNone(geo_record.longitude)
 
-    def assertGeoRecordEqual(self, geo_record1, geo_record2):
-        self.assertEqual(geo_record1.city, geo_record2.city)
-        self.assertEqual(geo_record1.country, geo_record2.country)
-        self.assertEqual(geo_record1.latitude, geo_record2.latitude)
-        self.assertEqual(geo_record1.longitude, geo_record2.longitude)
-
     def testGetGeolocationNotValidAddress(self):
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation('non_valid_ip'))
 
@@ -53,16 +82,6 @@ class MaxmindTestClass(unittest2.TestCase):
     def testGetGeolocationNotValidAddress(self):
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation(None))
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation('abc'))
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(''))
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation('1.2.3.256'))
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation('1::1::1'))
-
-    @mock.patch('mlabns.util.maxmind.get_ip_geolocation')
-    def testGetGeolocationCalledWithArguments(self, mock_get_ip_geolocation):
-        mock_call = {'ip': '1.2.3.4', 'path': '/tmp/path'}
-        mock_get_ip_geolocation(mock_call['ip'], city_file = mock_call['path'])
-        mock_get_ip_geolocation.assert_called_with(mock_call['ip'],
-                city_file = mock_call['path'])
 
     @mock.patch('pygeoip.GeoIP.record_by_addr')
     def testGetGeolocationNoRecordForIp(self, mock_geoip_record_by_addr):
@@ -70,19 +89,14 @@ class MaxmindTestClass(unittest2.TestCase):
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation('1.2.3.4'))
 
     @mock.patch('pygeoip.GeoIP.record_by_addr')
-    def testGetGeolocationNoneRecordForTypeError(self,
-            mock_geoip_record_by_addr):
-        mock_geoip_record_by_addr.side_effect = TypeError
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation('1.2.3.4'))
-
-    @mock.patch('pygeoip.GeoIP.record_by_addr')
     def testGetGeolocationValidLocation(self, mock_geoip_record_by_addr):
         mock_geolocation = {
-            'city': 'city',
-            'country_code': 'country',
-            'latitude': 'latitude',
-            'longitude': 'longitude'
+            'city': 'Greenwich, London',
+            'country_code': 'UK',
+            'latitude': '51.4800',
+            'longitude': '0.0000'
         }
+
         expected_geo_record = maxmind.GeoRecord()
         expected_geo_record.city = mock_geolocation['city']
         expected_geo_record.country = mock_geolocation['country_code']
@@ -90,7 +104,7 @@ class MaxmindTestClass(unittest2.TestCase):
         expected_geo_record.longitude = mock_geolocation['longitude']
 
         mock_geoip_record_by_addr.return_value = mock_geolocation
-        self.assertGeoRecordEqual(expected_geo_record,
+        self.assertEqual(expected_geo_record,
                 maxmind.get_ip_geolocation('1.2.3.4'))
 
     def testGetCountryGeolocationNoCountry(self):
@@ -112,7 +126,7 @@ class MaxmindTestClass(unittest2.TestCase):
         expected_geo_record.latitude = location.latitude
         expected_geo_record.longitude = location.longitude
 
-        self.assertGeoRecordEqual(
+        self.assertEqual(
             expected_geo_record,
             maxmind.get_country_geolocation(
                 'unused_country',
@@ -139,7 +153,7 @@ class MaxmindTestClass(unittest2.TestCase):
         expected_geo_record.country = location.country
         expected_geo_record.latitude = location.latitude
         expected_geo_record.longitude = location.longitude
-        self.assertGeoRecordEqual(
+        self.assertEqual(
             expected_geo_record,
             maxmind.get_city_geolocation(
                 'unused_city',
