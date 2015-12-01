@@ -3,7 +3,7 @@
 To deploy code updates to mlab-ns or to deploy mlab-ns to a fresh GCP test project, follow the instructions below.
 
 ## Testing environment
-To deploy to the standard mlab-ns testing environment (mlab-nstesting.appspot.com), follow the instructions below with no modifications. To deploy to a different testing environment, you must edit server/app.yaml.testing to update the "application" field to your test environment's GCP project ID.
+To deploy to the standard mlab-ns testing environment (mlab-nstesting.appspot.com), follow the instructions below with no modifications. To deploy to a different testing environment, you must edit `server/app.yaml.testing` to update the "application" field to your test environment's GCP project ID.
 
 ```
 git clone https://github.com/m-lab/mlab-ns.git mlabns-testing
@@ -35,10 +35,10 @@ Note: These instructions require you to have `nagios.csv`, which is not under so
 
 ```
 # Replace URL with other project's URL if not populating mlab-nstesting
-GAE_URL = http://mlab-nstesting.appspot.com
+GAE_URL=http://mlab-nstesting.appspot.com
 
 appcfg.py --url ${GAE_URL}/_ah/remote_api upload_data \
-  --config_file=server/bulkloader.yaml
+  --config_file=server/bulkloader.yaml \
   --filename=server/mlabns/conf/tools.csv \
   --kind=Tool
 
@@ -52,9 +52,9 @@ After the Datastore is populated with seed information, manually kick off the cr
 
 Run the following jobs from GCP under Compute > App Engine > Task queues > Cron Jobs.
 
-1. /cron/check_site
-1. /cron/check_ip
-1. /cron/check_status
+1. `/cron/check_site`
+1. `/cron/check_ip`
+1. `/cron/check_status`
 
 If bootstrapping was successful, you should see a populated map at the root mlab-ns URL (e.g. mlab-nstesting.appspot.com) with M-Lab's sites properly located.
 
