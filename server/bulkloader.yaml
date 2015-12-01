@@ -44,57 +44,6 @@ transformers:
       import_transform: transform.none_if_empty(int)
 
 
-- kind: MaxmindCityBlock
-  connector: csv
-  connector_options:
-      encoding: utf-8
-  property_map:
-    - property: __key__
-      external_name: start_ip_num
-      import_transform: transform.create_foreign_key('MaxmindCityBlock')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: start_ip_num
-      external_name: start_ip_num
-      import_transform: transform.none_if_empty(int)
-
-    - property: end_ip_num
-      external_name: end_ip_num
-      import_transform: transform.none_if_empty(int)
-
-    - property: location_id
-      external_name: location_id
-
-
-- kind: MaxmindCityBlockv6
-  connector: csv
-  connector_options:
-      encoding: utf-8
-  property_map:
-    - property: __key__
-      external_name: index
-      export_transform: transform.create_foreign_key('MaxmindCityBlockv6')
-
-    - property: start_ip_num
-      external_name: start_ip_num
-      import_transform: transform.none_if_empty(int)
-
-    - property: end_ip_num
-      external_name: end_ip_num
-      import_transform: transform.none_if_empty(int)
-
-    - property: country
-      external_name: country
-
-    - property: latitude
-      external_name: latitude
-      import_transform: transform.none_if_empty(float)
-
-    - property: longitude
-      external_name: longitude
-      import_transform: transform.none_if_empty(float)
-
-
 - kind: MaxmindCityLocation
   connector: csv
   connector_options:
@@ -279,4 +228,3 @@ transformers:
     - property: show_tool_extra
       external_name: show_tool_extra
       import_transform: transform.regexp_bool('true', re.IGNORECASE)
-
