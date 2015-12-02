@@ -22,7 +22,9 @@ def rewrite(fqdn, address_family, tool_id):
         FQDN after rewriting to apply all modifications to the raw FQDN.
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
-    rewritten_fqdn = _apply_ndt_ssl_workaround(rewritten_fqdn, tool_id)
+    # If this is ndt_ssl, apply the special case workaround.
+    if tool_id == 'ndt_ssl':
+        rewritten_fqdn = _apply_ndt_ssl_workaround(rewritten_fqdn)
     return rewritten_fqdn
 
 
@@ -59,37 +61,34 @@ def _apply_af_awareness(fqdn, address_family):
     return '.'.join(fqdn_parts)
 
 
-def _apply_ndt_ssl_workaround(fqdn, tool_id):
+def _apply_ndt_ssl_workaround(fqdn):
     """Rewrites ndt_ssl FQDNs to use dash separators for subdomains.
 
-    Rewrites ndt_ssl FQDNs to have proper formatting. Leaves FQDNs for all
-    other tools unmodified.
+    The NDT-SSL test uses dashes instead of dots as separators in the subdomain,
+    but Nagios currently reports the FQDNs as using dots.
 
-    The NDT-SSL test uses dashes instead of dots as separators in the subdomain.
     For example, instead of:
+
         ndt.iupui.mlab1.lga06.measurement-lab.org
+
     NDT-SSL uses:
+
         ndt-iupui-mlab1-lga06.measurement-lab.org
 
-    The long term plan is to adjust all FQDNs to match this schema, but
-    currently Nagios (the source of mlab-ns' FQDN data) is not are not
-    aware of the dash-separator schema. We apply a special-case workaround here
-    so that we serve the correct FQDNs to clients for NDT-SSL queries until we
-    fix the naming in Nagios.
+    We rewrite the dotted FQDNs to use dashes so that NDT-SSL works properly.
+    This is intended to be a temporary workaround until we can find a solution
+    that does not require NDT-SSL to be a special case from mlab-ns's
+    perspective.
 
     See https://github.com/m-lab/mlab-ns/issues/48 for more information.
 
     Args:
-        fqdn: Tool's FQDN before any rewrites.
-        tool_id: Name of tool associated with the FQDN (e.g. 'ndt_ssl').
+        fqdn: An NDT-SSL FQDN in dotted notation.
 
     Returns:
         FQDN with rewritten dashes if a rewrite was necessary, the original FQDN
         otherwise.
     """
-    # If this is not ndt_ssl, leave FQDN untouched.
-    if tool_id != 'ndt_ssl':
-        return fqdn
     fqdn_parts = _split_fqdn(fqdn)
 
     # Create subdomain like ndt-iupui-mlab1-lga06
