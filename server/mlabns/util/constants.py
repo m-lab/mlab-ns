@@ -10,6 +10,8 @@ GEOLOCATION_APP_ENGINE = 'app_engine'
 GEOLOCATION_MAXMIND = 'maxmind'
 GEOLOCATION_USER_DEFINED = 'user_defined'
 
+GEOLOCATION_MAXMIND_CITY_FILE = 'mlabns/third_party/maxmind/latest'
+
 # Maximum number of entities fetched from datastore in a single query.
 MAX_FETCHED_RESULTS = 500
 
