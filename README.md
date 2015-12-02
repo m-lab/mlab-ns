@@ -6,8 +6,14 @@ To deploy code updates to mlab-ns or to deploy mlab-ns to a fresh GCP test proje
 To deploy to the standard mlab-ns testing environment (mlab-nstesting.appspot.com), follow the instructions below with no modifications. To deploy to a different testing environment, you must edit `server/app.yaml.testing` to update the "application" field to your test environment's GCP project ID.
 
 ```
-git clone https://github.com/m-lab/mlab-ns.git mlabns-testing
+git clone --recursive https://github.com/m-lab/mlab-ns.git mlabns-testing
 cd mlabns-testing
+
+# Or, for an existing repo:
+# git checkout master
+# git submodule update --init
+# git pull origin master
+
 python environment_bootstrap.py testing
 ~/google_appengine/appcfg.py --oauth2 update server/
 ```
@@ -15,8 +21,14 @@ python environment_bootstrap.py testing
 ## Live environment
 
 ```
-git clone https://github.com/m-lab/mlab-ns.git mlabns-live
+git clone --recursive https://github.com/m-lab/mlab-ns.git mlabns-live
 cd mlabns-live
+
+# Or, for an existing repo:
+# git checkout master
+# git submodule update --init
+# git pull origin master
+
 python environment_bootstrap.py live
 
 # Verify all tests are passing
@@ -47,6 +59,12 @@ appcfg.py --url ${GAE_URL}/_ah/remote_api upload_data \
   --filename=server/mlabns/conf/nagios.csv \
   --kind=Nagios
 ```
+
+Note: If you see repeated errors including `Refreshing due to a 401 (attempt
+1/2)`, this is an [appcfg
+bug](https://code.google.com/p/googleappengine/issues/detail?id=12435). To work
+around the issue, delete any cached appcfg tokens in your home directory (will
+likely start with `~/.appcfg*`).
 
 After the Datastore is populated with seed information, manually kick off the cron jobs to finish populating the Datastore with the latest live information from Nagios.
 
