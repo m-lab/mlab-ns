@@ -3,6 +3,7 @@ import logging
 import time
 
 from mlabns.db import model
+from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
 from mlabns.util import resolver
@@ -12,54 +13,17 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 
-def _create_af_aware_fqdn(fqdn, address_family):
-    """Adds the v4/v6 only annotation to the fqdn.
-
-    Example:
-        fqdn:       'npad.iupui.mlab3.ath01.measurement-lab.org'
-        ipv4 only:  'npad.iupui.mlab3v4.ath01.measurement-lab.org'
-        ipv6 only:  'npad.iupui.mlab3v6.ath01.measurement-lab.org'
-
-    Args:
-        fqdn: A tool FQDN with no address family specific annotation.
-        address_family: The address family for which to create the FQDN or None
-            to create an address family agnostic FQDN.
-
-    Returns:
-        A FQDN specific to a particular address family, or the original FQDN
-        if an address family is not specified.
-    """
-    if address_family == message.ADDRESS_FAMILY_IPv4:
-        fqdn_annotation = 'v4'
-    elif address_family == message.ADDRESS_FAMILY_IPv6:
-        fqdn_annotation = 'v6'
-    elif not address_family:
-        fqdn_annotation = ''
-    else:
-        logging.error('Unrecognized address family: %s', address_family)
-        return fqdn
-
-    fqdn_parts = fqdn.split('.')
-    fqdn_parts[2] += fqdn_annotation
-
-    return '.'.join(fqdn_parts)
-
-
-def _create_tool_url(fqdn, address_family, http_port):
+def _create_tool_url(fqdn, http_port):
     """Create an HTTP URL for a tool.
 
     Args:
-        fqdn: A tool FQDN with no address family specific annotation.
-        address_family: The address family for which to create the URL or None
-            to create an address family agnostic URL.
+        fqdn: A tool FQDN (already processed by fqdn_rewrite).
         http_port: The HTTP port number part of the URL.
 
     Returns:
-        A tool URL, annotated with the appropriate address family (when
-        available).
+        A constructed tool HTTP URL with protocol and http port.
     """
-    return 'http://%s:%s' % (_create_af_aware_fqdn(fqdn, address_family),
-                             http_port)
+    return 'http://%s:%s' % (fqdn, http_port)
 
 
 class LookupHandler(webapp.RequestHandler):
@@ -123,8 +87,9 @@ class LookupHandler(webapp.RequestHandler):
 
         bt_data = "";
         for sliver_tool in sliver_tools:
-            fqdn = _create_af_aware_fqdn(sliver_tool.fqdn,
-                                         query.tool_address_family)
+            fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
+                                        query.tool_address_family,
+                                        sliver_tool.tool_id)
 
             data = sliver_tool.city
             data += ", "
@@ -175,15 +140,15 @@ class LookupHandler(webapp.RequestHandler):
                 if sliver_tool.status_ipv6 == message.STATUS_ONLINE:
                     ips.append(sliver_tool.sliver_ipv6)
 
+            fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
+                                        query.tool_address_family,
+                                        sliver_tool.tool_id)
             if sliver_tool.http_port:
-                data['url'] = _create_tool_url(sliver_tool.fqdn,
-                                               query.tool_address_family,
-                                               sliver_tool.http_port)
+                data['url'] = _create_tool_url(fqdn, sliver_tool.http_port)
             if sliver_tool.server_port:
                 data['port'] = sliver_tool.server_port
 
-            data['fqdn'] = _create_af_aware_fqdn(sliver_tool.fqdn,
-                                                 query.tool_address_family)
+            data['fqdn'] = fqdn
             data['ip'] = ips
             data['site'] = sliver_tool.site_id
             data['city'] = sliver_tool.city
@@ -242,8 +207,10 @@ class LookupHandler(webapp.RequestHandler):
         sliver_tool = sliver_tools[0]
 
         if sliver_tool.http_port:
-            url = _create_tool_url(sliver_tool.fqdn, query.tool_address_family,
-                                   sliver_tool.http_port)
+            fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
+                                        query.tool_address_family,
+                                        sliver_tool.tool_id)
+            url = _create_tool_url(fqdn, sliver_tool.http_port)
             return self.redirect(url)
 
         return util.send_not_found(self, 'html')
@@ -270,15 +237,18 @@ class LookupHandler(webapp.RequestHandler):
         destination_site_dict['latitude'] = sliver_tool.latitude
         destination_site_dict['longitude'] = sliver_tool.longitude
 
+        fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
+                                    query.tool_address_family,
+                                    sliver_tool.tool_id)
+
         # For web-based tools set this to the URL.
         if sliver_tool.http_port:
-            url = _create_tool_url(sliver_tool.fqdn, query.tool_address_family,
-                                   sliver_tool.http_port)
+
+            url = _create_tool_url(fqdn, sliver_tool.http_port)
             destination_info = ('<a class="footer" href=' + url + '>' + url +
                                 '</a>')
         else:
-            destination_info = _create_af_aware_fqdn(sliver_tool.fqdn,
-                                                     query.tool_address_family)
+            destination_info = fqdn
 
         destination_site_dict['info'] = \
             '<div id=siteShortInfo><h2>%s, %s</h2>%s</div>' % \
@@ -333,8 +303,9 @@ class LookupHandler(webapp.RequestHandler):
 
         sliver_tool_info = ""
         for sliver_tool in sliver_tools:
-            fqdn = _create_af_aware_fqdn(sliver_tool.fqdn,
-                                         query.tool_address_family)
+            fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
+                                        query.tool_address_family,
+                                        sliver_tool.tool_id)
             sliver_tool_info += "(%s %s %s %s %s %s %s %s %s %s %s) " % \
                 (sliver_tool.slice_id,
                 sliver_tool.server_id,
