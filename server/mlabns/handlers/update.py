@@ -206,68 +206,68 @@ class IPUpdateHandler(webapp.RequestHandler):
 
             sliver_tool_gql = model.SliverTool.gql('WHERE fqdn=:fqdn',
                                                    fqdn=fqdn)
-            # FQDN is unique so get() should be enough.
-            sliver_tool = sliver_tool_gql.get()
-
-            # case 1) Sliver tool has not changed. Nothing to do.
-            if (sliver_tool != None and sliver_tool.sliver_ipv4 == ipv4 and
-                sliver_tool.sliver_ipv6 == ipv6):
-                pass
-            # case 2) Sliver tool has changed.
-            else:
-                # case 2.1) Sliver tool does not exist in datastore. Initialize
-                #     sliver if the corresponding tool exists in the Tool table
-                #     and the corresponding site exists in the Site table. This
-                #     case occurs when a new tool has been added after the last
-                #     IPUpdateHanlder ran. The sliver tool will actually be
-                #     written to datastore at the next step.
-                if sliver_tool == None:
-                    logging.warning('sliver_tool %s is not in datastore.', fqdn)
-                    slice_id, site_id, server_id = \
-                        model.get_slice_site_server_ids(fqdn)
-                    if slice_id is None or site_id is None or server_id is None:
-                        logging.info('Non valid sliver fqdn %s.', fqdn)
-                        continue
-                    tool = model.Tool.gql('WHERE slice_id=:slice_id',
-                                          slice_id=slice_id).get()
-                    if tool == None:
-                        logging.info('mlab-ns does not support slice %s.',
-                                     slice_id)
-                        continue
-                    site = model.Site.gql('WHERE site_id=:site_id',
-                                          site_id=site_id).get()
-                    if site == None:
-                        logging.info('mlab-ns does not support site %s.',
-                                     site_id)
-                        continue
-                    sliver_tool = self.initialize_sliver_tool(
-                        tool, site, server_id, fqdn)
-
-                # case 2.2) Sliver tool exists in datastore.
-                if ipv4 != None:
-                    sliver_tool.sliver_ipv4 = ipv4
+            # FQDN is not necessarily unique across tools.
+            for sliver_tool in sliver_tool_gql.run(
+                batch_size=constants.GQL_BATCH_SIZE):
+                # case 1) Sliver tool has not changed. Nothing to do.
+                if (sliver_tool != None and sliver_tool.sliver_ipv4 == ipv4 and
+                    sliver_tool.sliver_ipv6 == ipv6):
+                    pass
+                # case 2) Sliver tool has changed.
                 else:
-                    sliver_tool.sliver_ipv4 = message.NO_IP_ADDRESS
-                if ipv6 != None:
-                    sliver_tool.sliver_ipv6 = ipv6
-                else:
-                    sliver_tool.sliver_ipv6 = message.NO_IP_ADDRESS
+                    # case 2.1) Sliver tool does not exist in datastore. Initialize
+                    #     sliver if the corresponding tool exists in the Tool table
+                    #     and the corresponding site exists in the Site table. This
+                    #     case occurs when a new tool has been added after the last
+                    #     IPUpdateHanlder ran. The sliver tool will actually be
+                    #     written to datastore at the next step.
+                    if sliver_tool == None:
+                        logging.warning('sliver_tool %s is not in datastore.', fqdn)
+                        slice_id, site_id, server_id = \
+                            model.get_slice_site_server_ids(fqdn)
+                        if slice_id is None or site_id is None or server_id is None:
+                            logging.info('Non valid sliver fqdn %s.', fqdn)
+                            continue
+                        tool = model.Tool.gql('WHERE slice_id=:slice_id',
+                                              slice_id=slice_id).get()
+                        if tool == None:
+                            logging.info('mlab-ns does not support slice %s.',
+                                         slice_id)
+                            continue
+                        site = model.Site.gql('WHERE site_id=:site_id',
+                                              site_id=site_id).get()
+                        if site == None:
+                            logging.info('mlab-ns does not support site %s.',
+                                         site_id)
+                            continue
+                        sliver_tool = self.initialize_sliver_tool(
+                            tool, site, server_id, fqdn)
 
-                try:
-                    sliver_tool.put()
-                    logging.info(
-                        'Succeeded to write IPs of %s (%s, %s) in datastore.',
-                        fqdn, ipv4, ipv6)
-                except db.TransactionFailedError:
-                    logging.error(
-                        'Failed to write IPs of %s (%s, %s) in datastore.',
-                        fqdn, ipv4, ipv6)
+                    # case 2.2) Sliver tool exists in datastore.
+                    if ipv4 != None:
+                        sliver_tool.sliver_ipv4 = ipv4
+                    else:
+                        sliver_tool.sliver_ipv4 = message.NO_IP_ADDRESS
+                    if ipv6 != None:
+                        sliver_tool.sliver_ipv6 = ipv6
+                    else:
+                        sliver_tool.sliver_ipv6 = message.NO_IP_ADDRESS
+
+                    try:
+                        sliver_tool.put()
+                        logging.info(
+                            'Succeeded to write IPs of %s (%s, %s) in datastore.',
+                            fqdn, ipv4, ipv6)
+                    except db.TransactionFailedError:
+                        logging.error(
+                            'Failed to write IPs of %s (%s, %s) in datastore.',
+                            fqdn, ipv4, ipv6)
                     continue
 
-            if sliver_tool.tool_id not in sliver_tool_list:
-                sliver_tool_list[sliver_tool.tool_id] = []
-            sliver_tool_list[sliver_tool.tool_id].append(sliver_tool)
-            logging.info('sliver %s to be added to memcache', sliver_tool.fqdn)
+                if sliver_tool.tool_id not in sliver_tool_list:
+                    sliver_tool_list[sliver_tool.tool_id] = []
+                sliver_tool_list[sliver_tool.tool_id].append(sliver_tool)
+                logging.info('sliver %s to be added to memcache', sliver_tool.fqdn)
 
         # Update memcache
         # Never set the memcache to an empty list since it's more likely that
