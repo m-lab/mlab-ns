@@ -17,7 +17,7 @@ from mlabns.util import util
 
 
 class SiteRegistrationHandler(webapp.RequestHandler):
-    """Registers new sites from ks."""
+    """Registers new sites from Nagios."""
 
     # Message fields
     SITE_FIELD = 'site'
@@ -28,7 +28,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     LON_FIELD = 'longitude'
     REQUIRED_FIELDS = [ SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                         LAT_FIELD, LON_FIELD]
-    SITE_LIST_URL = 'http://ks.measurementlab.net/mlab-site-stats.json'
+    SITE_LIST_URL = 'http://nagios.measurementlab.net/mlab-site-stats.json'
 
     @classmethod
     def _is_valid_site(cls, site):
@@ -36,7 +36,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
         Args:
             site: A dictionary representing info for a particular site as it
-            appears on ks.
+            appears on Nagios.
 
         Returns:
             True if the site is a valid, production M-Lab site.
@@ -57,10 +57,10 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     def get(self):
         """Triggers the registration handler.
 
-        Checks if new sites were added to ks and registers them.
+        Checks if new sites were added to Nagios and registers them.
         """
         try:
-            ks_sites_json = json.loads(
+            nagios_sites_json = json.loads(
                 urllib2.urlopen(self.SITE_LIST_URL).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
@@ -71,24 +71,24 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                           self.SITE_LIST_URL, e)
             return util.send_not_found(self)
 
-        ks_site_ids = set()
+        nagios_site_ids = set()
 
-        # Validate the data from ks.
-        valid_ks_sites_json = []
-        for ks_site in ks_sites_json:
-            if not self._is_valid_site(ks_site):
+        # Validate the data from Nagios.
+        valid_nagios_sites_json = []
+        for nagios_site in nagios_sites_json:
+            if not self._is_valid_site(nagios_site):
                 continue
-            valid_ks_sites_json.append(ks_site)
-            ks_site_ids.add(ks_site[self.SITE_FIELD])
+            valid_nagios_sites_json.append(nagios_site)
+            nagios_site_ids.add(nagios_site[self.SITE_FIELD])
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
         for site in mlab_sites:
             mlab_site_ids.add(site.site_id)
 
-        unchanged_site_ids = ks_site_ids.intersection(mlab_site_ids)
-        new_site_ids = ks_site_ids.difference(mlab_site_ids)
-        removed_site_ids = mlab_site_ids.difference(ks_site_ids)
+        unchanged_site_ids = nagios_site_ids.intersection(mlab_site_ids)
+        new_site_ids = nagios_site_ids.difference(mlab_site_ids)
+        removed_site_ids = mlab_site_ids.difference(nagios_site_ids)
 
         # Do not remove sites here for now.
         # TODO(claudiu) Implement the site removal as a separate handler.
@@ -100,44 +100,44 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.info(
                 'Site %s unchanged in %s.', site_id, self.SITE_LIST_URL)
 
-        for ks_site in valid_ks_sites_json:
-            if (ks_site[self.SITE_FIELD] in new_site_ids):
-                logging.info('Registering site %s.', ks_site[self.SITE_FIELD])
+        for nagios_site in valid_nagios_sites_json:
+            if (nagios_site[self.SITE_FIELD] in new_site_ids):
+                logging.info('Registering site %s.', nagios_site[self.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
-                if not self.register_site(ks_site):
+                if not self.register_site(nagios_site):
                     logging.error(
-                        'Error registering site %s.', ks_site[self.SITE_FIELD])
+                        'Error registering site %s.', nagios_site[self.SITE_FIELD])
                     continue
 
         return util.send_success(self)
 
 
-    def register_site(self, ks_site):
+    def register_site(self, nagios_site):
         """Registers a new site.
 
         Args:
-            ks_site: A json representing the site info as provided by ks.
+            nagios_site: A json representing the site info as provided by Nagios.
 
         Returns:
             True if the registration succeeds, False otherwise.
         """
         try:
-            lat_long = float(ks_site[self.LAT_FIELD])
-            lon_long = float(ks_site[self.LON_FIELD])
+            lat_long = float(nagios_site[self.LAT_FIELD])
+            lon_long = float(nagios_site[self.LON_FIELD])
         except ValueError:
             logging.error('Geo coordinates are not float (%s, %s)',
-                           ks_site[self.LAT_FIELD],
-                           ks_site[self.LON_FIELD])
+                           nagios_site[self.LAT_FIELD],
+                           nagios_site[self.LON_FIELD])
             return False
         site = model.Site(
-            site_id = ks_site[self.SITE_FIELD],
-            city = ks_site[self.CITY_FIELD],
-            country = ks_site[self.COUNTRY_FIELD],
+            site_id = nagios_site[self.SITE_FIELD],
+            city = nagios_site[self.CITY_FIELD],
+            country = nagios_site[self.COUNTRY_FIELD],
             latitude = lat_long,
             longitude = lon_long,
-            metro = ks_site[self.METRO_FIELD],
+            metro = nagios_site[self.METRO_FIELD],
             registration_timestamp=long(time.time()),
-            key_name=ks_site[self.SITE_FIELD])
+            key_name=nagios_site[self.SITE_FIELD])
 
         try:
             site.put()
@@ -171,14 +171,14 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
 
 class IPUpdateHandler(webapp.RequestHandler):
-    """ Updates SliverTools' IP addresses from ks."""
+    """ Updates SliverTools' IP addresses from Nagios."""
 
-    IP_LIST_URL = 'http://ks.measurementlab.net/mlab-host-ips.txt'
+    IP_LIST_URL = 'http://nagios.measurementlab.net/mlab-host-ips.txt'
 
     def get(self):
         """Triggers the update handler.
 
-        Updates sliver tool IP addresses from ks.
+        Updates sliver tool IP addresses from Nagios.
         """
         ip = {}
         lines = []
