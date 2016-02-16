@@ -2,7 +2,9 @@ import unittest2
 
 from mlabns.db import model
 
+
 class ModelTestCase(unittest2.TestCase):
+
     def testGetSliverToolIdNone(self):
         tool_id = None
         slice_id = 'slice_id'

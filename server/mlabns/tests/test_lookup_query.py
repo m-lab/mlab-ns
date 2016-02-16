@@ -21,17 +21,23 @@ class LookupQueryTestCase(unittest2.TestCase):
     def setUp(self):
         # Mock out calls to Maxmind
         maxmind_get_ip_geolocation_patch = mock.patch.object(
-            maxmind, 'get_ip_geolocation', autospec=True)
+            maxmind,
+            'get_ip_geolocation',
+            autospec=True)
         self.addCleanup(maxmind_get_ip_geolocation_patch.stop)
         maxmind_get_ip_geolocation_patch.start()
 
         maxmind_get_city_geolocation_patch = mock.patch.object(
-            maxmind, 'get_city_geolocation', autospec=True)
+            maxmind,
+            'get_city_geolocation',
+            autospec=True)
         self.addCleanup(maxmind_get_city_geolocation_patch.stop)
         maxmind_get_city_geolocation_patch.start()
 
         maxmind_get_country_geolocation_patch = mock.patch.object(
-            maxmind, 'get_country_geolocation', autospec=True)
+            maxmind,
+            'get_country_geolocation',
+            autospec=True)
         self.addCleanup(maxmind_get_country_geolocation_patch.stop)
         maxmind_get_country_geolocation_patch.start()
 
@@ -56,7 +62,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                 self.mock_gae_latitude, self.mock_gae_longitude),
             message.HEADER_CITY: self.mock_gae_city,
             message.HEADER_COUNTRY: self.mock_gae_country,
-            }
+        }
 
     def testDefaultConstructor(self):
         query = lookup_query.LookupQuery()
@@ -75,8 +81,7 @@ class LookupQueryTestCase(unittest2.TestCase):
     def testInitializeWhenNoUserDefinedOptionsAreSpecified(self):
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(query.response_format,
-                         message.DEFAULT_RESPONSE_FORMAT)
+        self.assertEqual(query.response_format, message.DEFAULT_RESPONSE_FORMAT)
         self.assertEqual(self.mock_tool_id, query.tool_id)
         self.assertEqual(message.POLICY_GEO, query.policy)
         self.assertIsNone(query.metro)
@@ -98,12 +103,11 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual('valid_tool_name', query.tool_id)
 
     def testInitializeSetsDefaultResponseFormatWhenUserDefinedValueIsInvalid(
-            self):
+        self):
         self.mock_query_params[message.RESPONSE_FORMAT] = 'invalid_format'
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
-        self.assertEqual(query.response_format,
-                         message.DEFAULT_RESPONSE_FORMAT)
+        self.assertEqual(query.response_format, message.DEFAULT_RESPONSE_FORMAT)
 
     def testInitializeAcceptsValidUserDefinedFormat(self):
         self.mock_query_params[message.RESPONSE_FORMAT] = message.FORMAT_HTML
@@ -141,7 +145,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(self.mock_request_ip, query.ip_address)
 
     def testInitializeAcceptsUserDefinedAfEvenWhenItDoesNotMatchUserDefinedIpv4(
-            self):
+        self):
         # The address family query parameter refers to the address family of the
         # tool, while the IP refers to the client's IP. It is legal to specify
         # an IPv4 client that wants an IPv6 tool.
@@ -155,7 +159,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(user_defined_af, query.tool_address_family)
 
     def testInitializeAcceptsUserDefinedAfEvenWhenItDoesNotMatchUserDefinedIpv6(
-            self):
+        self):
         # The address family query parameter refers to the address family of the
         # tool, while the IP refers to the client's IP. It is legal to specify
         # an IPv6 client that wants an IPv4 tool.
@@ -317,7 +321,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         maxmind_latitude = 55.5
         maxmind_longitude = 77.7
         maxmind.get_country_geolocation.return_value = maxmind.GeoRecord(
-            latitude=maxmind_latitude, longitude=maxmind_longitude,
+            latitude=maxmind_latitude,
+            longitude=maxmind_longitude,
             country=user_defined_country)
 
         query = lookup_query.LookupQuery()
@@ -342,8 +347,10 @@ class LookupQueryTestCase(unittest2.TestCase):
         maxmind_longitude = 77.7
 
         maxmind.get_country_geolocation.return_value = maxmind.GeoRecord(
-            city=maxmind_city, country=maxmind_country,
-            latitude=maxmind_latitude, longitude=maxmind_longitude)
+            city=maxmind_city,
+            country=maxmind_country,
+            latitude=maxmind_latitude,
+            longitude=maxmind_longitude)
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
@@ -399,8 +406,10 @@ class LookupQueryTestCase(unittest2.TestCase):
         maxmind_longitude = 77.7
 
         maxmind.get_ip_geolocation.return_value = maxmind.GeoRecord(
-            city=maxmind_city, country=maxmind_country,
-            latitude=maxmind_latitude, longitude=maxmind_longitude)
+            city=maxmind_city,
+            country=maxmind_country,
+            latitude=maxmind_latitude,
+            longitude=maxmind_longitude)
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
@@ -414,7 +423,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(maxmind_longitude, query.longitude)
 
     def testInitializeUsesAppEngineGeoDataWhenUserDefinedIpv4MatchesRequestIp(
-            self):
+        self):
         # Simulate when the client supplies an explicit IPv4 address in the URL
         # and it matches the source IP of the web request (i.e. the user
         # explicitly declared their own IP address).
@@ -442,8 +451,10 @@ class LookupQueryTestCase(unittest2.TestCase):
         maxmind_longitude = 77.7
 
         maxmind.get_ip_geolocation.return_value = maxmind.GeoRecord(
-            city=maxmind_city, country=maxmind_country,
-            latitude=maxmind_latitude, longitude=maxmind_longitude)
+            city=maxmind_city,
+            country=maxmind_country,
+            latitude=maxmind_latitude,
+            longitude=maxmind_longitude)
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
@@ -466,8 +477,10 @@ class LookupQueryTestCase(unittest2.TestCase):
         maxmind_longitude = 77.7
 
         maxmind.get_ip_geolocation.return_value = maxmind.GeoRecord(
-            city=maxmind_city, country=maxmind_country,
-            latitude=maxmind_latitude, longitude=maxmind_longitude)
+            city=maxmind_city,
+            country=maxmind_country,
+            latitude=maxmind_latitude,
+            longitude=maxmind_longitude)
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
@@ -490,7 +503,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         self.assertEqual(message.POLICY_RANDOM, query.policy)
 
     def testInitializeDefaultsToGeoPolicyWhenUserDefinedPolicyIsInvalidAndGeoDataIsAvailable(
-            self):
+        self):
         self.mock_query_params[message.POLICY] = 'invalid_policy'
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.mock_request)
@@ -508,4 +521,3 @@ class LookupQueryTestCase(unittest2.TestCase):
 
 if __name__ == '__main__':
     unittest2.main()
-

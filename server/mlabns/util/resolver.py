@@ -21,7 +21,8 @@ def _tool_properties_from_query(query):
         A ToolProperties object initialized from the query provided.
     """
     tool_properties = tool_fetcher.ToolProperties(
-        tool_id=query.tool_id, status=message.STATUS_ONLINE)
+        tool_id=query.tool_id,
+        status=message.STATUS_ONLINE)
     if query.tool_address_family:
         tool_properties.address_family = query.tool_address_family
     return tool_properties
@@ -86,8 +87,10 @@ class GeoResolver(ResolverBase):
                     query.latitude, query.longitude, candidate.latitude,
                     candidate.longitude)
             tool_distances.append(
-                {'distance': site_distances[candidate.site_id],
-                 'tool': candidate})
+                {
+                    'distance': site_distances[candidate.site_id],
+                    'tool': candidate
+                })
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])

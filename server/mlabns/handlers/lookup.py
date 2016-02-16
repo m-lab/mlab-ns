@@ -85,7 +85,7 @@ class LookupHandler(webapp.RequestHandler):
             logging.error("Problem: sliver_tools is not a list.")
             return
 
-        bt_data = "";
+        bt_data = ""
         for sliver_tool in sliver_tools:
             fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
                                         query.tool_address_family,
@@ -122,7 +122,7 @@ class LookupHandler(webapp.RequestHandler):
             return
 
         tool = None
-        json_data = "";
+        json_data = ""
         for sliver_tool in sliver_tools:
             data = {}
 
@@ -184,7 +184,7 @@ class LookupHandler(webapp.RequestHandler):
 
         records = []
         records.extend(sliver_tools)
-        values = {'records' : records}
+        values = {'records': records}
         self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.out.write(
             template.render(
@@ -237,16 +237,15 @@ class LookupHandler(webapp.RequestHandler):
         destination_site_dict['latitude'] = sliver_tool.latitude
         destination_site_dict['longitude'] = sliver_tool.longitude
 
-        fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
-                                    query.tool_address_family,
+        fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn, query.tool_address_family,
                                     sliver_tool.tool_id)
 
         # For web-based tools set this to the URL.
         if sliver_tool.http_port:
 
             url = _create_tool_url(fqdn, sliver_tool.http_port)
-            destination_info = ('<a class="footer" href=' + url + '>' + url +
-                                '</a>')
+            destination_info = (
+                '<a class="footer" href=' + url + '>' + url + '</a>')
         else:
             destination_info = fqdn
 
@@ -278,9 +277,10 @@ class LookupHandler(webapp.RequestHandler):
 
         self.response.out.write(
             template.render('mlabns/templates/lookup_map.html', {
-                'sites' : candidate_site_list_json,
-                'user' : user_info_json,
-                'destination' : destination_site_json }))
+                'sites': candidate_site_list_json,
+                'user': user_info_json,
+                'destination': destination_site_json
+            }))
 
     def log_request(self, query, sliver_tools):
         """Logs the request. Each entry in the log is uploaded to BigQuery.
