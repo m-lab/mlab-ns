@@ -13,7 +13,9 @@ from mlabns.util import util
 import gflags
 import logging
 
+
 class AdminHandler(webapp.RequestHandler):
+
     def post(self):
         """Not implemented."""
         return util.send_not_found(self)
@@ -58,64 +60,52 @@ class AdminHandler(webapp.RequestHandler):
     def sliver_tool_view(self):
         """Returns an HTML page containing sliver tools information."""
         headers = [
-            'Tool',
-            'Site',
-            'Slice',
-            'Server',
-            'Status IPv4',
-            'Status IPv6',
-            'Sliver IPv4',
-            'Sliver IPv6',
-            'When']
+            'Tool', 'Site', 'Slice', 'Server', 'Status IPv4', 'Status IPv6',
+            'Sliver IPv4', 'Sliver IPv6', 'When'
+        ]
 
         sliver_tools = model.SliverTool.gql('ORDER BY tool_id DESC')
         records = []
         for sliver_tool in sliver_tools:
             sliver_tool_info = [
-                sliver_tool.tool_id,
-                sliver_tool.site_id,
-                sliver_tool.slice_id,
-                sliver_tool.server_id,
-                sliver_tool.status_ipv4,
-                sliver_tool.status_ipv6,
-                sliver_tool.sliver_ipv4,
-                sliver_tool.sliver_ipv6,
-                sliver_tool.when ]
+                sliver_tool.tool_id, sliver_tool.site_id, sliver_tool.slice_id,
+                sliver_tool.server_id, sliver_tool.status_ipv4,
+                sliver_tool.status_ipv6, sliver_tool.sliver_ipv4,
+                sliver_tool.sliver_ipv6, sliver_tool.when
+            ]
             records.append(sliver_tool_info)
 
-        values = {'records' : records, 'headers': headers,
-                  'privacy_doc_url' : constants.PRIVACY_DOC_URL,
-                  'design_doc_url' : constants.DESIGN_DOC_URL}
+        values = {
+            'records': records,
+            'headers': headers,
+            'privacy_doc_url': constants.PRIVACY_DOC_URL,
+            'design_doc_url': constants.DESIGN_DOC_URL
+        }
         self.response.out.write(
             template.render('mlabns/templates/sliver_tool.html', values))
 
     def site_view(self):
         """Returns an HTML page containing sites information."""
         headers = [
-            'Site ID',
-            'City',
-            'Country',
-            'Latitude',
-            'Longitude',
-            'Metro',
-            'When']
+            'Site ID', 'City', 'Country', 'Latitude', 'Longitude', 'Metro',
+            'When'
+        ]
 
         sites = model.Site.gql('ORDER BY site_id DESC')
         records = []
         for site in sites:
             site_info = [
-                site.site_id,
-                site.city,
-                site.country,
-                site.latitude,
-                site.longitude,
-                site.metro,
-                site.when ]
+                site.site_id, site.city, site.country, site.latitude,
+                site.longitude, site.metro, site.when
+            ]
             records.append(site_info)
 
-        values = {'records' : records, 'headers': headers,
-                  'privacy_doc_url' : constants.PRIVACY_DOC_URL,
-                  'design_doc_url' : constants.DESIGN_DOC_URL}
+        values = {
+            'records': records,
+            'headers': headers,
+            'privacy_doc_url': constants.PRIVACY_DOC_URL,
+            'design_doc_url': constants.DESIGN_DOC_URL
+        }
         self.response.out.write(
             template.render('mlabns/templates/site.html', values))
 
@@ -146,12 +136,14 @@ class AdminHandler(webapp.RequestHandler):
 
         data = self.get_sites_info(sliver_tools, address_family)
         json_data = simplejson.dumps(data)
-        file_name = '' . join(['mlabns/templates/map_view.html'])
-        values = {'cities' : json_data,
-                  'tool_id' : tool_id,
-                  'address_family' : address_family,
-                  'privacy_doc_url' : constants.PRIVACY_DOC_URL,
-                  'design_doc_url' : constants.DESIGN_DOC_URL}
+        file_name = ''.join(['mlabns/templates/map_view.html'])
+        values = {
+            'cities': json_data,
+            'tool_id': tool_id,
+            'address_family': address_family,
+            'privacy_doc_url': constants.PRIVACY_DOC_URL,
+            'design_doc_url': constants.DESIGN_DOC_URL
+        }
         self.response.out.write(template.render(file_name, values))
 
     def get_sites_info(self, sliver_tools, address_family):

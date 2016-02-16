@@ -5,6 +5,7 @@ from mlabns.util import maxmind
 
 import logging
 
+
 def _is_valid_ip(ip):
     """Indicates whether this is a valid IP string.
 
@@ -16,12 +17,14 @@ def _is_valid_ip(ip):
     """
     return _is_valid_ipv4(ip) or _is_valid_ipv6(ip)
 
+
 def _is_valid_ipv4(ip):
     try:
         ipaddr.IPv4Address(ip)
         return True
     except ipaddr.AddressValueError:
         return False
+
 
 def _is_valid_ipv6(ip):
     try:
@@ -30,7 +33,9 @@ def _is_valid_ipv6(ip):
     except ipaddr.AddressValueError:
         return False
 
+
 class LookupQuery:
+
     def __init__(self):
         self.tool_id = None
         self.policy = None
@@ -102,7 +107,7 @@ class LookupQuery:
         valid_address_families = (message.ADDRESS_FAMILY_IPv4,
                                   message.ADDRESS_FAMILY_IPv6)
         if tool_address_family in valid_address_families:
-          self.tool_address_family = tool_address_family
+            self.tool_address_family = tool_address_family
 
     def _set_geolocation(self, request):
         self._set_appengine_geolocation(request)
@@ -117,9 +122,9 @@ class LookupQuery:
             self._user_defined_longitude = input_longitude
         elif self._ip_is_explicit or self._user_defined_country:
             if self._ip_is_explicit:
-              ip_address_to_geolocate = self.ip_address
+                ip_address_to_geolocate = self.ip_address
             else:
-              ip_address_to_geolocate = None
+                ip_address_to_geolocate = None
             self._geolocation_type = constants.GEOLOCATION_MAXMIND
             self._set_maxmind_geolocation(ip_address_to_geolocate,
                                           self._user_defined_country,
@@ -175,13 +180,13 @@ class LookupQuery:
             longitude = float(input_longitude)
         except ValueError:
             logging.error('Invalid user-defined lat, long (%s, %s).',
-                           input_latitude, input_longitude)
+                          input_latitude, input_longitude)
             return None, None
 
         if ((abs(latitude) > MAX_LATITUDE_ABSOLUTE) or
-                (abs(longitude) > MAX_LONGITUDE_ABSOLUTE)):
-            logging.error('Lat/long out of range (%f, %f).',
-                           latitude, longitude)
+            (abs(longitude) > MAX_LONGITUDE_ABSOLUTE)):
+            logging.error('Lat/long out of range (%f, %f).', latitude,
+                          longitude)
             return None, None
 
         return latitude, longitude
@@ -216,21 +221,21 @@ class LookupQuery:
             lat_long = request.headers[message.HEADER_LAT_LONG]
             try:
                 self._gae_latitude, self._gae_longitude = [
-                    float(x) for x in lat_long.split(',')]
+                    float(x) for x in lat_long.split(',')
+                ]
             except ValueError:
                 logging.error('GAE provided bad lat/long %s.', lat_long)
 
     def _set_policy(self, request):
         self.policy = request.get(message.POLICY, default_value=None)
-        if ((self._user_defined_latitude and
-             self._user_defined_longitude) or
+        if ((self._user_defined_latitude and self._user_defined_longitude) or
                 self._ip_is_explicit):
             if self.policy != message.POLICY_GEO and \
                self.policy != message.POLICY_GEO_OPTIONS:
                 if self.policy:
-                     logging.warning(
-                         'Lat/longs user-defined, but policy is %s.',
-                         self.policy)
+                    logging.warning(
+                        'Lat/longs user-defined, but policy is %s.',
+                        self.policy)
                 self.policy = message.POLICY_GEO
             return
         if self._user_defined_country:
@@ -246,7 +251,7 @@ class LookupQuery:
             if self.policy != message.POLICY_METRO:
                 if self.policy:
                     logging.warning(
-                         'Metro defined, but policy is %s', self.policy)
+                        'Metro defined, but policy is %s', self.policy)
                 self.policy = message.POLICY_METRO
             return
         if self.policy == message.POLICY_GEO:
@@ -264,7 +269,7 @@ class LookupQuery:
                 logging.warning('Policy metro, but arg metro not defined.')
                 self.policy = self._get_default_policy()
             return
-        if self.policy  ==  message.POLICY_RANDOM:
+        if self.policy == message.POLICY_RANDOM:
             return
         if self.policy == message.POLICY_GEO_OPTIONS:
             return
