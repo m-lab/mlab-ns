@@ -46,6 +46,7 @@ def _filter_by_country(tools, country):
     """Filters sliver tools based on the tool's country."""
     return filter(lambda t: t.country == country, tools)
 
+
 def _filter_choose_one_host_per_site(tools):
     """Filters to make sure only one host is returned per site_id.
 
@@ -63,9 +64,11 @@ def _filter_choose_one_host_per_site(tools):
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
         else:
-            sites[tool.site_id] = min(sites[tool.site_id], tool,
+            sites[tool.site_id] = min(sites[tool.site_id],
+                                      tool,
                                       key=lambda t: t.fqdn)
     return [tool for tool in sites.values()]
+
 
 def _find_site_ids_for_metro(metro):
     """Determine which site IDs are present in a given metro.
@@ -90,7 +93,11 @@ def _find_site_ids_for_metro(metro):
 class ToolProperties(object):
     """A set of criteria to specify matching SliverTool(s)."""
 
-    def __init__(self, tool_id, status=None, address_family=None, metro=None,
+    def __init__(self,
+                 tool_id,
+                 status=None,
+                 address_family=None,
+                 metro=None,
                  country=None):
         self.tool_id = tool_id
         self.status = status
@@ -149,13 +156,13 @@ class ToolFetcherMemcache(object):
         tool_filters = []
         if tool_properties.status:
             tool_filters.append(
-                    partial(_filter_by_status,
-                            address_family=tool_properties.address_family,
-                            status=tool_properties.status))
+                partial(_filter_by_status,
+                        address_family=tool_properties.address_family,
+                        status=tool_properties.status))
         if tool_properties.country:
             tool_filters.append(
-                    partial(_filter_by_country,
-                            country=tool_properties.country))
+                partial(_filter_by_country,
+                        country=tool_properties.country))
         if tool_properties.metro:
             # Can't filter by metro without hitting the Datastore because
             # Memcache does not have metro -> site ID mapping.
