@@ -722,11 +722,11 @@ class RandomResolverTestCase(ResolverTestCaseBase):
             _createSliverTool(_TOOL_ID,
                               site_id='aaa01'),
             _createSliverTool(_TOOL_ID,
-                              site_id='bbb01'),
-            _createSliverTool(_TOOL_ID,
-                              site_id='ccc01'),
-            _createSliverTool(_TOOL_ID,
-                              site_id='ddd01'))
+                              site_id='bbb01'), _createSliverTool(
+                                  _TOOL_ID,
+                                  site_id='ccc01'), _createSliverTool(
+                                      _TOOL_ID,
+                                      site_id='ddd01'))
 
         # Random resolver performs no additional filtering after the fetch.
         filtered_tools_expected = mock_fetched_tools
@@ -790,9 +790,9 @@ class MetroResolverTestCase(ResolverTestCaseBase):
             _createSliverTool(_TOOL_ID,
                               site_id='aaa01'),
             _createSliverTool(_TOOL_ID,
-                              site_id='aaa02'),
-            _createSliverTool(_TOOL_ID,
-                              site_id='aaa03'))
+                              site_id='aaa02'), _createSliverTool(
+                                  _TOOL_ID,
+                                  site_id='aaa03'))
 
         filtered_tools_expected = mock_fetched_tools
 
@@ -846,9 +846,9 @@ class CountryResolverTestCase(ResolverTestCaseBase):
             _createSliverTool(_TOOL_ID,
                               site_id='aaa01'),
             _createSliverTool(_TOOL_ID,
-                              site_id='bbb01'),
-            _createSliverTool(_TOOL_ID,
-                              site_id='ccc01'))
+                              site_id='bbb01'), _createSliverTool(
+                                  _TOOL_ID,
+                                  site_id='ccc01'))
 
         filtered_tools_expected = mock_fetched_tools
 
