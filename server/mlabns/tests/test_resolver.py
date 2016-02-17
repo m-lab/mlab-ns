@@ -389,11 +389,12 @@ class GeoResolverTestCase(ResolverTestCaseBase):
             _createSliverTool(_TOOL_ID,
                               site_id='abc01',
                               latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='cba01',
-                                                                latitude=5.0,
-                                                                longitude=5.0)
-        ]
+                              longitude=1.0),
+            _createSliverTool(_TOOL_ID,
+                              site_id='cba01',
+                              latitude=5.0,
+                              longitude=5.0)
+        ] # yapf: disable
 
         # When lat/lon is missing, resolver performs no additional filtering
         # after fetch
