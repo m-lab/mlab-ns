@@ -386,14 +386,11 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         query.tool_id = _TOOL_ID
 
         mock_fetched_tools = [
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc01',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='cba01',
-                                                                latitude=5.0,
-                                                                longitude=5.0)
-        ]
+            _createSliverTool(
+                _TOOL_ID, site_id='abc01', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='cba01', latitude=5.0, longitude=5.0)
+        ]  # yapf: disable
 
         # When lat/lon is missing, resolver performs no additional filtering
         # after fetch
@@ -428,25 +425,18 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.longitude = 0.0
 
         mock_fetched_tools = [
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc01',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc02',
-                                                                latitude=1.0,
-                                                                longitude=1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc03',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc04',
-                                                                latitude=1.0,
-                                                                longitude=1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='cba01',
-                              latitude=5.0,
-                              longitude=5.0)
-        ]
+            _createSliverTool(
+                _TOOL_ID, site_id='abc01', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc02', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc03', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc04', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='cba01', latitude=5.0, longitude=5.0)
+        ]  # yapf: disable
+
         # Result should be the four closest tools
         query_results_expected = mock_fetched_tools[:4]
 
@@ -468,32 +458,22 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.longitude = 0.0
 
         mock_fetched_tools = [
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc01',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc02',
-                                                                latitude=1.0,
-                                                                longitude=1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc03',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc04',
-                                                                latitude=1.0,
-                                                                longitude=1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc05',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc06',
-                                                                latitude=1.0,
-                                                                longitude=1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='cba01',
-                              latitude=5.0,
-                              longitude=5.0)
-        ]
+            _createSliverTool(
+                _TOOL_ID, site_id='abc01', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc02', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc03', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc04', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc05', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc06', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='cba01', latitude=5.0, longitude=5.0)
+        ]  # yapf: disable
+
         # The mock shuffle reverses the list, so we expect items 2...6 in
         # reverse order.
         query_results_expected = mock_fetched_tools[-2:-6:-1]
@@ -517,32 +497,22 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.longitude = 0.0
 
         mock_fetched_tools = [
-            _createSliverTool(_TOOL_ID,
-                              site_id='aaa01',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='bbb01',
-                                                                latitude=-1.0,
-                                                                longitude=-1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='ccc01',
-                              latitude=-1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='ddd01',
-                                                                latitude=1.0,
-                                                                longitude=-1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='eee01',
-                              latitude=-1.0,
-                              longitude=-1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='fff01',
-                              latitude=-1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='ggg01',
-                                                                latitude=5.0,
-                                                                longitude=5.0)
-        ]
+            _createSliverTool(
+                _TOOL_ID, site_id='aaa01', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='bbb01', latitude=-1.0, longitude=-1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='ccc01', latitude=-1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='ddd01', latitude=1.0, longitude=-1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='eee01', latitude=-1.0, longitude=-1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='fff01', latitude=-1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='ggg01', latitude=5.0, longitude=5.0)
+        ]  # yapf: disable
+
         # The mock shuffle reverses the list, so we expect items 2...6 in
         # reverse order.
         query_results_expected = mock_fetched_tools[-2:-6:-1]
@@ -565,18 +535,14 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.longitude = 0.0
 
         mock_fetched_tools = [
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc01',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc02',
-                                                                latitude=1.0,
-                                                                longitude=1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='cba01',
-                              latitude=5.0,
-                              longitude=5.0)
-        ]
+            _createSliverTool(
+                _TOOL_ID, site_id='abc01', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc02', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='cba01', latitude=5.0, longitude=5.0)
+        ]  # yapf: disable
+
         query_results_expected = mock_fetched_tools
 
         # Make sure the resolver is fetching only online tools that match the
@@ -609,25 +575,17 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.tool_id = _TOOL_ID
 
         mock_fetched_tools = [
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc01',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc02',
-                                                                latitude=1.0,
-                                                                longitude=1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc03',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc04',
-                                                                latitude=1.0,
-                                                                longitude=1.0),
-            _createSliverTool(_TOOL_ID,
-                              site_id='cba01',
-                              latitude=5.0,
-                              longitude=5.0)
-        ]
+            _createSliverTool(
+                _TOOL_ID, site_id='abc01', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc02', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc03', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc04', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='cba01', latitude=5.0, longitude=5.0)
+        ]  # yapf: disable
 
         # When lat/lon is missing, resolver performs no additional filtering
         # after fetch
@@ -652,14 +610,12 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.tool_id = _TOOL_ID
 
         mock_fetched_tools = [
-            _createSliverTool(_TOOL_ID,
-                              site_id='abc01',
-                              latitude=1.0,
-                              longitude=1.0), _createSliverTool(_TOOL_ID,
-                                                                site_id='abc02',
-                                                                latitude=1.0,
-                                                                longitude=1.0)
-        ]
+            _createSliverTool(
+                _TOOL_ID, site_id='abc01', latitude=1.0, longitude=1.0),
+            _createSliverTool(
+                _TOOL_ID, site_id='abc02', latitude=1.0, longitude=1.0)
+        ]  # yapf: disable
+
         # When lat/lon is missing, resolver performs no additional filtering
         # after fetch
         filtered_tools_expected = mock_fetched_tools
