@@ -24,32 +24,30 @@ class AdminHandler(webapp.RequestHandler):
         # TODO(claudiu) This doesn't scale. Generate HTML pages for maps
         # automatically for each tool.
         valid_paths = {
-            '' : lambda : self.redirect('/admin/map/ipv4/all'),
-            '/admin' : lambda : self.redirect('/admin/map/ipv4/all'),
-            '/admin/sites' : lambda : self.site_view(),
-            '/admin/sliver_tools' : lambda : self.sliver_tool_view(),
-            '/admin/map' : lambda : self.redirect('/admin/map/ipv4/all'),
-            '/admin/map/ipv4' : lambda : self.redirect(
-                '/admin/map/ipv4/all'),
-            '/admin/map/ipv4/all' : lambda : self.map_view('all', 'ipv4'),
-            '/admin/map/ipv4/glasnost' : lambda: self.map_view(
-                'glasnost', 'ipv4'),
-            '/admin/map/ipv4/mobiperf' : lambda : self.map_view(
-                'mobiperf', 'ipv4'),
-            '/admin/map/ipv4/neubot' : lambda : self.map_view(
-                'neubot', 'ipv4'),
-            '/admin/map/ipv4/ndt' : lambda : self.map_view('ndt', 'ipv4'),
-            '/admin/map/ipv4/npad' : lambda : self.map_view('npad', 'ipv4'),
-            '/admin/map/ipv6' : lambda : self.map_view('all', 'ipv6'),
-            '/admin/map/ipv6/all' : lambda : self.map_view('all', 'ipv6'),
-            '/admin/map/ipv6/glasnost' : lambda : self.map_view(
-                'glasnost','ipv6'),
-            '/admin/map/ipv6/mobiperf' : lambda : self.map_view(
-                'mobiperf', 'ipv6'),
-            '/admin/map/ipv6/neubot' : lambda : self.map_view(
-                'neubot', 'ipv6'),
-            '/admin/map/ipv6/ndt' : lambda : self.map_view('ndt', 'ipv6'),
-            '/admin/map/ipv6/npad' : lambda : self.map_view('npad', 'ipv6') }
+            '': lambda: self.redirect('/admin/map/ipv4/all'),
+            '/admin': lambda: self.redirect('/admin/map/ipv4/all'),
+            '/admin/sites': lambda: self.site_view(),
+            '/admin/sliver_tools': lambda: self.sliver_tool_view(),
+            '/admin/map': lambda: self.redirect('/admin/map/ipv4/all'),
+            '/admin/map/ipv4': lambda: self.redirect('/admin/map/ipv4/all'),
+            '/admin/map/ipv4/all': lambda: self.map_view('all', 'ipv4'),
+            '/admin/map/ipv4/glasnost':
+            lambda: self.map_view('glasnost', 'ipv4'),
+            '/admin/map/ipv4/mobiperf':
+            lambda: self.map_view('mobiperf', 'ipv4'),
+            '/admin/map/ipv4/neubot': lambda: self.map_view('neubot', 'ipv4'),
+            '/admin/map/ipv4/ndt': lambda: self.map_view('ndt', 'ipv4'),
+            '/admin/map/ipv4/npad': lambda: self.map_view('npad', 'ipv4'),
+            '/admin/map/ipv6': lambda: self.map_view('all', 'ipv6'),
+            '/admin/map/ipv6/all': lambda: self.map_view('all', 'ipv6'),
+            '/admin/map/ipv6/glasnost':
+            lambda: self.map_view('glasnost', 'ipv6'),
+            '/admin/map/ipv6/mobiperf':
+            lambda: self.map_view('mobiperf', 'ipv6'),
+            '/admin/map/ipv6/neubot': lambda: self.map_view('neubot', 'ipv6'),
+            '/admin/map/ipv6/ndt': lambda: self.map_view('ndt', 'ipv6'),
+            '/admin/map/ipv6/npad': lambda: self.map_view('npad', 'ipv6')
+        }
 
         path = self.request.path.rstrip('/')
         if path not in valid_paths.keys():
@@ -81,8 +79,8 @@ class AdminHandler(webapp.RequestHandler):
             'privacy_doc_url': constants.PRIVACY_DOC_URL,
             'design_doc_url': constants.DESIGN_DOC_URL
         }
-        self.response.out.write(
-            template.render('mlabns/templates/sliver_tool.html', values))
+        self.response.out.write(template.render(
+            'mlabns/templates/sliver_tool.html', values))
 
     def site_view(self):
         """Returns an HTML page containing sites information."""
@@ -106,8 +104,8 @@ class AdminHandler(webapp.RequestHandler):
             'privacy_doc_url': constants.PRIVACY_DOC_URL,
             'design_doc_url': constants.DESIGN_DOC_URL
         }
-        self.response.out.write(
-            template.render('mlabns/templates/site.html', values))
+        self.response.out.write(template.render('mlabns/templates/site.html',
+                                                values))
 
     def map_view(self, tool_id, address_family):
         """Displays a per tool map with the status of the slivers.
@@ -126,10 +124,9 @@ class AdminHandler(webapp.RequestHandler):
             if cached_sliver_tools:
                 sliver_tools = cached_sliver_tools
             else:
-                sliver_tools = model.SliverTool.gql(
-                    'WHERE tool_id=:tool_id '
-                    'ORDER BY tool_id DESC',
-                    tool_id=tool_id)
+                sliver_tools = model.SliverTool.gql('WHERE tool_id=:tool_id '
+                                                    'ORDER BY tool_id DESC',
+                                                    tool_id=tool_id)
 
         if not sliver_tools:
             return util.send_not_found(self)

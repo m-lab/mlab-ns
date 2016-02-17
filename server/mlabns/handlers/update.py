@@ -61,8 +61,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         Checks if new sites were added to Nagios and registers them.
         """
         try:
-            nagios_sites_json = json.loads(
-                urllib2.urlopen(self.SITE_LIST_URL).read())
+            nagios_sites_json = json.loads(urllib2.urlopen(
+                self.SITE_LIST_URL).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', self.SITE_LIST_URL)
@@ -94,12 +94,12 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         # Do not remove sites here for now.
         # TODO(claudiu) Implement the site removal as a separate handler.
         for site_id in removed_site_ids:
-            logging.warning(
-                'Site %s removed from %s.', site_id, self.SITE_LIST_URL)
+            logging.warning('Site %s removed from %s.', site_id,
+                            self.SITE_LIST_URL)
 
         for site_id in unchanged_site_ids:
-            logging.info(
-                'Site %s unchanged in %s.', site_id, self.SITE_LIST_URL)
+            logging.info('Site %s unchanged in %s.', site_id,
+                         self.SITE_LIST_URL)
 
         for nagios_site in valid_nagios_sites_json:
             if (nagios_site[self.SITE_FIELD] in new_site_ids):
@@ -107,9 +107,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                              nagios_site[self.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
                 if not self.register_site(nagios_site):
-                    logging.error(
-                        'Error registering site %s.',
-                        nagios_site[self.SITE_FIELD])
+                    logging.error('Error registering site %s.',
+                                  nagios_site[self.SITE_FIELD])
                     continue
 
         return util.send_success(self)
@@ -131,15 +130,14 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                           nagios_site[self.LAT_FIELD],
                           nagios_site[self.LON_FIELD])
             return False
-        site = model.Site(
-            site_id=nagios_site[self.SITE_FIELD],
-            city=nagios_site[self.CITY_FIELD],
-            country=nagios_site[self.COUNTRY_FIELD],
-            latitude=lat_long,
-            longitude=lon_long,
-            metro=nagios_site[self.METRO_FIELD],
-            registration_timestamp=long(time.time()),
-            key_name=nagios_site[self.SITE_FIELD])
+        site = model.Site(site_id=nagios_site[self.SITE_FIELD],
+                          city=nagios_site[self.CITY_FIELD],
+                          country=nagios_site[self.COUNTRY_FIELD],
+                          latitude=lat_long,
+                          longitude=lon_long,
+                          metro=nagios_site[self.METRO_FIELD],
+                          registration_timestamp=long(time.time()),
+                          key_name=nagios_site[self.SITE_FIELD])
 
         try:
             site.put()
@@ -154,19 +152,19 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             for server_id in ['mlab1', 'mlab2', 'mlab3']:
                 fqdn = model.get_fqdn(tool.slice_id, server_id, site.site_id)
                 if fqdn is None:
-                    logging.error(
-                        'Cannot compute fqdn for slice %s.', tool.slice_id)
+                    logging.error('Cannot compute fqdn for slice %s.',
+                                  tool.slice_id)
                     continue
 
                 sliver_tool = IPUpdateHandler().initialize_sliver_tool(
                     tool, site, server_id, fqdn)
                 try:
                     sliver_tool.put()
-                    logging.info(
-                        'Succeeded to write sliver %s to datastore.', fqdn)
+                    logging.info('Succeeded to write sliver %s to datastore.',
+                                 fqdn)
                 except db.TransactionFailedError:
-                    logging.error(
-                        'Failed to write sliver %s to datastore.', fqdn)
+                    logging.error('Failed to write sliver %s to datastore.',
+                                  fqdn)
                     continue
 
         return True
@@ -185,8 +183,8 @@ class IPUpdateHandler(webapp.RequestHandler):
         ip = {}
         lines = []
         try:
-            lines = urllib2.urlopen(
-                self.IP_LIST_URL).read().strip('\n').split('\n')
+            lines = urllib2.urlopen(self.IP_LIST_URL).read().strip('\n').split(
+                '\n')
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', self.IP_LIST_URL)
@@ -210,7 +208,7 @@ class IPUpdateHandler(webapp.RequestHandler):
                                                    fqdn=fqdn)
             # FQDN is not necessarily unique across tools.
             for sliver_tool in sliver_tool_gql.run(
-                batch_size=constants.GQL_BATCH_SIZE):
+                    batch_size=constants.GQL_BATCH_SIZE):
                 # case 1) Sliver tool has not changed. Nothing to do.
                 if (sliver_tool != None and sliver_tool.sliver_ipv4 == ipv4 and
                         sliver_tool.sliver_ipv6 == ipv6):
@@ -288,8 +286,8 @@ class IPUpdateHandler(webapp.RequestHandler):
         return util.send_success(self)
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
-        sliver_tool_id = model.get_sliver_tool_id(
-            tool.tool_id, tool.slice_id, server_id, site.site_id)
+        sliver_tool_id = model.get_sliver_tool_id(tool.tool_id, tool.slice_id,
+                                                  server_id, site.site_id)
 
         return model.SliverTool(
             tool_id=tool.tool_id,
@@ -334,8 +332,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
             return util.send_not_found(self)
 
         password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(
-            None, nagios.url, nagios.username, nagios.password)
+        password_manager.add_password(None, nagios.url, nagios.username,
+                                      nagios.password)
 
         authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
         opener = urllib2.build_opener(authhandler)
@@ -368,7 +366,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                                 tool_id=tool_id)
         sliver_tool_list = []
         for sliver_tool in sliver_tools_gql.run(
-            batch_size=constants.GQL_BATCH_SIZE):
+                batch_size=constants.GQL_BATCH_SIZE):
             if sliver_tool.fqdn not in slice_status:
                 logging.info('Nagios does not know sliver %s.',
                              sliver_tool.fqdn)

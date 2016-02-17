@@ -16,17 +16,15 @@ from google.appengine.ext import testbed
 class ToolFetcherTestCase(unittest.TestCase):
 
     def setUp(self):
-        tool_fetcher_datastore_patch = mock.patch.object(
-            tool_fetcher,
-            'ToolFetcherDatastore',
-            autospec=True)
+        tool_fetcher_datastore_patch = mock.patch.object(tool_fetcher,
+                                                         'ToolFetcherDatastore',
+                                                         autospec=True)
         self.addCleanup(tool_fetcher_datastore_patch.stop)
         tool_fetcher_datastore_patch.start()
 
-        tool_fetcher_memcache_patch = mock.patch.object(
-            tool_fetcher,
-            'ToolFetcherMemcache',
-            autospec=True)
+        tool_fetcher_memcache_patch = mock.patch.object(tool_fetcher,
+                                                        'ToolFetcherMemcache',
+                                                        autospec=True)
         self.addCleanup(tool_fetcher_memcache_patch.stop)
         tool_fetcher_memcache_patch.start()
 
@@ -184,30 +182,26 @@ class ToolFetcherCommonTests(object):
         self.verifyPropertiesReturnExpectedSiteIds([], tool_properties)
 
     def initStatusSiteGroup(self):
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='abc01',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='abc02',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_OFFLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='abc03',
-            country='CountryA',
-            status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_OFFLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='xyz01',
-            country='CountryB',
-            status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_ONLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='abc01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='abc02',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_OFFLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='abc03',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_OFFLINE,
+                              status_ipv6=message.STATUS_OFFLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='xyz01',
+                              country='CountryB',
+                              status_ipv4=message.STATUS_OFFLINE,
+                              status_ipv6=message.STATUS_ONLINE)
         self.insertCreatedTools()
 
     def testFetchToolsWithAtLeastOneOnlineInterface(self):
@@ -253,51 +247,44 @@ class ToolFetcherCommonTests(object):
             ('abc01', 'abc02', 'abc03', 'xyz01'), tool_properties)
 
     def initCountrySiteGroup(self):
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='abc01',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='abc02',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_OFFLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='def01',
-            country='CountryA',
-            status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_OFFLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='xyz01',
-            country='CountryB',
-            status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_ONLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='zzz01',
-            country='CountryC',
-            status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_ONLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='abc01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='abc02',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_OFFLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='def01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_OFFLINE,
+                              status_ipv6=message.STATUS_OFFLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='xyz01',
+                              country='CountryB',
+                              status_ipv4=message.STATUS_OFFLINE,
+                              status_ipv6=message.STATUS_ONLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='zzz01',
+                              country='CountryC',
+                              status_ipv4=message.STATUS_OFFLINE,
+                              status_ipv6=message.STATUS_ONLINE)
         self.insertCreatedTools()
 
     def testFetchToolsInCountryA(self):
         self.initCountrySiteGroup()
-        tool_properties = tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            country='CountryA')
+        tool_properties = tool_fetcher.ToolProperties(tool_id='mock_tool_a',
+                                                      country='CountryA')
         self.verifyPropertiesReturnExpectedSiteIds(
             ('abc01', 'abc02', 'def01'), tool_properties)
 
     def testFetchToolsInCountryB(self):
         self.initCountrySiteGroup()
-        tool_properties = tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            country='CountryB')
+        tool_properties = tool_fetcher.ToolProperties(tool_id='mock_tool_a',
+                                                      country='CountryB')
         self.verifyPropertiesReturnExpectedSiteIds(('xyz01',), tool_properties)
 
     def testFetchToolsInNonExistentCountry(self):
@@ -331,15 +318,13 @@ class ToolFetcherMemcacheTestCase(unittest.TestCase, ToolFetcherCommonTests):
 
     def testFetchAlwaysReturnsNoResultsWhenMetroIsSet(self):
         """Memcache fetcher has no knowledge of metros, so returns nothing."""
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='abc01',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE)
-        tool_properties = tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            metro='abc')
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='abc01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE)
+        tool_properties = tool_fetcher.ToolProperties(tool_id='mock_tool_a',
+                                                      metro='abc')
         self.verifyPropertiesReturnExpectedSiteIds([], tool_properties)
 
 
@@ -376,58 +361,50 @@ class ToolFetcherDatastoreTestCase(unittest.TestCase, ToolFetcherCommonTests):
         self.insertSite(site_id='def02')
         self.insertSite(site_id='xyz01')
 
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='abc01',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='abc02',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_OFFLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='def01',
-            country='CountryA',
-            status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_OFFLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='def02',
-            country='CountryA',
-            status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_ONLINE)
-        self.createSliverTool(
-            tool_id='mock_tool_a',
-            site_id='xyz01',
-            country='CountryB',
-            status_ipv4=message.STATUS_OFFLINE,
-            status_ipv6=message.STATUS_ONLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='abc01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='abc02',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_OFFLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='def01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_OFFLINE,
+                              status_ipv6=message.STATUS_OFFLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='def02',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_OFFLINE,
+                              status_ipv6=message.STATUS_ONLINE)
+        self.createSliverTool(tool_id='mock_tool_a',
+                              site_id='xyz01',
+                              country='CountryB',
+                              status_ipv4=message.STATUS_OFFLINE,
+                              status_ipv6=message.STATUS_ONLINE)
         self.insertCreatedTools()
 
     def testFetchToolsInMetroAbc(self):
         self.initMetroSiteGroup()
-        tool_properties = tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            metro='abc')
+        tool_properties = tool_fetcher.ToolProperties(tool_id='mock_tool_a',
+                                                      metro='abc')
         self.verifyPropertiesReturnExpectedSiteIds(
             ('abc01', 'abc02'), tool_properties)
 
     def testFetchToolsInMetroXyz(self):
         self.initMetroSiteGroup()
-        tool_properties = tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            metro='xyz')
+        tool_properties = tool_fetcher.ToolProperties(tool_id='mock_tool_a',
+                                                      metro='xyz')
         self.verifyPropertiesReturnExpectedSiteIds(('xyz01',), tool_properties)
 
     def testFetchToolsInNonExistentMetro(self):
         self.initMetroSiteGroup()
-        tool_properties = tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            metro='qqq')
+        tool_properties = tool_fetcher.ToolProperties(tool_id='mock_tool_a',
+                                                      metro='qqq')
         self.verifyPropertiesReturnExpectedSiteIds([], tool_properties)
 
     def testFetchToolsInMetroDefWithAtLeastOneOnlineInterface(self):

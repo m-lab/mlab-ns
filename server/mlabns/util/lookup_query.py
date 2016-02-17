@@ -233,9 +233,8 @@ class LookupQuery:
             if self.policy != message.POLICY_GEO and \
                self.policy != message.POLICY_GEO_OPTIONS:
                 if self.policy:
-                    logging.warning(
-                        'Lat/longs user-defined, but policy is %s.',
-                        self.policy)
+                    logging.warning('Lat/longs user-defined, but policy is %s.',
+                                    self.policy)
                 self.policy = message.POLICY_GEO
             return
         if self._user_defined_country:
@@ -250,8 +249,8 @@ class LookupQuery:
         if self.metro is not None:
             if self.policy != message.POLICY_METRO:
                 if self.policy:
-                    logging.warning(
-                        'Metro defined, but policy is %s', self.policy)
+                    logging.warning('Metro defined, but policy is %s',
+                                    self.policy)
                 self.policy = message.POLICY_METRO
             return
         if self.policy == message.POLICY_GEO:

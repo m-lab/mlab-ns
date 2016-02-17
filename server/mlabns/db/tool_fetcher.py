@@ -79,8 +79,8 @@ def _find_site_ids_for_metro(metro):
     Returns:
         A list of site IDs for the given metro.
     """
-    sites = model.Site.all().filter('metro =', metro).fetch(
-        constants.MAX_FETCHED_RESULTS)
+    sites = model.Site.all().filter('metro =',
+                                    metro).fetch(constants.MAX_FETCHED_RESULTS)
 
     if not sites:
         logging.warning('No results found for metro %s.', metro)
@@ -160,9 +160,8 @@ class ToolFetcherMemcache(object):
                         address_family=tool_properties.address_family,
                         status=tool_properties.status))
         if tool_properties.country:
-            tool_filters.append(
-                partial(_filter_by_country,
-                        country=tool_properties.country))
+            tool_filters.append(partial(_filter_by_country,
+                                        country=tool_properties.country))
         if tool_properties.metro:
             # Can't filter by metro without hitting the Datastore because
             # Memcache does not have metro -> site ID mapping.
@@ -210,20 +209,19 @@ class ToolFetcherDatastore(object):
 
         gql = 'WHERE ' + ' AND '.join(gql_clauses)
 
-        gql_query = model.SliverTool.gql(
-            gql,
-            tool_id=tool_properties.tool_id,
-            status=tool_properties.status,
-            site_ids=site_ids,
-            country=tool_properties.country)
+        gql_query = model.SliverTool.gql(gql,
+                                         tool_id=tool_properties.tool_id,
+                                         status=tool_properties.status,
+                                         site_ids=site_ids,
+                                         country=tool_properties.country)
         results = gql_query.fetch(constants.MAX_FETCHED_RESULTS)
 
         # GQL doesn't have an OR operator, which makes it impossible to write
         # GQL like (status_ipv4 = 'online' OR status_ipv6 = 'online') so we do
         # status filtering in application code.
         if tool_properties.status:
-            results = _filter_by_status(
-                results, tool_properties.address_family, tool_properties.status)
+            results = _filter_by_status(results, tool_properties.address_family,
+                                        tool_properties.status)
         results = _filter_choose_one_host_per_site(results)
 
         logging.info('%d sliver tools found in Datastore.', len(results))

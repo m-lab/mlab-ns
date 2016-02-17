@@ -10,8 +10,8 @@ import socket
 import string
 import sys
 
-sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                '../third_party/pygeoip')))
+sys.path.insert(1, os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '../third_party/pygeoip')))
 import pygeoip
 
 
@@ -105,10 +105,9 @@ def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
 
     logging.info('Retrieving geolocation info for country %s, city %s.', city,
                  country)
-    location = city_table.gql(
-        'WHERE city = :city AND country = :country',
-        city=city,
-        country=country).get()
+    location = city_table.gql('WHERE city = :city AND country = :country',
+                              city=city,
+                              country=country).get()
     if location is None:
         logging.error('%s, %s not found in the database.', city, country)
         return geo_record

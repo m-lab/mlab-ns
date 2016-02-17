@@ -10,8 +10,8 @@ class ModelTestCase(unittest2.TestCase):
         slice_id = 'slice_id'
         server_id = 'server_id'
         site_id = 'site_id'
-        self.assertIsNone(
-            model.get_sliver_tool_id(tool_id, slice_id, server_id, site_id))
+        self.assertIsNone(model.get_sliver_tool_id(tool_id, slice_id, server_id,
+                                                   site_id))
 
     def testGetSliverToolIdValid(self):
         tool_id = 'tool_id'

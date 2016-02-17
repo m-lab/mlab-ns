@@ -8,8 +8,8 @@ from mlabns.third_party import ipaddr
 from mlabns.util import constants
 from mlabns.util import maxmind
 
-sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                '../third_party/pygeoip')))
+sys.path.insert(1, os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '../third_party/pygeoip')))
 import pygeoip
 
 
@@ -136,10 +136,9 @@ class MaxmindTestClass(unittest2.TestCase):
             flags=pygeoip.const.STANDARD)
 
     def testGetCountryGeolocationNoCountry(self):
-        self.assertNoneGeoRecord(
-            maxmind.get_country_geolocation(
-                'unused_country',
-                country_table=MaxmindTestClass.ModelMockup()))
+        self.assertNoneGeoRecord(maxmind.get_country_geolocation(
+            'unused_country',
+            country_table=MaxmindTestClass.ModelMockup()))
 
     def testGetCountryGeolocationYesCountry(self):
 
@@ -164,12 +163,11 @@ class MaxmindTestClass(unittest2.TestCase):
                 country_table=MaxmindTestClass.ModelMockup(location=location)))
 
     def testGetCityGeolocationNoCity(self):
-        self.assertNoneGeoRecord(
-            maxmind.get_city_geolocation(
-                'unused_city',
-                'unused_country',
-                city_table=MaxmindTestClass.ModelMockup(
-                    gql_obj=MaxmindTestClass.GqlMockup())))
+        self.assertNoneGeoRecord(maxmind.get_city_geolocation(
+            'unused_city',
+            'unused_country',
+            city_table=MaxmindTestClass.ModelMockup(
+                gql_obj=MaxmindTestClass.GqlMockup())))
 
     def testGetCityGeolocationYesCity(self):
 

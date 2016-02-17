@@ -186,9 +186,8 @@ class LookupHandler(webapp.RequestHandler):
         records.extend(sliver_tools)
         values = {'records': records}
         self.response.headers['Access-Control-Allow-Origin'] = '*'
-        self.response.out.write(
-            template.render(
-                'mlabns/templates/lookup_response.html', values))
+        self.response.out.write(template.render(
+            'mlabns/templates/lookup_response.html', values))
 
     def send_redirect_response(self, sliver_tools, query):
         """Sends an HTTP redirect (for web-based tools only).
@@ -275,8 +274,8 @@ class LookupHandler(webapp.RequestHandler):
         destination_site_json = json.dumps(destination_site_dict)
         user_info_json = json.dumps(user_info)
 
-        self.response.out.write(
-            template.render('mlabns/templates/lookup_map.html', {
+        self.response.out.write(template.render(
+            'mlabns/templates/lookup_map.html', {
                 'sites': candidate_site_list_json,
                 'user': user_info_json,
                 'destination': destination_site_json
@@ -324,22 +323,21 @@ class LookupHandler(webapp.RequestHandler):
         # except for the request latency field, that is added in the log2bq.py
         # since it's automatically computed by GAE for every request and
         # included in the request_log object.
-        logging.info(
-            '[lookup]'
-            '%s,%s,%s,'
-            '%s,'
-            '%s,%s,%s,%s,%s,%s,%s',
-            # Info about the user:
-            query.tool_address_family,
-            query.ip_address,
-            user_agent,
-            sliver_tool_info,
-            # Info about the request:
-            query.tool_id,
-            query.policy,
-            query.response_format,
-            query._geolocation_type,
-            query.metro,
-            str(time.time()),
-            # Calculated information about the lookup:
-            str(query.distance))
+        logging.info('[lookup]'
+                     '%s,%s,%s,'
+                     '%s,'
+                     '%s,%s,%s,%s,%s,%s,%s',
+                     # Info about the user:
+                     query.tool_address_family,
+                     query.ip_address,
+                     user_agent,
+                     sliver_tool_info,
+                     # Info about the request:
+                     query.tool_id,
+                     query.policy,
+                     query.response_format,
+                     query._geolocation_type,
+                     query.metro,
+                     str(time.time()),
+                     # Calculated information about the lookup:
+                     str(query.distance))
