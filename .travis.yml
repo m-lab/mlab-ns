@@ -5,10 +5,7 @@ cache:
   directories:
      - "$HOME/google-cloud-sdk/"
 env:
-- GAE_PYTHONPATH=$HOME/.cache/google_appengine
-- PATH=$PATH:$HOME/google-cloud-sdk/bin 
-- PYTHONPATH=$PYTHONPATH:$GAE_PYTHONPATH
-- CLOUDSDK_CORE_DISABLE_PROMPTS=1
+- GAE_PYTHONPATH=$HOME/.cache/google_appengine PATH=$PATH:$HOME/google-cloud-sdk/bin PYTHONPATH=$PYTHONPATH:$GAE_PYTHONPATH CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install: 
 # Install Google App Engine Python SDK
 - if [ ! -d ${HOME}/google-cloud-sdk ]; then python scripts/fetch_gae_sdk.py $(dirname "${GAE_PYTHONPATH}"); fi
