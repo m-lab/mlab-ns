@@ -16,6 +16,7 @@ install:
 - pip install yapf==0.6.2
 - pip install six
 script:
+- echo $GAE_PYTHONPATH
 - yapf --diff --exclude=./server/mlabns/third_party/* --recursive --style=google ./server/mlabns/*
 - python server/unit_tests.py $GAE_PYTHONPATH server/mlabns/tests/
 
