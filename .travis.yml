@@ -6,7 +6,7 @@ env:
 before_install: 
 # Install Google App Engine Python SDK
 - if [ ! -d $HOME/google_appengine ]; then wget https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.32.zip; fi
-- unzip google_appengine_1.9.32.zip -q -d $HOME
+- unzip -q google_appengine_1.9.32.zip -d $HOME
 install:
 - pip install unittest2 
 - pip install yapf==0.6.2
