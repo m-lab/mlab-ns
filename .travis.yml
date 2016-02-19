@@ -5,7 +5,8 @@ env:
 - PATH=$PATH:$HOME/google_appengine GAE_PYTHONPATH=$HOME/google_appengine PYTHONPATH=$PYTHONPATH:$GAE_PYTHONPATH APPENGINESDK_CORE_DISABLE_PROMPTS=1
 before_install: 
 # Install Google App Engine Python SDK
-- if [ ! -d $HOME/google_appengine ]; then wget https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.32.zip | bash; fi
+- if [ ! -d $HOME/google_appengine ]; then wget https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.32.zip; fi
+- unzip google_appengine_1.9.32.zip -d $GAE_PYTHONPATH
 install:
 - pip install unittest2 
 - pip install yapf==0.6.2
