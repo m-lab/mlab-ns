@@ -3,23 +3,17 @@
 import StringIO
 import csv
 import httplib2
-import json
-import logging
 import os
 import time
 import webapp2
 
-from google.appengine.api import files
 from google.appengine.api import logservice
-from google.appengine.ext.webapp import template
 
 from apiclient.discovery import build
 from oauth2client.appengine import AppAssertionCredentials
 
 from mapreduce import base_handler, mapreduce_pipeline
 from mapreduce.lib import pipeline
-
-from mlabns import util
 
 import config
 
@@ -93,7 +87,7 @@ class Gs2Bq(base_handler.PipelineBase):
     def run(self, files):
         jobs = service.jobs()
         gs_paths = [f.replace('/gs/', 'gs://') for f in files]
-        result = service.jobs().insert(
+        result = jobs.insert(
             projectId=config.project_id,
             body={
                 'projectId': config.project_id,

@@ -1,5 +1,4 @@
 from google.appengine.ext import db
-from mlabns.util import constants
 import logging
 
 # The classes defined in this file are described in detail in

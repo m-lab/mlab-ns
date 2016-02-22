@@ -1,11 +1,9 @@
 from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
 
 import json
 import logging
-import re
 import time
 import urllib2
 
@@ -180,7 +178,6 @@ class IPUpdateHandler(webapp.RequestHandler):
 
         Updates sliver tool IP addresses from Nagios.
         """
-        ip = {}
         lines = []
         try:
             lines = urllib2.urlopen(self.IP_LIST_URL).read().strip('\n').split(
@@ -400,7 +397,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                      sliver_tool.fqdn)
                     else:
                         logging.warning('Setting IPv6 status for %s to offline'\
-                                        ' due to missing IP.', sliver_fqdn)
+                                        ' due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv6 = message.STATUS_OFFLINE
                 else:
                     if (sliver_tool.status_ipv6 == slice_status[

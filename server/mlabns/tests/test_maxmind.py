@@ -4,7 +4,6 @@ import unittest2
 import mock
 import socket
 
-from mlabns.third_party import ipaddr
 from mlabns.util import constants
 from mlabns.util import maxmind
 
