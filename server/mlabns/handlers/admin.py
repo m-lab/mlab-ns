@@ -6,7 +6,6 @@ from google.appengine.ext.webapp import template
 
 from mlabns.db import model
 from mlabns.util import constants
-
 from mlabns.util import util
 
 
