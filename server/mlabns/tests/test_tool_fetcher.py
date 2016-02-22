@@ -343,7 +343,7 @@ class ToolFetcherDatastoreTestCase(unittest.TestCase, ToolFetcherCommonTests):
 
     def insertCreatedTools(self):
         for tool in self.created_tools:
-            tool.parent = parent = self.db_root.key()
+            tool.parent = self.db_root.key()
             tool.put()
 
     def insertSite(self, site_id):

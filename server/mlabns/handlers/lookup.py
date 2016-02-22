@@ -62,7 +62,7 @@ class LookupHandler(webapp.RequestHandler):
             self.send_bt_response(sliver_tools, query)
         elif query.response_format == message.FORMAT_MAP:
             candidates = lookup_resolver.get_candidates(query)
-            self.send_map_response(sliver_tool, query, candidates)
+            self.send_map_response(sliver_tools, query, candidates)
         else:
             # TODO (claudiu) Discuss what should be the default behaviour.
             # I think json it's OK since is valid for all tools, while

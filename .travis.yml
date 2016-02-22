@@ -7,8 +7,14 @@ before_install:
   - wget https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.32.zip
   - unzip -q google_appengine_1.9.32.zip -d $HOME
 install:
+  - pip install pyflakes
   - pip install unittest2 
   - pip install yapf==0.6.2
 script:
   - yapf --diff --exclude=./server/mlabns/third_party/* --recursive --style=google ./server/mlabns/*
   - python server/unit_tests.py $GAE_PYTHONPATH server/mlabns/tests/
+  - PYFILE_LIST=$(find ./server/mlabns/ | grep .py$ | grep -v third_party)
+  - pyflakes $PYFILE_LIST
+
+
+

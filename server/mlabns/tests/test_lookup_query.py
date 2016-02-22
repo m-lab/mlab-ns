@@ -1,9 +1,6 @@
-import collections
-
 import mock
 import unittest2
 
-from mlabns.util import constants
 from mlabns.util import lookup_query
 from mlabns.util import maxmind
 from mlabns.util import message

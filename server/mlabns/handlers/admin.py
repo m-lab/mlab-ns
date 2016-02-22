@@ -1,17 +1,13 @@
 from django.utils import simplejson
 
 from google.appengine.api import memcache
-from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 from mlabns.db import model
 from mlabns.util import constants
-from mlabns.util import message
-from mlabns.util import util
 
-import gflags
-import logging
+from mlabns.util import util
 
 
 class AdminHandler(webapp.RequestHandler):

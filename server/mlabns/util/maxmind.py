@@ -1,13 +1,9 @@
-from google.appengine.ext import db
-
 from mlabns.db import model
-from mlabns.third_party import ipaddr
 from mlabns.util import constants
 
 import logging
 import os
 import socket
-import string
 import sys
 
 sys.path.insert(1, os.path.abspath(os.path.join(
