@@ -8,19 +8,21 @@ from mlabns.db import nagios_status_data
 from mlabns.util import constants
 from mlabns.util import message
 
+
 def authenticate_nagios(nagios):
-	"""Function to handle authenticating with nagios. 
+    """Function to handle authenticating with nagios. 
 
 	Args:
 		nagios (Nagios): object containing nagios auth information
-    """ 
-	password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-	password_manager.add_password(None, nagios.url, nagios.username,
-	                      nagios.password)
+    """
+    password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    password_manager.add_password(None, nagios.url, nagios.username,
+                                  nagios.password)
 
-	authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
-	opener = urllib2.build_opener(authhandler)
-	urllib2.install_opener(opener)
+    authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
+    opener = urllib2.build_opener(authhandler)
+    urllib2.install_opener(opener)
+
 
 def get_slice_urls(nagios_url, nagios_suffixes):
     """Function to build an array of (url, tool_id, ipversion) that access slice information
@@ -32,7 +34,7 @@ def get_slice_urls(nagios_url, nagios_suffixes):
     Returns:
         (array): of tuples of the form (url, tool_id, ipversion) 
     """
-    urls=[]
+    urls = []
     tools_gql = nagios_status_data.get_tools_by_id()
     for tool in tools_gql:
         for ipversion in nagios_suffixes:
@@ -40,6 +42,7 @@ def get_slice_urls(nagios_url, nagios_suffixes):
             urls.append((slice_url, tool.tool_id, ipversion))
 
     return urls
+
 
 def parse_sliver_tool_status(status):
     """Function to parse the status of a single sliver tool.
@@ -64,30 +67,31 @@ def parse_sliver_tool_status(status):
 
     return [sliver_fqdn, state, tool_extra]
 
-def has_no_ip(sliver_tool, ipversion): 
+
+def has_no_ip(sliver_tool, ipversion):
     """Helper function to keep boolean logic simpler. Returns True if 
     sliver_tool is offline. 
 
     sliver_tool: model object
     """
-    four= sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS and ipversion==constants.AF_IPV4
-    six= sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS and ipversion==constants.AF_IPV6
+    four = sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS and ipversion == constants.AF_IPV4
+    six = sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS and ipversion == constants.AF_IPV6
     return four or six
-        
 
-def was_online(sliver_tool, ipversion): 
+
+def was_online(sliver_tool, ipversion):
     """Helper function to keep boolean logic simpler. Returns True if 
     sliver_tool was online in previous update. 
 
     Args: 
         sliver_tool: model object
     """
-    four= sliver_tool.status_ipv4 == message.STATUS_ONLINE and ipversion==constants.AF_IPV4
-    six= sliver_tool.status_ipv6 == message.STATUS_ONLINE and ipversion==constants.AF_IPV6
+    four = sliver_tool.status_ipv4 == message.STATUS_ONLINE and ipversion == constants.AF_IPV4
+    six = sliver_tool.status_ipv6 == message.STATUS_ONLINE and ipversion == constants.AF_IPV6
     return four or six
 
 
-def evaluate_status_update(sliver_tool, ipversion, slice_status): 
+def evaluate_status_update(sliver_tool, ipversion, slice_status):
     """Function that evaluates and performs the necessary updates to the SliverTool 
     instance passed in. 
 
@@ -98,19 +102,22 @@ def evaluate_status_update(sliver_tool, ipversion, slice_status):
         ipversion: ipv4  ('') or ipv6 ('_ipv6')
 
     """
-    if has_no_ip(sliver_tool, ipversion): 
+    if has_no_ip(sliver_tool, ipversion):
         if was_online(sliver_tool, ipversion):
-            logging.warning('Setting status of %s to offline due to missing IP.', sliver_tool.fqdn)    
-            if ipversion== constants.AF_IPV4: 
+            logging.warning(
+                'Setting status of %s to offline due to missing IP.',
+                sliver_tool.fqdn)
+            if ipversion == constants.AF_IPV4:
                 sliver_tool.status_ipv4 = message.STATUS_OFFLINE
-            else: 
+            else:
                 sliver_tool.status_ipv6 = message.STATUS_OFFLINE
     else:
         sliver_tool.tool_extra = slice_status[sliver_tool.fqdn]['tool_extra']
-        if ipversion== constants.AF_IPV4: 
+        if ipversion == constants.AF_IPV4:
             sliver_tool.status_ipv4 = slice_status[sliver_tool.fqdn]['status']
-        else: 
+        else:
             sliver_tool.status_ipv6 = slice_status[sliver_tool.fqdn]['status']
+
 
 def get_slice_status(url):
     """Read slice status from Nagios, and returns a dictionary representng the
@@ -133,11 +140,12 @@ def get_slice_status(url):
         return None
     for sliver in slice_status:
 
-        parsed= parse_sliver_tool_status(sliver)
-        if not parsed: 
-            logging.error('Unable to parse nagios sliver status info: %s.', sliver)
+        parsed = parse_sliver_tool_status(sliver)
+        if not parsed:
+            logging.error('Unable to parse nagios sliver status info: %s.',
+                          sliver)
             continue
-        sliver_fqdn, state, tool_extra= parsed 
+        sliver_fqdn, state, tool_extra = parsed
         if state != constants.NAGIOS_SERVICE_STATUS_OK:
             status[sliver_fqdn] = {
                 'status': message.STATUS_OFFLINE,
@@ -150,6 +158,7 @@ def get_slice_status(url):
             }
 
     return status
+
 
 def update_sliver_tools_status(slice_status, tool_id, ipversion):
     """Updates local slice status info with the slice_status
@@ -168,7 +177,6 @@ def update_sliver_tools_status(slice_status, tool_id, ipversion):
         try:
             sliver_tool.put()
         except db.TransactionFailedError:
-            logging.error(
-                'Failed to update status of %s to %s in datastore.',
-                sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
+            logging.error('Failed to update status of %s to %s in datastore.',
+                          sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
             continue

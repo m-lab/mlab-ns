@@ -15,6 +15,7 @@ from mlabns.util import nagios_status
 from mlabns.util import production_check
 from mlabns.util import util
 
+
 class SiteRegistrationHandler(webapp.RequestHandler):
     """Registers new sites from Nagios."""
 
@@ -313,8 +314,8 @@ class IPUpdateHandler(webapp.RequestHandler):
 class StatusUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' status from nagios."""
 
-    IPV4 =constants.AF_IPV4
-    IPV6= constants.AF_IPV6 
+    IPV4 = constants.AF_IPV4
+    IPV6 = constants.AF_IPV6
     NAGIOS_AF_SUFFIXES = [IPV4, IPV6]
 
     def get(self):
@@ -322,17 +323,19 @@ class StatusUpdateHandler(webapp.RequestHandler):
         Access sliver status with information from Nagios. The Nagios URL
         containing the information is stored in the Nagios db along with
         the credentials necessary to access the data.
-        """  
+        """
         nagios = nagios_status_data.get_nagios_credentials()
         if nagios is None:
             return util.send_not_found(self)
-        
+
         nagios_status.authenticate_nagios(nagios)
-        slice_urls= nagios_status.get_slice_urls(nagios.url, self.NAGIOS_AF_SUFFIXES)
-        
-        for url_tuple in slice_urls: 
-            slice_url, tool_id, ipversion= url_tuple
+        slice_urls = nagios_status.get_slice_urls(nagios.url,
+                                                  self.NAGIOS_AF_SUFFIXES)
+
+        for url_tuple in slice_urls:
+            slice_url, tool_id, ipversion = url_tuple
             slice_status = nagios_status.get_slice_status(slice_url)
-            nagios_status.update_sliver_tools_status(slice_status, tool_id, ipversion) 
-        
+            nagios_status.update_sliver_tools_status(slice_status, tool_id,
+                                                     ipversion)
+
         return util.send_success(self)
