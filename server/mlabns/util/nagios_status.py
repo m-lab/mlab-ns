@@ -1,17 +1,12 @@
 from google.appengine.ext import db
-from google.appengine.api import memcache
 
-import json
 import logging
 import time
 import urllib2
 
-from mlabns.db import model
 from mlabns.db import nagios_status_data
 from mlabns.util import constants
 from mlabns.util import message
-from mlabns.util import util
-
 
 def authenticate_nagios(nagios):
 	"""Function to handle authenticating with nagios. 
