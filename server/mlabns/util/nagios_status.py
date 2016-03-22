@@ -38,7 +38,7 @@ def get_slice_urls(nagios_url, nagios_suffixes):
     for tool in tools_gql:
         for ipversion in nagios_suffixes:
             slice_url = (nagios_url + '?show_state=1&service_name=' +
-                tool.tool_id + ipversion + "&plugin_output=1")
+                         tool.tool_id + ipversion + "&plugin_output=1")
             urls.append((slice_url, tool.tool_id, ipversion))
 
     return urls

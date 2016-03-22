@@ -11,14 +11,17 @@ from mlabns.util import nagios_status
 
 
 class MockHttpError(urllib2.HTTPError):
+
     def __init__(self, error_code):
         self.resp = mock.Mock()
         self.resp.status = error_code
 
 
 class MockDbError(db.TransactionFailedError):
+
     def __init__(self, error):
         self.error = error
+
 
 class GetSliceUrlsTest(unittest2.TestCase):
 
@@ -64,12 +67,13 @@ class ParseSliverToolStatusTest(unittest2.TestCase):
 
         self.assertEqual(expected_parsed_status, actual_parsed_status)
 
-    def test_parse_sliver_tool_status_returns_none_because_of_illformatted_status(self):
+    def test_parse_sliver_tool_status_returns_none_because_of_illformatted_status(
+            self):
         status = 'mock status'
         expected_parsed_status = None
         actual_parsed_status = nagios_status.parse_sliver_tool_status(status)
 
-        self.assertEqual(expected_parsed_status,actual_parsed_status)
+        self.assertEqual(expected_parsed_status, actual_parsed_status)
 
 
 class HasNoIpTest(unittest2.TestCase):
