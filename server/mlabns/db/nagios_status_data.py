@@ -15,8 +15,7 @@ def get_nagios_credentials():
     """
     nagios = memcache.get(constants.DEFAULT_NAGIOS_ENTRY)
     if not nagios:
-        nagios = list(model.Nagios.get_by_key_name(
-            constants.DEFAULT_NAGIOS_ENTRY))
+        nagios = model.Nagios.get_by_key_name(constants.DEFAULT_NAGIOS_ENTRY)
         if nagios:
             memcache.set(constants.DEFAULT_NAGIOS_ENTRY, nagios)
         else:
