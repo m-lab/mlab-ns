@@ -8,12 +8,12 @@ import time
 import urllib2
 
 from mlabns.db import model
+from mlabns.db import nagios_status_data
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import nagios_status
 from mlabns.util import production_check
 from mlabns.util import util
-
 
 class SiteRegistrationHandler(webapp.RequestHandler):
     """Registers new sites from Nagios."""
@@ -313,9 +313,9 @@ class IPUpdateHandler(webapp.RequestHandler):
 class StatusUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' status from nagios."""
 
-    AF_IPV4 = ''
-    AF_IPV6 = '_ipv6'
-    NAGIOS_AF_SUFFIXES = [AF_IPV4, AF_IPV6]
+    IPV4 =constants.AF_IPV4
+    IPV6= constants.AF_IPV6 
+    NAGIOS_AF_SUFFIXES = [IPV4, IPV6]
 
     def get(self):
         """
@@ -323,24 +323,16 @@ class StatusUpdateHandler(webapp.RequestHandler):
         containing the information is stored in the Nagios db along with
         the credentials necessary to access the data.
         """  
-        nagios = model.Nagios.get_by_key_name(constants.DEFAULT_NAGIOS_ENTRY)
-
-        print "nagios_status: "+str(nagios_status)
-        print "util: "+str(util)
-       
+        nagios = nagios_status_data.get_nagios_credentials()
         if nagios is None:
-            print "Nagios returned none"
             return util.send_not_found(self)
-
-        print "nagios returned: "+str(nagios)
-        print "nagios_status.get_slice_urls: "+str(nagios_status.get_slice_urls())
-
+        
         nagios_status.authenticate_nagios(nagios)
         slice_urls= nagios_status.get_slice_urls(nagios.url, self.NAGIOS_AF_SUFFIXES)
-        for url in slice_urls: 
+        
+        for url_tuple in slice_urls: 
+            slice_url, tool_id, ipversion= url_tuple
             slice_status = nagios_status.get_slice_status(slice_url)
-            nagios_status.update_sliver_tools_status(slice_status, tool.tool_id,
-                                                family) # NO LONGER HAVE TOOL ID
+            nagios_status.update_sliver_tools_status(slice_status, tool_id, ipversion) 
+        
         return util.send_success(self)
-
-
