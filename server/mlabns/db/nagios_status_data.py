@@ -4,8 +4,6 @@ import logging
 
 from mlabns.db import model
 from mlabns.util import constants
-from mlabns.util import util
-
 
 def get_nagios_credentials(): 
     """Function to retrieve nagios authentication information. 

@@ -1,17 +1,11 @@
-from google.appengine.api import memcache
-
-import json
 import mock
-import os
 import StringIO
-import sys
 import unittest2
 import urllib2
 
 
 from mlabns.handlers import update
 from mlabns.db import model
-from mlabns.db import nagios_status_data
 from mlabns.util import util
 
 
