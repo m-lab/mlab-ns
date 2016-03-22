@@ -1,7 +1,7 @@
 import mock
 import StringIO
-import urllib2
 import unittest2
+import urllib2
 
 from mlabns.handlers import update
 from mlabns.db import model
@@ -61,6 +61,49 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
 
         self.assertFalse(model.Site.called,
                          'Test site should not be added to the datastore')
+
+
+class StatusUpdateHandlerTest(unittest2.TestCase):
+
+    def setUp(self):
+        self.StatusUpdateHandler = update.StatusUpdateHandler()
+
+        self.nagios_status_patch = mock.patch(
+            'mlabns.handlers.update.nagios_status')
+        self.addCleanup(self.nagios_status_patch.stop)
+        self.nagios_status_patch.start()
+
+        self.util_patch_success = mock.patch.object(util,
+                                                    'send_success',
+                                                    autospec=True)
+        self.addCleanup(self.util_patch_success.stop)
+        self.util_patch_success.start()
+
+        self.util_patch_not_found = mock.patch.object(util,
+                                                      'send_not_found',
+                                                      autospec=True)
+        self.addCleanup(self.util_patch_not_found.stop)
+        self.util_patch_not_found.start()
+
+    def test_sends_success_after_successful_authentication(self):
+
+        with mock.patch(
+                'mlabns.handlers.update.nagios_status_data') as mock_nagios:
+            mock_credentials = mock.Mock(name='mock_credentials',
+                                         url='mock_url')
+            mock_nagios.get_nagios_credentials.return_value = mock_credentials
+            self.StatusUpdateHandler.get()
+
+        self.assertTrue(util.send_success.called)
+
+    def test_sends_not_found_when_nagios_credentials_not_in_datastore(self):
+
+        with mock.patch(
+                'mlabns.handlers.update.nagios_status_data') as mock_nagios:
+            mock_nagios.get_nagios_credentials.return_value = None
+            self.StatusUpdateHandler.get()
+
+        self.assertTrue(util.send_not_found.called)
 
 
 if __name__ == '__main__':

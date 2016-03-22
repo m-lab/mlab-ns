@@ -8,8 +8,10 @@ import time
 import urllib2
 
 from mlabns.db import model
+from mlabns.db import nagios_status_data
 from mlabns.util import constants
 from mlabns.util import message
+from mlabns.util import nagios_status
 from mlabns.util import production_check
 from mlabns.util import util
 
@@ -312,176 +314,24 @@ class IPUpdateHandler(webapp.RequestHandler):
 class StatusUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' status from nagios."""
 
-    AF_IPV4 = ''
-    AF_IPV6 = '_ipv6'
-    NAGIOS_AF_SUFFIXES = [AF_IPV4, AF_IPV6]
+    IPV4 = constants.AF_IPV4
+    IPV6 = constants.AF_IPV6
+    NAGIOS_AF_SUFFIXES = [IPV4, IPV6]
 
     def get(self):
-        """Triggers the update handler.
-
-        Updates sliver status with information from Nagios. The Nagios URL
-        containing the information is stored in the Nagios db along with
-        the credentials necessary to access the data.
-        """
-        nagios = model.Nagios.get_by_key_name(constants.DEFAULT_NAGIOS_ENTRY)
+        """Update nagios status information."""
+        nagios = nagios_status_data.get_nagios_credentials()
         if nagios is None:
-            logging.error('Datastore does not have the Nagios credentials.')
             return util.send_not_found(self)
 
-        password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, nagios.url, nagios.username,
-                                      nagios.password)
+        nagios_status.authenticate_nagios(nagios)
+        slice_urls = nagios_status.get_slice_urls(nagios.url,
+                                                  self.NAGIOS_AF_SUFFIXES)
 
-        authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
-        opener = urllib2.build_opener(authhandler)
-        urllib2.install_opener(opener)
+        for url_tuple in slice_urls:
+            slice_url, tool_id, ipversion = url_tuple
+            slice_status = nagios_status.get_slice_status(slice_url)
+            nagios_status.update_sliver_tools_status(slice_status, tool_id,
+                                                     ipversion)
 
-        tools_gql = model.Tool.gql('ORDER by tool_id DESC')
-        for item in tools_gql.run(batch_size=constants.GQL_BATCH_SIZE):
-            logging.info('Pulling status of %s from Nagios.', item.tool_id)
-            for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
-                slice_url = nagios.url + '?show_state=1&service_name=' + \
-                      item.tool_id + family + \
-                      "&plugin_output=1"
-
-                slice_status = self.get_slice_status(slice_url)
-                self.update_sliver_tools_status(slice_status, item.tool_id,
-                                                family)
         return util.send_success(self)
-
-    def update_sliver_tools_status(self, slice_status, tool_id, family):
-        """Updates status of sliver tools in input slice.
-
-        Args:
-            slice_status: A dict that contains the status of the
-                slivers in the slice {key=fqdn, status:online|offline}
-            tool_id: A string representing the fqdn that resolves
-                to an IP address.
-        """
-
-        sliver_tools_gql = model.SliverTool.gql('WHERE tool_id=:tool_id',
-                                                tool_id=tool_id)
-        sliver_tool_list = []
-        for sliver_tool in sliver_tools_gql.run(
-                batch_size=constants.GQL_BATCH_SIZE):
-            if sliver_tool.fqdn not in slice_status:
-                logging.info('Nagios does not know sliver %s.',
-                             sliver_tool.fqdn)
-                continue
-
-            if family == StatusUpdateHandler.AF_IPV4:
-                if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
-                    if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
-                        logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
-                    else:
-                        logging.warning('Setting IPv4 status of %s to offline '\
-                                        'due to missing IP.', sliver_tool.fqdn)
-                        sliver_tool.status_ipv4 = message.STATUS_OFFLINE
-                else:
-                    if (sliver_tool.status_ipv4 == slice_status[
-                            sliver_tool.fqdn]['status'] and
-                            sliver_tool.tool_extra == slice_status[
-                                sliver_tool.fqdn]['tool_extra']):
-                        logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
-                    else:
-                        sliver_tool.status_ipv4 = \
-                          slice_status[sliver_tool.fqdn]['status']
-                        sliver_tool.tool_extra = \
-                          slice_status[sliver_tool.fqdn]['tool_extra']
-            elif family == StatusUpdateHandler.AF_IPV6:
-                if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
-                    if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
-                        logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
-                    else:
-                        logging.warning('Setting IPv6 status for %s to offline'\
-                                        ' due to missing IP.', sliver_tool.fqdn)
-                        sliver_tool.status_ipv6 = message.STATUS_OFFLINE
-                else:
-                    if (sliver_tool.status_ipv6 == slice_status[
-                            sliver_tool.fqdn]['status'] and
-                            sliver_tool.tool_extra == slice_status[
-                                sliver_tool.fqdn]['tool_extra']):
-                        logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
-                    else:
-                        sliver_tool.status_ipv6 = \
-                          slice_status[sliver_tool.fqdn]['status']
-                        sliver_tool.tool_extra = \
-                          slice_status[sliver_tool.fqdn]['tool_extra']
-            else:
-                logging.error('Unexpected address family: %s.', family)
-                continue
-
-            sliver_tool.update_request_timestamp = long(time.time())
-            try:
-                sliver_tool.put()
-                logging.info(
-                    'Succeeded to update status of %s to %s in datastore.',
-                    sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
-            except db.TransactionFailedError:
-                # TODO(claudiu) Trigger an event/notification.
-                logging.error(
-                    'Failed to update status of %s to %s in datastore.',
-                    sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
-                continue
-            sliver_tool_list.append(sliver_tool)
-            logging.info('sliver %s to be added to memcache', sliver_tool.fqdn)
-
-        # Never set the memcache to an empty list since it's more likely that
-        # this is a Nagios failure.
-        if sliver_tool_list:
-            if not memcache.set(tool_id,
-                                sliver_tool_list,
-                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                logging.error('Failed to update sliver status in memcache.')
-
-    def get_slice_status(self, url):
-        """Read slice status from Nagios.
-
-        Args:
-            url: String representing the URL to Nagios for a single slice.
-
-        Returns:
-            A dict that contains the status of the slivers in this
-            slice {key=fqdn, status:online|offline}
-        """
-        status = {}
-        try:
-            lines = urllib2.urlopen(url).read().strip('\n').split('\n')
-        except urllib2.HTTPError:
-            # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', url)
-            return None
-
-        for line in lines:
-            if len(line) == 0:
-                continue
-            # See the design doc for a description of the file format.
-            line_fields = line.split(' ')
-            if len(line_fields) <= 3:
-                logging.error('Line does not have more than 3 fields: %s.',
-                              line)
-                continue
-            slice_fqdn = line_fields[0]
-            state = line_fields[1]
-            tool_extra = " ".join(line_fields[3:])
-            slice_fields = slice_fqdn.split('/')
-            if len(slice_fields) != 2:
-                logging.error('Slice FQDN does not 2 fields: %s.', slice_fqdn)
-                continue
-            sliver_fqdn = slice_fields[0]
-            if state != constants.NAGIOS_SERVICE_STATUS_OK:
-                status[sliver_fqdn] = {
-                    'status': message.STATUS_OFFLINE,
-                    'tool_extra': tool_extra
-                }
-            else:
-                status[sliver_fqdn] = {
-                    'status': message.STATUS_ONLINE,
-                    'tool_extra': tool_extra
-                }
-
-        return status
