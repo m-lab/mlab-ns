@@ -7,11 +7,10 @@ from mlabns.util import constants
 
 
 def get_nagios_credentials():
-    """Function to retrieve nagios authentication information. 
-    First checks cache, if no hit checks datastore.
+    """Retrieve nagios authentication information.
 
-    Returns: 
-        (Nagios): Nagios model instance containing nagios credentials,
+    Returns:
+        Nagios model instance containing nagios credentials,
     """
     nagios = memcache.get(constants.DEFAULT_NAGIOS_ENTRY)
     if not nagios:
@@ -25,12 +24,11 @@ def get_nagios_credentials():
 
 
 def get_tools_by_id():
-    """Function to retrieve tools by id. First checks cache, if no hit checks
-	datastore. 
+    """Retrieves tools by id.
 
-	Returns: 
-		(iterator) of Tool instances
-	"""
+    Returns:
+        List of Tool instances
+    """
     tools = memcache.get('tools_by_id')
     if not tools:
         tools = list(model.Tool.gql('ORDER by tool_id DESC').run(
@@ -42,12 +40,11 @@ def get_tools_by_id():
 
 
 def get_SliverTool_by_tool_id(tool_id):
-    """Function to retrieve SliverTools by tool_id. First checks cache, if no hit checks
-	datastore. 
+    """Retrieves SliverTools by tool_id.
 
-	Returns: 
-		(iterator) of SliverTool instances
-	"""
+    Returns:
+        List of SliverTool instances
+    """
     sliver_tool_key = 'sliver_tool_tool_id_{}'.format(tool_id)
     sliver_tools = memcache.get(sliver_tool_key)
 

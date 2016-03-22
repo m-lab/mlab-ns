@@ -319,11 +319,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
     NAGIOS_AF_SUFFIXES = [IPV4, IPV6]
 
     def get(self):
-        """
-        Access sliver status with information from Nagios. The Nagios URL
-        containing the information is stored in the Nagios db along with
-        the credentials necessary to access the data.
-        """
+        """Update nagios status information."""
         nagios = nagios_status_data.get_nagios_credentials()
         if nagios is None:
             return util.send_not_found(self)

@@ -85,7 +85,7 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
         self.addCleanup(self.util_patch_not_found.stop)
         self.util_patch_not_found.start()
 
-    def test_successful_authentication(self):
+    def test_sends_success_after_successful_authentication(self):
 
         with mock.patch(
                 'mlabns.handlers.update.nagios_status_data') as mock_nagios:
@@ -96,7 +96,7 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
 
         self.assertTrue(util.send_success.called)
 
-    def test_not_found_nagios_credentials(self):
+    def test_sends_not_found_when_nagios_credentials_not_in_datastore(self):
 
         with mock.patch(
                 'mlabns.handlers.update.nagios_status_data') as mock_nagios:
