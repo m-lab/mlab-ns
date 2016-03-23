@@ -2,6 +2,10 @@
 # configuration.
 DEFAULT_NAGIOS_ENTRY = 'default'
 
+#Nagios ip suffixes
+NAGIOS_IPV4_SUFFIX = ''
+NAGIOS_IPV6_SUFFIX = '_ipv6'
+
 # Earth radius in km.
 EARTH_RADIUS = 6371
 
