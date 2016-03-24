@@ -1,13 +1,14 @@
-from google.appengine.api import memcache
-from google.appengine.ext import db
-from google.appengine.ext import webapp
-
 import json
 import logging
 import time
 import urllib2
 
+from google.appengine.api import memcache
+from google.appengine.ext import db
+from google.appengine.ext import webapp
+
 from mlabns.db import model
+from mlabns.db import nagios_config_wrapper
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import production_check
@@ -312,18 +313,17 @@ class IPUpdateHandler(webapp.RequestHandler):
 class StatusUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' status from nagios."""
 
-    AF_IPV4 = ''
-    AF_IPV6 = '_ipv6'
-    NAGIOS_AF_SUFFIXES = [AF_IPV4, AF_IPV6]
+    IPV4 = constants.NAGIOS_IPV4_SUFFIX
+    IPV6 = constants.NAGIOS_IPV6_SUFFIX
+    NAGIOS_AF_SUFFIXES = [IPV4, IPV6]
 
     def get(self):
         """Triggers the update handler.
-
         Updates sliver status with information from Nagios. The Nagios URL
         containing the information is stored in the Nagios db along with
         the credentials necessary to access the data.
         """
-        nagios = model.Nagios.get_by_key_name(constants.DEFAULT_NAGIOS_ENTRY)
+        nagios = nagios_config_wrapper.get_nagios_config()
         if nagios is None:
             logging.error('Datastore does not have the Nagios credentials.')
             return util.send_not_found(self)
@@ -351,7 +351,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
         """Updates status of sliver tools in input slice.
-
         Args:
             slice_status: A dict that contains the status of the
                 slivers in the slice {key=fqdn, status:online|offline}
@@ -440,10 +439,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def get_slice_status(self, url):
         """Read slice status from Nagios.
-
         Args:
             url: String representing the URL to Nagios for a single slice.
-
         Returns:
             A dict that contains the status of the slivers in this
             slice {key=fqdn, status:online|offline}
