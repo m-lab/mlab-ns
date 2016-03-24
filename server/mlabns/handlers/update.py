@@ -11,6 +11,7 @@ from mlabns.db import model
 from mlabns.db import nagios_config_wrapper
 from mlabns.util import constants
 from mlabns.util import message
+from mlabns.util import nagios_status
 from mlabns.util import production_check
 from mlabns.util import util
 
@@ -454,22 +455,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
             return None
 
         for line in lines:
-            if len(line) == 0:
-                continue
-            # See the design doc for a description of the file format.
-            line_fields = line.split(' ')
-            if len(line_fields) <= 3:
-                logging.error('Line does not have more than 3 fields: %s.',
-                              line)
-                continue
-            slice_fqdn = line_fields[0]
-            state = line_fields[1]
-            tool_extra = " ".join(line_fields[3:])
-            slice_fields = slice_fqdn.split('/')
-            if len(slice_fields) != 2:
-                logging.error('Slice FQDN does not 2 fields: %s.', slice_fqdn)
-                continue
-            sliver_fqdn = slice_fields[0]
+            sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
+                line)
             if state != constants.NAGIOS_SERVICE_STATUS_OK:
                 status[sliver_fqdn] = {
                     'status': message.STATUS_OFFLINE,
