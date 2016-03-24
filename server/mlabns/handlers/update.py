@@ -457,6 +457,12 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for line in lines:
             sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
                 line)
+
+            if not sliver_fqdn:
+                logging.error('Unable to parse nagios sliver status info: %s.',
+                              sliver_fqdn)
+                continue
+
             if state != constants.NAGIOS_SERVICE_STATUS_OK:
                 status[sliver_fqdn] = {
                     'status': message.STATUS_OFFLINE,
