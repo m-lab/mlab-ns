@@ -11,6 +11,7 @@ from mlabns.db import model
 from mlabns.db import nagios_config_wrapper
 from mlabns.util import constants
 from mlabns.util import message
+from mlabns.util import nagios_status
 from mlabns.util import production_check
 from mlabns.util import util
 
@@ -328,13 +329,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
             logging.error('Datastore does not have the Nagios credentials.')
             return util.send_not_found(self)
 
-        password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, nagios.url, nagios.username,
-                                      nagios.password)
-
-        authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
-        opener = urllib2.build_opener(authhandler)
-        urllib2.install_opener(opener)
+        nagios_status.authenticate_nagios(nagios)
 
         tools_gql = model.Tool.gql('ORDER by tool_id DESC')
         for item in tools_gql.run(batch_size=constants.GQL_BATCH_SIZE):
