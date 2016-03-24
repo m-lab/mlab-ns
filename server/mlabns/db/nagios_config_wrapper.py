@@ -6,11 +6,11 @@ from mlabns.db import model
 from mlabns.util import constants
 
 
-def get_nagios_credentials():
-    """Retrieves nagios authentication information.
+def get_nagios_config():
+    """Retrieves nagios configuration information.
 
     Returns:
-        Nagios model instance containing nagios credentials
+        Nagios model instance
     """
     nagios = memcache.get(constants.DEFAULT_NAGIOS_ENTRY)
     if not nagios:

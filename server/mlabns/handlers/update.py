@@ -8,7 +8,7 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 
 from mlabns.db import model
-from mlabns.db import nagios_status_data
+from mlabns.db import nagios_config_wrapper
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import production_check
@@ -323,7 +323,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         containing the information is stored in the Nagios db along with
         the credentials necessary to access the data.
         """
-        nagios = nagios_status_data.get_nagios_credentials()
+        nagios = nagios_config_wrapper.get_nagios_config()
         if nagios is None:
             logging.error('Datastore does not have the Nagios credentials.')
             return util.send_not_found(self)

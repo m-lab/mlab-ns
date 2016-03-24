@@ -2,7 +2,7 @@
 # configuration.
 DEFAULT_NAGIOS_ENTRY = 'default'
 
-#Nagios ip suffixes
+# Nagios ip suffixes
 NAGIOS_IPV4_SUFFIX = ''
 NAGIOS_IPV6_SUFFIX = '_ipv6'
 
