@@ -7,7 +7,7 @@ from mlabns.util import constants
 
 
 def get_nagios_config():
-    """Retrieves nagios configuration information.
+    """Retrieves nagios config info. First checks memcache, then datastore.
 
     Returns:
         Nagios model instance
