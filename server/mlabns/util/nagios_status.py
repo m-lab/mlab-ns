@@ -1,3 +1,6 @@
+import re
+
+
 class Error(Exception):
     pass
 
@@ -25,17 +28,15 @@ def parse_sliver_tool_status(status):
         Tuple of the form (sliver fqdn, current state, extra information)
 
     Raises:
-        NagiosStatusUnparseableError: Error occurred while trying to parse the
-            status of a sliver tool
+        NagiosStatusUnparseableError: Error can be triggered by empty statuses
+            or statuses that can't be separated into exactly four fields.
     """
     if '' in status.split(' ', 3):
-        sliver_fields = status.split(' ')
-        sliver_fields = [x for x in sliver_fields if x != '']
-        sliver_fields = sliver_fields[:3] + [' '.join(sliver_fields[3:])]
+        sliver_fields = re.split(r'\s+', status.strip(), maxsplit=3)
     else:
         sliver_fields = status.split(' ', 3)
 
-    if len(sliver_fields) != 4 or status.isspace():
+    if len(sliver_fields) != 4:
         raise NagiosStatusUnparseableError(
             'Nagios status missing or unparseable.')
 
