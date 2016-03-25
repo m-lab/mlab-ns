@@ -458,14 +458,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
             try:
                 sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
                     line)
-            except nagios_status.NagiosStatusUnparseableError:
-                logging.error('Unable to parse nagios sliver status: %s',
-                              status)
+            except nagios_status.NagiosStatusUnparseableError as e:
+                logging.error('Unable to parse nagios sliver status: %s', e)
                 continue
-
-            if not sliver_fqdn:
-                logging.error('Unable to parse nagios sliver status: %s',
-                              status)
 
             if state != constants.NAGIOS_SERVICE_STATUS_OK:
                 status[sliver_fqdn] = {
