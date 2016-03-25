@@ -11,7 +11,7 @@ class ParseSliverToolStatusTest(unittest2.TestCase):
                                   'mock tool extra')
         actual_parsed_status = nagios_status.parse_sliver_tool_status(status)
 
-        self.assertEqual(expected_parsed_status, actual_parsed_status)
+        self.assertTupleEqual(expected_parsed_status, actual_parsed_status)
 
     def test_parse_sliver_tool_status_raises_NagiosStatusUnparseableError_because_of_illformatted_status(
             self):
@@ -42,7 +42,7 @@ class ParseSliverToolStatusTest(unittest2.TestCase):
                                   'mock tool extra')
         actual_parsed_status = nagios_status.parse_sliver_tool_status(status)
 
-        self.assertEqual(expected_parsed_status, actual_parsed_status)
+        self.assertTupleEqual(expected_parsed_status, actual_parsed_status)
 
     def test_parse_sliver_tool_status_raises_NagiosStatusUnparseableError_because_status_only_has_2_fields(
             self):
@@ -57,6 +57,26 @@ class ParseSliverToolStatusTest(unittest2.TestCase):
 
         with self.assertRaises(nagios_status.NagiosStatusUnparseableError):
             nagios_status.parse_sliver_tool_status(status)
+
+    def test_parse_sliver_tool_status_status_has_leading_whitespace_returns_successfully(
+            self):
+        status = '  ndt.foo.measurement-lab.org 0 1 mock tool extra'
+
+        expected_parsed_status = ('ndt.foo.measurement-lab.org', '0',
+                                  'mock tool extra')
+        actual_parsed_status = nagios_status.parse_sliver_tool_status(status)
+
+        self.assertTupleEqual(expected_parsed_status, actual_parsed_status)
+
+    def test_parse_sliver_tool_status_status_has_extra_spaces_between_fields_returns_successfully(
+            self):
+        status = ' ndt.foo.measurement-lab.org 0  1  mock tool extra'
+
+        expected_parsed_status = ('ndt.foo.measurement-lab.org', '0',
+                                  'mock tool extra')
+        actual_parsed_status = nagios_status.parse_sliver_tool_status(status)
+
+        self.assertTupleEqual(expected_parsed_status, actual_parsed_status)
 
 
 if __name__ == '__main__':
