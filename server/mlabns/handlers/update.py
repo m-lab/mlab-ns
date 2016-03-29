@@ -331,7 +331,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         nagios_status.authenticate_nagios(nagios)
 
-        tools_gql = model.Tool.gql('ORDER by tool_id DESC')
+        tools_gql = model.get_all_tool_ids()
         for item in tools_gql.run(batch_size=constants.GQL_BATCH_SIZE):
             logging.info('Pulling status of %s from Nagios.', item.tool_id)
             for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
