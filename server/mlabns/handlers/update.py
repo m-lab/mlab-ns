@@ -449,22 +449,13 @@ class StatusUpdateHandler(webapp.RequestHandler):
             return None
 
         for line in lines:
-            if len(line) == 0:
+            try:
+                sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
+                    line)
+            except nagios_status.NagiosStatusUnparseableError as e:
+                logging.error('Unable to parse nagios sliver status: %s', e)
                 continue
-            # See the design doc for a description of the file format.
-            line_fields = line.split(' ')
-            if len(line_fields) <= 3:
-                logging.error('Line does not have more than 3 fields: %s.',
-                              line)
-                continue
-            slice_fqdn = line_fields[0]
-            state = line_fields[1]
-            tool_extra = " ".join(line_fields[3:])
-            slice_fields = slice_fqdn.split('/')
-            if len(slice_fields) != 2:
-                logging.error('Slice FQDN does not 2 fields: %s.', slice_fqdn)
-                continue
-            sliver_fqdn = slice_fields[0]
+
             if state != constants.NAGIOS_SERVICE_STATUS_OK:
                 status[sliver_fqdn] = {
                     'status': message.STATUS_OFFLINE,
