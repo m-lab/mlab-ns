@@ -1,6 +1,5 @@
 import unittest2
 
-from google.appengine.api import memcache
 from google.appengine.ext import testbed
 
 from mlabns.db import model
@@ -32,54 +31,34 @@ class GetAllToolIdsTest(unittest2.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
 
     def tearDown(self):
         self.testbed.deactivate()
 
-    def test_get_all_tool_ids_returns_successfully_from_memcache(self):
-        tool_a = model.Tool(tool_id='tool_a')
-        tool_b = model.Tool(tool_id='tool_b')
-        tool_c = model.Tool(tool_id='tool_c')
+    def assertUnorderedToolSetsEqual(self, set_a, set_b):
+        list_a = list(set_a)
+        list_b = list(set_b)
 
-        tools = [tool_c, tool_b, tool_a]
-        memcache.set('all_ordered_tool_ids', tools)
-        retrieved = model.get_all_tool_ids()
-
-        self.assertEqual(len(retrieved), 3)
-        self.assertEqual(retrieved[0].tool_id, 'tool_c')
-        self.assertEqual(retrieved[1].tool_id, 'tool_b')
-        self.assertEqual(retrieved[2].tool_id, 'tool_a')
+        ids_a = [x.tool_id for x in list_a]
+        ids_b = [x.tool_id for x in list_b]
+        self.assertEqual(len(list_a), len(list_b))
+        self.assertListEqual(sorted(ids_a), sorted(ids_b))
 
     def test_get_all_tool_ids_returns_successfully_from_datastore(self):
         tool_a = model.Tool(tool_id='tool_a')
         tool_b = model.Tool(tool_id='tool_b')
         tool_c = model.Tool(tool_id='tool_c')
+        tools = [tool_a, tool_b, tool_c]
 
         tool_a.put()
         tool_b.put()
         tool_c.put()
 
         retrieved = model.get_all_tool_ids()
-        self.assertEqual(len(retrieved), 3)
-        self.assertEqual(retrieved[0].tool_id, 'tool_c')
-        self.assertEqual(retrieved[1].tool_id, 'tool_b')
-        self.assertEqual(retrieved[2].tool_id, 'tool_a')
+        self.assertUnorderedToolSetsEqual(retrieved, tools)
 
     def test_get_all_tool_ids_no_stored_tools_returns_empty(self):
-        self.assertEqual(model.get_all_tool_ids(), [])
-
-    def test_get_all_tool_ids_returns_from_memcache_over_datastore(self):
-        memcache_tool = model.Tool(tool_id='memcache_tool')
-
-        tools = [memcache_tool]
-        memcache.set('all_ordered_tool_ids', tools)
-
-        datastore_tool = model.Tool(tool_id='datastore_tool')
-        datastore_tool.put()
-
-        retrieved = model.get_all_tool_ids()
-        self.assertEqual(retrieved[0].tool_id, 'memcache_tool')
+        self.assertUnorderedToolSetsEqual(model.get_all_tool_ids(), [])
 
 
 if __name__ == '__main__':

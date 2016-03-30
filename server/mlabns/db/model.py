@@ -1,6 +1,5 @@
 import logging
 
-from google.appengine.api import memcache
 from google.appengine.ext import db
 
 from mlabns.util import constants
@@ -183,18 +182,9 @@ def get_tool_from_tool_id(tool_id):
 
 
 def get_all_tool_ids():
-    """Gets Tool model objects by descending id.
-
-    Searches first in the memcache, then in the datastore.
+    """Gets all Tool model objects.
 
     Returns:
-        List of Tool instances
+        Iterable set of Tool instances.
     """
-    tools = memcache.get('all_ordered_tool_ids')
-    if not tools:
-        tools = list(Tool.gql('ORDER by tool_id DESC').run(
-            batch_size=constants.GQL_BATCH_SIZE))
-        if not memcache.set('all_ordered_tool_ids', tools):
-            logging.error('Failed to update all ordered tool ids in memcache.')
-
-    return tools
+    return Tool.all().run(batch_size=constants.GQL_BATCH_SIZE)
