@@ -36,6 +36,7 @@ class GetAllToolIdsTest(unittest2.TestCase):
         self.testbed.deactivate()
 
     def assertUnorderedToolSetsEqual(self, set_a, set_b):
+        """Equality of sets is based on length and tool_ids of Tools"""
         list_a = list(set_a)
         list_b = list(set_b)
 
