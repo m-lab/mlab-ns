@@ -331,16 +331,15 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         nagios_status.authenticate_nagios(nagios)
 
-        tools_gql = model.Tool.gql('ORDER by tool_id DESC')
-        for item in tools_gql.run(batch_size=constants.GQL_BATCH_SIZE):
-            logging.info('Pulling status of %s from Nagios.', item.tool_id)
+        for tool in model.get_all_tool_ids():
+            logging.info('Pulling status of %s from Nagios.', tool.tool_id)
             for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
                 slice_url = nagios.url + '?show_state=1&service_name=' + \
-                      item.tool_id + family + \
+                      tool.tool_id + family + \
                       "&plugin_output=1"
 
                 slice_status = self.get_slice_status(slice_url)
-                self.update_sliver_tools_status(slice_status, item.tool_id,
+                self.update_sliver_tools_status(slice_status, tool.tool_id,
                                                 family)
         return util.send_success(self)
 

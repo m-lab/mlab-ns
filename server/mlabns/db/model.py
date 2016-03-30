@@ -1,5 +1,8 @@
-from google.appengine.ext import db
 import logging
+
+from google.appengine.ext import db
+
+from mlabns.util import constants
 
 # The classes defined in this file are described in detail in
 # the design doc at http://goo.gl/48S22.
@@ -176,3 +179,12 @@ def get_tool_from_tool_id(tool_id):
         return tool
     logging.info('Tool %s not found in data store.', tool_id)
     return None
+
+
+def get_all_tool_ids():
+    """Gets all Tool model objects.
+
+    Returns:
+        Iterable set of Tool instances.
+    """
+    return Tool.all().run(batch_size=constants.GQL_BATCH_SIZE)
