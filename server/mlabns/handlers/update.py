@@ -9,6 +9,7 @@ from google.appengine.ext import webapp
 
 from mlabns.db import model
 from mlabns.db import nagios_config_wrapper
+from mlabns.db import sliver_tool_fetcher
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import nagios_status
@@ -356,8 +357,13 @@ class StatusUpdateHandler(webapp.RequestHandler):
         """
         sliver_tools = sliver_tool_fetcher.SliverToolFetcher().fetch(
             sliver_tool_fetcher.ToolProperties(tool_id=tool_id))
+<<<<<<< dbe272e198cd5b7e707799beb153efcfdb178376
         updated_sliver_tools = []
         for sliver_tool in sliver_tools:
+=======
+        for sliver_tool in sliver_tools:
+
+>>>>>>> Renamed tool_fetcher and deleted custom function to get SliverTools by tool_id
             if sliver_tool.fqdn not in slice_status:
                 logging.info('Nagios does not know sliver %s.',
                              sliver_tool.fqdn)
