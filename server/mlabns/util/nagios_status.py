@@ -14,19 +14,21 @@ class NagiosStatusUnparseableError(Error):
     def __init__(self, cause):
         super(NagiosStatusUnparseableError, self).__init__(cause)
 
+
 class NagiosSliceInfo(object):
     """Represents the information necessary to query nagios by slice.
 
     Attributes:
-        slice_url: Base url for querying nagios.
+        slice_url: Url for querying nagios.
         tool_id: Name of a specific tool.
         ip_version: Formatted string for specifying ipv4 or ipv6.
 
     """
+
     def __init__(self, slice_url, tool_id, ip_version):
         self.slice_url = slice_url
         self.tool_id = tool_id
-        self.ip_version= ip_version
+        self.ip_version = ip_version
 
 
 def authenticate_nagios(nagios):
@@ -76,7 +78,8 @@ def parse_sliver_tool_status(status):
 
     return sliver_fqdn, state, tool_extra
 
-def get_slice_urls(nagios_url, nagios_suffixes):
+
+def get_slice_info(nagios_url, nagios_suffixes):
     """Builds a list of NagiosSliceInfo objects to query Nagios for all slices.
 
     Args:
@@ -86,13 +89,12 @@ def get_slice_urls(nagios_url, nagios_suffixes):
     Returns:
          List of NagiosSliceInfo objects
     """
-    urls = []
-    tools_gql = nagios_status_data.get_tools_by_id()
-    for tool in tools_gql:
-        for ipversion in nagios_suffixes:
+    slice_objects = []
+    for tool in model.get_all_tool_ids():
+        for ip_version in nagios_suffixes:
             slice_url = (nagios_url + '?show_state=1&service_name=' +
-                         tool.tool_id + ipversion + "&plugin_output=1")
-            urls.append((slice_url, tool.tool_id, ipversion))
+                         tool.tool_id + ip_version + "&plugin_output=1")
+            slice_objects.append(NagiosSliceInfo(slice_url, tool.tool_id,
+                                                 ip_version))
 
-    return urls
-
+    return slice_objects

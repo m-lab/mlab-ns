@@ -331,16 +331,13 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         nagios_status.authenticate_nagios(nagios)
 
-        for tool in model.get_all_tool_ids():
-            logging.info('Pulling status of %s from Nagios.', tool.tool_id)
-            for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
-                slice_url = nagios.url + '?show_state=1&service_name=' + \
-                      tool.tool_id + family + \
-                      "&plugin_output=1"
+        slices_to_query = nagios_status.get_slice_info(nagios.url,
+                                                       self.NAGIOS_AF_SUFFIXES)
+        for one_slice in slices_to_query:
 
-                slice_status = self.get_slice_status(slice_url)
-                self.update_sliver_tools_status(slice_status, tool.tool_id,
-                                                family)
+            slice_status = self.get_slice_status(one_slice.slice_url)
+            self.update_sliver_tools_status(slice_status, one_slice.tool_id,
+                                            one_slice.ip_version)
         return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
