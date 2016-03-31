@@ -351,12 +351,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
             tool_id: A string representing the fqdn that resolves
                 to an IP address.
         """
+        for sliver_tool in model.get_SliverTool_by_tool_id(tool_id):
 
-        sliver_tools_gql = model.SliverTool.gql('WHERE tool_id=:tool_id',
-                                                tool_id=tool_id)
-        sliver_tool_list = []
-        for sliver_tool in sliver_tools_gql.run(
-                batch_size=constants.GQL_BATCH_SIZE):
             if sliver_tool.fqdn not in slice_status:
                 logging.info('Nagios does not know sliver %s.',
                              sliver_tool.fqdn)
@@ -420,16 +416,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     'Failed to update status of %s to %s in datastore.',
                     sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
                 continue
-            sliver_tool_list.append(sliver_tool)
-            logging.info('sliver %s to be added to memcache', sliver_tool.fqdn)
-
-        # Never set the memcache to an empty list since it's more likely that
-        # this is a Nagios failure.
-        if sliver_tool_list:
-            if not memcache.set(tool_id,
-                                sliver_tool_list,
-                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                logging.error('Failed to update sliver status in memcache.')
 
     def get_slice_status(self, url):
         """Read slice status from Nagios.
