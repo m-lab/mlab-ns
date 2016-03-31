@@ -9,6 +9,7 @@ from google.appengine.ext import webapp
 
 from mlabns.db import model
 from mlabns.db import nagios_config_wrapper
+from mlabns.db import sliver_tool_fetcher
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import nagios_status
@@ -351,7 +352,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
             tool_id: A string representing the fqdn that resolves
                 to an IP address.
         """
-        for sliver_tool in model.get_SliverTool_by_tool_id(tool_id):
+        sliver_tools = sliver_tool_fetcher.SliverToolFetcher().fetch(
+            sliver_tool_fetcher.ToolProperties(tool_id=tool_id))
+        for sliver_tool in sliver_tools:
 
             if sliver_tool.fqdn not in slice_status:
                 logging.info('Nagios does not know sliver %s.',

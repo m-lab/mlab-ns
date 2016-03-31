@@ -1,6 +1,5 @@
 import logging
 
-from google.appengine.api import memcache
 from google.appengine.ext import db
 
 from mlabns.util import constants
@@ -189,22 +188,3 @@ def get_all_tool_ids():
         Iterable set of Tool instances.
     """
     return Tool.all().run(batch_size=constants.GQL_BATCH_SIZE)
-
-
-def get_SliverTool_by_tool_id(tool_id):
-    """Retrieves SliverTools by tool_id.
-
-    Returns:
-        List of SliverTool instances on tool_id slice.
-    """
-    sliver_tool_key = 'sliver_tool_tool_id_{}'.format(tool_id)
-    sliver_tools = memcache.get(sliver_tool_key)
-
-    if not sliver_tools:
-        sliver_tools = list(SliverTool.gql(
-            'WHERE tool_id=:tool_id',
-            tool_id=tool_id).run(batch_size=constants.GQL_BATCH_SIZE))
-        if not memcache.set(sliver_tool_key, sliver_tools):
-            logging.error('Failed to update sliver status in memcache.')
-
-    return sliver_tools

@@ -1,7 +1,7 @@
 import logging
 import random
 
-from mlabns.db import tool_fetcher
+from mlabns.db import sliver_tool_fetcher
 from mlabns.util import distance
 from mlabns.util import message
 
@@ -20,8 +20,9 @@ def _tool_properties_from_query(query):
     Returns:
         A ToolProperties object initialized from the query provided.
     """
-    tool_properties = tool_fetcher.ToolProperties(tool_id=query.tool_id,
-                                                  status=message.STATUS_ONLINE)
+    tool_properties = sliver_tool_fetcher.ToolProperties(
+        tool_id=query.tool_id,
+        status=message.STATUS_ONLINE)
     if query.tool_address_family:
         tool_properties.address_family = query.tool_address_family
     return tool_properties
@@ -31,14 +32,14 @@ class ResolverBase(object):
     """Resolver base class."""
 
     def __init__(self):
-        self.tool_fetcher = tool_fetcher.ToolFetcher()
+        self.sliver_tool_fetcher = sliver_tool_fetcher.SliverToolFetcher()
 
     def _get_matching_candidates(self, query):
         tool_properties = _tool_properties_from_query(query)
         return self._fetch_tools_with_properties(tool_properties)
 
     def _fetch_tools_with_properties(self, tool_properties):
-        candidates = self.tool_fetcher.fetch(tool_properties)
+        candidates = self.sliver_tool_fetcher.fetch(tool_properties)
         if not candidates:
             logging.error('No results found for %s.', tool_properties.tool_id)
             return None

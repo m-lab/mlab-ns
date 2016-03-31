@@ -1,7 +1,7 @@
 import unittest
 
 from mlabns.db import model
-from mlabns.db import tool_fetcher
+from mlabns.db import sliver_tool_fetcher
 from mlabns.util import lookup_query
 from mlabns.util import message
 from mlabns.util import resolver
@@ -49,7 +49,7 @@ class ResolverTestCaseBase(unittest.TestCase):
             tool_properties_expected: Expected tool properties that resolver
                 used to retrieve tools from the db.
         """
-        mock_fetch = tool_fetcher.ToolFetcher().fetch
+        mock_fetch = sliver_tool_fetcher.SliverToolFetcher().fetch
         mock_fetch.return_value = mock_fetch_results
 
         query_results_expected = [result_tool_expected]
@@ -75,7 +75,7 @@ class ResolverTestCaseBase(unittest.TestCase):
             tool_properties_expected: Expected tool properties that resolver
                 used to retrieve tools from the db.
         """
-        mock_fetch = tool_fetcher.ToolFetcher().fetch
+        mock_fetch = sliver_tool_fetcher.SliverToolFetcher().fetch
         mock_fetch.return_value = mock_fetch_results
 
         query_results_actual = self.resolver.answer_query(query)
@@ -102,7 +102,7 @@ class ResolverTestCaseBase(unittest.TestCase):
             tool_properties_expected: Expected tool properties that resolver
                 used to retrieve tools from the db.
         """
-        mock_fetch = tool_fetcher.ToolFetcher().fetch
+        mock_fetch = sliver_tool_fetcher.SliverToolFetcher().fetch
         mock_fetch.return_value = mock_fetch_results
 
         # Mock out random behavior to allow deterministic test results
@@ -144,7 +144,7 @@ class ResolverTestCaseBase(unittest.TestCase):
             tool_properties_expected: Expected tool properties that resolver
                 used to retrieve tools from the db.
         """
-        mock_fetch = tool_fetcher.ToolFetcher().fetch
+        mock_fetch = sliver_tool_fetcher.SliverToolFetcher().fetch
         mock_fetch.return_value = mock_fetch_results
 
         # Mock out random behavior to allow deterministic test results
@@ -182,7 +182,7 @@ class ResolverTestCaseBase(unittest.TestCase):
             tool_properties_expected: Expected tool properties that resolver
                 used to retrieve tools from the db.
         """
-        mock_fetch = tool_fetcher.ToolFetcher().fetch
+        mock_fetch = sliver_tool_fetcher.SliverToolFetcher().fetch
         mock_fetch.return_value = mock_fetch_results
 
         # Mock out random behavior to allow deterministic test results
@@ -200,11 +200,11 @@ class ResolverTestCaseBase(unittest.TestCase):
 class AllResolverTestCase(ResolverTestCaseBase):
 
     def setUp(self):
-        tool_fetcher_patch = mock.patch.object(tool_fetcher,
-                                               'ToolFetcher',
-                                               autospec=True)
-        self.addCleanup(tool_fetcher_patch.stop)
-        tool_fetcher_patch.start()
+        sliver_tool_fetcher_patch = mock.patch.object(sliver_tool_fetcher,
+                                                      'SliverToolFetcher',
+                                                      autospec=True)
+        self.addCleanup(sliver_tool_fetcher_patch.stop)
+        sliver_tool_fetcher_patch.start()
         self.resolver = resolver.AllResolver()
 
     def testAnswerQueryWhenMatchingToolsExist(self):
@@ -220,7 +220,7 @@ class AllResolverTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -243,7 +243,7 @@ class AllResolverTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only tools with IPv6 interface
         # online that match the specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             address_family=message.ADDRESS_FAMILY_IPv6,
             status=message.STATUS_ONLINE)
@@ -258,7 +258,7 @@ class AllResolverTestCase(ResolverTestCaseBase):
         query.tool_id = tool_id
 
         # Simulate no matching tools
-        tool_fetcher.ToolFetcher().fetch.return_value = []
+        sliver_tool_fetcher.SliverToolFetcher().fetch.return_value = []
 
         query_results = self.resolver.answer_query(query)
 
@@ -269,11 +269,11 @@ class AllResolverTestCase(ResolverTestCaseBase):
 class GeoResolverTestCase(ResolverTestCaseBase):
 
     def setUp(self):
-        tool_fetcher_patch = mock.patch.object(tool_fetcher,
-                                               'ToolFetcher',
-                                               autospec=True)
-        self.addCleanup(tool_fetcher_patch.stop)
-        tool_fetcher_patch.start()
+        sliver_tool_fetcher_patch = mock.patch.object(sliver_tool_fetcher,
+                                                      'SliverToolFetcher',
+                                                      autospec=True)
+        self.addCleanup(sliver_tool_fetcher_patch.stop)
+        sliver_tool_fetcher_patch.start()
         self.resolver = resolver.GeoResolver()
 
     def testAnswerQueryWhenSingleToolIsClosest(self):
@@ -294,7 +294,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -320,7 +320,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             address_family=message.ADDRESS_FAMILY_IPv4,
             status=message.STATUS_ONLINE)
@@ -359,7 +359,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
 
         query_results_expected = [equidistant_tools[-1]]
 
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -373,7 +373,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         query.tool_id = tool_id
 
         # Simulate no matching tools
-        tool_fetcher.ToolFetcher().fetch.return_value = []
+        sliver_tool_fetcher.SliverToolFetcher().fetch.return_value = []
 
         # Result should be None when there are no matches.
         self.assertIsNone(self.resolver.answer_query(query))
@@ -396,7 +396,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         # after fetch
         filtered_tools_expected = mock_fetched_tools
 
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -408,11 +408,11 @@ class GeoResolverTestCase(ResolverTestCaseBase):
 class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
 
     def setUp(self):
-        tool_fetcher_patch = mock.patch.object(tool_fetcher,
-                                               'ToolFetcher',
-                                               autospec=True)
-        self.addCleanup(tool_fetcher_patch.stop)
-        tool_fetcher_patch.start()
+        sliver_tool_fetcher_patch = mock.patch.object(sliver_tool_fetcher,
+                                                      'SliverToolFetcher',
+                                                      autospec=True)
+        self.addCleanup(sliver_tool_fetcher_patch.stop)
+        sliver_tool_fetcher_patch.start()
         self.resolver = resolver.GeoResolverWithOptions()
         # Allow full diff output on test failures
         self.maxDiff = None
@@ -442,7 +442,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -480,7 +480,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -519,7 +519,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -547,7 +547,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -561,7 +561,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.tool_id = tool_id
 
         # Simulate no matching tools
-        tool_fetcher.ToolFetcher().fetch.return_value = []
+        sliver_tool_fetcher.SliverToolFetcher().fetch.return_value = []
 
         # Result should be None when there are no matches.
         self.assertIsNone(self.resolver.answer_query(query))
@@ -591,7 +591,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # after fetch
         filtered_tools_expected = mock_fetched_tools
 
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -620,7 +620,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # after fetch
         filtered_tools_expected = mock_fetched_tools
 
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE)
 
@@ -634,11 +634,11 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
 class RandomResolverTestCase(ResolverTestCaseBase):
 
     def setUp(self):
-        tool_fetcher_patch = mock.patch.object(tool_fetcher,
-                                               'ToolFetcher',
-                                               autospec=True)
-        self.addCleanup(tool_fetcher_patch.stop)
-        tool_fetcher_patch.start()
+        sliver_tool_fetcher_patch = mock.patch.object(sliver_tool_fetcher,
+                                                      'SliverToolFetcher',
+                                                      autospec=True)
+        self.addCleanup(sliver_tool_fetcher_patch.stop)
+        sliver_tool_fetcher_patch.start()
         self.resolver = resolver.RandomResolver()
 
     def testAnswerQueryChoosesRandomlyAmongOnlineTools(self):
@@ -660,7 +660,7 @@ class RandomResolverTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             address_family=message.ADDRESS_FAMILY_IPv6,
             status=message.STATUS_ONLINE)
@@ -675,7 +675,7 @@ class RandomResolverTestCase(ResolverTestCaseBase):
         query.tool_id = tool_id
 
         # Simulate no matching tools
-        tool_fetcher.ToolFetcher().fetch.return_value = []
+        sliver_tool_fetcher.SliverToolFetcher().fetch.return_value = []
 
         # Result should be None when there are no matches.
         self.assertIsNone(self.resolver.answer_query(query))
@@ -684,11 +684,11 @@ class RandomResolverTestCase(ResolverTestCaseBase):
 class MetroResolverTestCase(ResolverTestCaseBase):
 
     def setUp(self):
-        tool_fetcher_patch = mock.patch.object(tool_fetcher,
-                                               'ToolFetcher',
-                                               autospec=True)
-        self.addCleanup(tool_fetcher_patch.stop)
-        tool_fetcher_patch.start()
+        sliver_tool_fetcher_patch = mock.patch.object(sliver_tool_fetcher,
+                                                      'SliverToolFetcher',
+                                                      autospec=True)
+        self.addCleanup(sliver_tool_fetcher_patch.stop)
+        sliver_tool_fetcher_patch.start()
         self.resolver = resolver.MetroResolver()
 
     def testAnswerReturnsNoneWhenMetroIsNotSpecified(self):
@@ -699,7 +699,7 @@ class MetroResolverTestCase(ResolverTestCaseBase):
         candidate_tools = (_createSliverTool(_TOOL_ID),
                            _createSliverTool(_TOOL_ID))
 
-        mock_fetch = tool_fetcher.ToolFetcher().fetch
+        mock_fetch = sliver_tool_fetcher.SliverToolFetcher().fetch
         mock_fetch.return_value = candidate_tools
         query_results = self.resolver.answer_query(query)
 
@@ -723,7 +723,7 @@ class MetroResolverTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID in the specified metro.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE,
             address_family=message.ADDRESS_FAMILY_IPv4,
@@ -737,11 +737,11 @@ class MetroResolverTestCase(ResolverTestCaseBase):
 class CountryResolverTestCase(ResolverTestCaseBase):
 
     def setUp(self):
-        tool_fetcher_patch = mock.patch.object(tool_fetcher,
-                                               'ToolFetcher',
-                                               autospec=True)
-        self.addCleanup(tool_fetcher_patch.stop)
-        tool_fetcher_patch.start()
+        sliver_tool_fetcher_patch = mock.patch.object(sliver_tool_fetcher,
+                                                      'SliverToolFetcher',
+                                                      autospec=True)
+        self.addCleanup(sliver_tool_fetcher_patch.stop)
+        sliver_tool_fetcher_patch.start()
         self.resolver = resolver.CountryResolver()
 
     def testAnswerReturnsNoneWhenCountryIsNotSpecified(self):
@@ -752,7 +752,7 @@ class CountryResolverTestCase(ResolverTestCaseBase):
         candidate_tools = (_createSliverTool(_TOOL_ID),
                            _createSliverTool(_TOOL_ID))
 
-        mock_fetch = tool_fetcher.ToolFetcher().fetch
+        mock_fetch = sliver_tool_fetcher.SliverToolFetcher().fetch
         mock_fetch.return_value = candidate_tools
         query_results = self.resolver.answer_query(query)
 
@@ -777,7 +777,7 @@ class CountryResolverTestCase(ResolverTestCaseBase):
 
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID in the specified country.
-        tool_properties_expected = tool_fetcher.ToolProperties(
+        tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID,
             status=message.STATUS_ONLINE,
             address_family=message.ADDRESS_FAMILY_IPv4,
