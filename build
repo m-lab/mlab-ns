@@ -5,7 +5,7 @@
 # Run unit tests
 coverage run \
   --source server/mlabns \
-  --omit "./server/mlabns/tests/*,./server/mlabns/third_party/*" \
+  --omit "server/mlabns/tests/*,server/mlabns/third_party/*" \
   -m unittest discover \
   --start-directory server/mlabns/tests/ \
   --top-level-directory server/ &&
