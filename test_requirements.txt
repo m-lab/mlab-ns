@@ -1,4 +1,5 @@
 coverage
+jinja2
 pyflakes==1.1.0
 pylint==1.5.5
 unittest2
