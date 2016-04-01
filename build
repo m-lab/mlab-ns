@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Build steps to validate mlabns.
+
+yapf --diff --exclude=server/mlabns/third_party/* --recursive --style=google \
+    server/mlabns/ &&
+PYFILE_LIST=$(find ./server/mlabns/ | grep \.py$ | grep -v third_party/)
+pyflakes $PYFILE_LIST &&
+PYTHONPATH=$PYTHONPATH:$(pwd)/server/mlabns/third_party/docstringchecker \
+  pylint --reports=n server/mlabns

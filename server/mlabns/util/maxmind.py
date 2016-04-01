@@ -69,10 +69,12 @@ def get_country_geolocation(country, country_table=model.CountryCode):
 
     Args:
         country: A string describing a two alphanumeric country code.
+        country_table: Datastore table from which to retrieve country
+            information.
 
     Returns:
-        A GeoRecord containing the geolocation data if found,
-        otherwise an empty GeoRecord.
+        A GeoRecord containing the geolocation data if found, otherwise an
+        empty GeoRecord.
     """
     geo_record = GeoRecord()
 
@@ -92,10 +94,11 @@ def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
     Args:
         city: A string specifying the name of the city.
         country: A string describing a two alphanumeric country code.
+        city_table: Datastore table from which to retrieve city information.
 
     Returns:
-        A GeoRecord containing the geolocation data if found,
-        otherwise an empty GeoRecord.
+        A GeoRecord containing the geolocation data if found, otherwise an empty
+        GeoRecord.
     """
     geo_record = GeoRecord()
 
