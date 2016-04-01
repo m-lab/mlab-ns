@@ -99,8 +99,8 @@ class GetSliceInfoTest(unittest2.TestCase):
         slice_b_v6_url = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_b_ipv6&plugin_output=1'
         slice_b_v6_info = nagios_status.NagiosSliceInfo(slice_b_v6_url,
                                                         'mock_tool_b', '_ipv6')
-        expected = [slice_a_info, slice_a_v6_info, slice_b_info, slice_b_v6_info
-                   ]
+        expected = [slice_a_info, slice_a_v6_info, slice_b_info,
+                    slice_b_v6_info]
 
         with mock.patch.object(model, 'get_all_tool_ids') as get_all_tool_ids:
             get_all_tool_ids.return_value = ['mock_tool_a', 'mock_tool_b']
