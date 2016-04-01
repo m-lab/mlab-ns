@@ -2,9 +2,20 @@
 #
 # Build steps to validate mlabns.
 
+# Run unit tests
+coverage run \
+  --source server/mlabns \
+  --omit "./server/mlabns/tests/*,./server/mlabns/third_party/*" \
+  -m unittest discover \
+  --start-directory server/mlabns/tests/ \
+  --top-level-directory server/ &&
+coverage report &&
+# Verify formatting matches style guide
 yapf --diff --exclude=server/mlabns/third_party/* --recursive --style=google \
     server/mlabns/ &&
-PYFILE_LIST=$(find ./server/mlabns/ | grep \.py$ | grep -v third_party/)
-pyflakes $PYFILE_LIST &&
+# Verify docstrings match style guide
 PYTHONPATH=$PYTHONPATH:$(pwd)/server/mlabns/third_party/docstringchecker \
-  pylint --reports=n server/mlabns
+  pylint --reports=n server/mlabns &&
+# Perform static analysis for bugs with pyflakes.
+PYFILE_LIST=$(find ./server/mlabns/ | grep \.py$ | grep -v third_party/) &&
+pyflakes $PYFILE_LIST
