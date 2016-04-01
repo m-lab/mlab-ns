@@ -1,3 +1,8 @@
+[![Build
+Status](https://travis-ci.org/m-lab/mlab-ns.svg?branch=master)](https://travis-ci.org/m-lab/mlab-ns)
+[![Coverage
+Status](https://coveralls.io/repos/m-lab/mlab-ns/badge.svg?branch=master&service=github)](https://coveralls.io/github/m-lab/mlab-ns?branch=master)
+
 # Deploying Code to mlab-ns
 
 To deploy code updates to mlab-ns or to deploy mlab-ns to a fresh GCP test project, follow the instructions below.
@@ -32,7 +37,7 @@ cd mlabns-live
 python environment_bootstrap.py live
 
 # Verify all tests are passing
-python server/unit_tests.py ~/google_appengine/ server/mlabns/tests/
+./build
 
 # Deploy to production
 ~/google_appengine/appcfg.py --oauth2 update server/

@@ -108,7 +108,6 @@ class AdminHandler(webapp.RequestHandler):
         Args:
             tool_id: A string representing the tool id (e.g., npad, ndt).
             address_family: A string specifying the address family (ipv4,ipv6).
-
         """
         sliver_tools = None
 
@@ -141,9 +140,9 @@ class AdminHandler(webapp.RequestHandler):
     def get_sites_info(self, sliver_tools, address_family):
         """Returns info about the sites.
 
-        This data is used to build the markers on the map. In particular,
-        there is a marker for each city and an info window that pops up
-        when clicking on a marker showing information about the sites.
+        This data is used to build the markers on the map. In particular, there
+        is a marker for each city and an info window that pops up when clicking
+        on a marker showing information about the sites.
 
         Args:
             sliver_tools: A list of sliver_tools.
@@ -160,7 +159,6 @@ class AdminHandler(webapp.RequestHandler):
             tool_id, server_id, status (status_ipv4 or status_ipv6, depending
             on the 'address_family' argument) and timestamp of the last
             update.
-
         """
         sites = model.Site.gql('ORDER BY site_id DESC')
         site_dict = {}
