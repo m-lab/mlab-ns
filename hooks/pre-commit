@@ -1,6 +1,3 @@
 #!/bin/sh
 
-yapf --diff --exclude=server/mlabns/third_party/* --recursive --style=google \
-    server/mlabns/
-PYFILE_LIST=$(find ./server/mlabns/ | grep \.py$ | grep -v third_party/)
-pyflakes $PYFILE_LIST
+./build
