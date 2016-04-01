@@ -3,7 +3,7 @@
 # Build steps to validate mlabns.
 
 coverage run --source mlabns -m unittest discover \
-  --start-directory server/mlabns &&
+  --start-directory server/mlabns/ --top-level-directory server/ &&
 yapf --diff --exclude=server/mlabns/third_party/* --recursive --style=google \
     server/mlabns/ &&
 PYFILE_LIST=$(find ./server/mlabns/ | grep \.py$ | grep -v third_party/)
