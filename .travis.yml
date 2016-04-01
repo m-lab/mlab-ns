@@ -10,6 +10,8 @@ install:
   - pip install -r test_requirements.txt
 script:
   - echo "PATH=$PATH"
-  - PATH=$PATH:$HOME/google_appengine ./build
+  - export PATH=$PATH:$HOME/google_appengine
+  - echo "PATH=$PATH"
+  - ./build
 after_success:
     coveralls
