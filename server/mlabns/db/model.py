@@ -185,6 +185,9 @@ def get_all_tool_ids():
     """Gets all Tool model objects.
 
     Returns:
-        Iterable set of Tool instances.
+        List of tool_ids.
     """
-    return Tool.all().run(batch_size=constants.GQL_BATCH_SIZE)
+    tool_ids = []
+    for tool in Tool.all().run(batch_size=constants.GQL_BATCH_SIZE):
+        tool_ids.append(tool.tool_id)
+    return tool_ids
