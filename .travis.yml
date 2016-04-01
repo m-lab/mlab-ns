@@ -9,6 +9,7 @@ before_install:
 install:
   - pip install -r test_requirements.txt
 script:
+  - echo "PATH=$PATH"
   - ./build
 after_success:
     coveralls
