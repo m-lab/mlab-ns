@@ -1,7 +1,8 @@
 language: python
 python:
   - "2.7"
--env:
+sudo: false
+env:
   - PATH=$PATH:$HOME/google_appengine/
 before_install:
   - wget https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.32.zip
@@ -10,7 +11,6 @@ install:
   - pip install -r test_requirements.txt
 script:
   - echo "PATH=$PATH"
-  - export PATH=$PATH:$HOME/google_appengine/
   - export PYTHONPATH=$PYTHONPATH:$HOME/google_appengine/
   - echo "PATH=$PATH"
   - ./build
