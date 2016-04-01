@@ -2,6 +2,7 @@
 #
 # Build steps to validate mlabns.
 
+python server/unit_tests.py $GAE_PYTHONPATH server/mlabns/tests/ &&
 yapf --diff --exclude=server/mlabns/third_party/* --recursive --style=google \
     server/mlabns/ &&
 PYFILE_LIST=$(find ./server/mlabns/ | grep \.py$ | grep -v third_party/)
