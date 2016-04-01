@@ -1,7 +1,6 @@
 language: python
 python:
   - "2.7"
-sudo: false
 env:
   - PATH=$PATH:$HOME/google_appengine/
 before_install:
@@ -9,10 +8,8 @@ before_install:
   - unzip -q google_appengine_1.9.32.zip -d $HOME
 install:
   - pip install -r test_requirements.txt
+  - pip install coveralls==1.1
 script:
-  - echo "PATH=$PATH"
-  - export PYTHONPATH=$PYTHONPATH:$HOME/google_appengine/
-  - echo "PATH=$PATH"
   - ./build
 after_success:
     coveralls
