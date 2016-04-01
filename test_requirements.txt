@@ -2,6 +2,6 @@ coverage
 jinja2
 pyflakes==1.1.0
 pylint==1.5.5
+pyyaml
 unittest2
-yaml
 yapf==0.6.2
