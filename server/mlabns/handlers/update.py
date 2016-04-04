@@ -354,6 +354,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         """
         sliver_tools = sliver_tool_fetcher.SliverToolFetcher().fetch(
             sliver_tool_fetcher.ToolProperties(tool_id=tool_id))
+        updated_sliver_tools = []
         for sliver_tool in sliver_tools:
 
             if sliver_tool.fqdn not in slice_status:
@@ -419,6 +420,14 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     'Failed to update status of %s to %s in datastore.',
                     sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
                 continue
+
+            updated_sliver_tools.append(sliver_tool)
+
+        if updated_sliver_tools:
+            if not memcache.set(tool_id,
+                                sliver_tool_list,
+                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                logging.error('Failed to update sliver status in memcache.')
 
     def get_slice_status(self, url):
         """Read slice status from Nagios.
