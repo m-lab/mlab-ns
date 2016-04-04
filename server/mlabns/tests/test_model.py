@@ -4,6 +4,7 @@ from google.appengine.ext import testbed
 
 from mlabns.db import model
 
+
 class ModelTestCase(unittest2.TestCase):
 
     def testGetSliverToolIdNone(self):
@@ -22,6 +23,7 @@ class ModelTestCase(unittest2.TestCase):
         self.assertEqual(
             model.get_sliver_tool_id(tool_id, slice_id, server_id, site_id),
             'tool_id-slice_id-server_id-site_id')
+
 
 class GetAllToolIdsTest(unittest2.TestCase):
 
