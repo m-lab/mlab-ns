@@ -434,7 +434,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
             updated_sliver_tools.append(sliver_tool)
 
-
     def get_slice_status(self, url):
         """Read slice status from Nagios.
 
