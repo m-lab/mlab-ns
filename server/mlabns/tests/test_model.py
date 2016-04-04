@@ -45,11 +45,11 @@ class GetAllToolIdsTest(unittest2.TestCase):
         tool_b.put()
         tool_c.put()
 
-        retrieved_ids = model.get_all_tool_ids()
-        self.assertListEqual(retrieved_ids, expected_ids)
+        actual_ids = model.get_all_tool_ids()
+        self.assertItemsEqual(actual_ids, expected_ids)
 
     def test_get_all_tool_ids_no_stored_tools_returns_empty(self):
-        self.assertListEqual(model.get_all_tool_ids(), [])
+        self.assertItemsEqual(model.get_all_tool_ids(), [])
 
 
 if __name__ == '__main__':
