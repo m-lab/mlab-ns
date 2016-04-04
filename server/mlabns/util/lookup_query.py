@@ -5,6 +5,7 @@ from mlabns.util import maxmind
 
 import logging
 
+
 def _is_valid_ip(ip):
     """Indicates whether this is a valid IP string.
 
@@ -16,12 +17,14 @@ def _is_valid_ip(ip):
     """
     return _is_valid_ipv4(ip) or _is_valid_ipv6(ip)
 
+
 def _is_valid_ipv4(ip):
     try:
         ipaddr.IPv4Address(ip)
         return True
     except ipaddr.AddressValueError:
         return False
+
 
 def _is_valid_ipv6(ip):
     try:
@@ -30,7 +33,9 @@ def _is_valid_ipv6(ip):
     except ipaddr.AddressValueError:
         return False
 
+
 class LookupQuery:
+
     def __init__(self):
         self.tool_id = None
         self.policy = None
@@ -49,7 +54,7 @@ class LookupQuery:
         #TODO(mtlynch): We are using two country fields to store the same type
         # of information, but using user_defined_country in some cases and
         # country in others. We should consolidate them into a single field.
-        self.user_defined_country = None
+        self._user_defined_country = None
         self._user_defined_latitude = None
         self._user_defined_longitude = None
         self._gae_city = None
@@ -97,16 +102,17 @@ class LookupQuery:
             self._ip_is_explicit = False
 
     def _set_tool_address_family(self, request):
-        tool_address_family = request.get(message.ADDRESS_FAMILY)
+        tool_address_family = request.get(message.ADDRESS_FAMILY,
+                                          default_value=None)
         valid_address_families = (message.ADDRESS_FAMILY_IPv4,
                                   message.ADDRESS_FAMILY_IPv6)
         if tool_address_family in valid_address_families:
-          self.tool_address_family = tool_address_family
+            self.tool_address_family = tool_address_family
 
     def _set_geolocation(self, request):
         self._set_appengine_geolocation(request)
-        self._user_defined_city = request.get(message.CITY)
-        self.user_defined_country = request.get(message.COUNTRY)
+        self._user_defined_city = request.get(message.CITY, default_value=None)
+        self._user_defined_country = request.get(message.COUNTRY)
         input_latitude, input_longitude = self._get_user_defined_lat_lon(
             request)
 
@@ -114,14 +120,14 @@ class LookupQuery:
             self._geolocation_type = constants.GEOLOCATION_USER_DEFINED
             self._user_defined_latitude = input_latitude
             self._user_defined_longitude = input_longitude
-        elif self._ip_is_explicit or self.user_defined_country:
+        elif self._ip_is_explicit or self._user_defined_country:
             if self._ip_is_explicit:
-              ip_address_to_geolocate = self.ip_address
+                ip_address_to_geolocate = self.ip_address
             else:
-              ip_address_to_geolocate = None
+                ip_address_to_geolocate = None
             self._geolocation_type = constants.GEOLOCATION_MAXMIND
             self._set_maxmind_geolocation(ip_address_to_geolocate,
-                                          self.user_defined_country,
+                                          self._user_defined_country,
                                           self._user_defined_city)
         elif self._gae_latitude and self._gae_longitude:
             self._geolocation_type = constants.GEOLOCATION_APP_ENGINE
@@ -132,7 +138,7 @@ class LookupQuery:
 
         if self._geolocation_type == constants.GEOLOCATION_USER_DEFINED:
             self.city = self._user_defined_city
-            self.country = self.user_defined_country
+            self.country = self._user_defined_country or None
             self.latitude = self._user_defined_latitude
             self.longitude = self._user_defined_longitude
         elif self._geolocation_type == constants.GEOLOCATION_MAXMIND:
@@ -163,8 +169,8 @@ class LookupQuery:
         """
         MAX_LATITUDE_ABSOLUTE = 90.0
         MAX_LONGITUDE_ABSOLUTE = 180.0
-        input_latitude = request.get(message.LATITUDE)
-        input_longitude = request.get(message.LONGITUDE)
+        input_latitude = request.get(message.LATITUDE, default_value=None)
+        input_longitude = request.get(message.LONGITUDE, default_value=None)
 
         if not input_latitude or not input_longitude:
             return None, None
@@ -174,13 +180,13 @@ class LookupQuery:
             longitude = float(input_longitude)
         except ValueError:
             logging.error('Invalid user-defined lat, long (%s, %s).',
-                           input_latitude, input_longitude)
+                          input_latitude, input_longitude)
             return None, None
 
         if ((abs(latitude) > MAX_LATITUDE_ABSOLUTE) or
-                (abs(longitude) > MAX_LONGITUDE_ABSOLUTE)):
-            logging.error('Lat/long out of range (%f, %f).',
-                           latitude, longitude)
+            (abs(longitude) > MAX_LONGITUDE_ABSOLUTE)):
+            logging.error('Lat/long out of range (%f, %f).', latitude,
+                          longitude)
             return None, None
 
         return latitude, longitude
@@ -215,37 +221,36 @@ class LookupQuery:
             lat_long = request.headers[message.HEADER_LAT_LONG]
             try:
                 self._gae_latitude, self._gae_longitude = [
-                    float(x) for x in lat_long.split(',')]
+                    float(x) for x in lat_long.split(',')
+                ]
             except ValueError:
                 logging.error('GAE provided bad lat/long %s.', lat_long)
 
     def _set_policy(self, request):
         self.policy = request.get(message.POLICY, default_value=None)
-        if ((self._user_defined_latitude and
-             self._user_defined_longitude) or
+        if ((self._user_defined_latitude and self._user_defined_longitude) or
                 self._ip_is_explicit):
             if self.policy != message.POLICY_GEO and \
                self.policy != message.POLICY_GEO_OPTIONS:
                 if self.policy:
-                     logging.warning(
-                         'Lat/longs user-defined, but policy is %s.',
-                         self.policy)
+                    logging.warning('Lat/longs user-defined, but policy is %s.',
+                                    self.policy)
                 self.policy = message.POLICY_GEO
             return
-        if self.user_defined_country is not None:
+        if self._user_defined_country:
             if self.policy != message.POLICY_COUNTRY and \
                 self.policy != message.POLICY_GEO:
                 if self.policy:
                     logging.warning(
-                        'Country user-defined, but policy is %s.',
-                        self.policy)
+                        'Country user-defined (%s), but policy is %s.',
+                        self._user_defined_country, self.policy)
                 self.policy = message.POLICY_GEO
             return
         if self.metro is not None:
             if self.policy != message.POLICY_METRO:
                 if self.policy:
-                    logging.warning(
-                         'Metro defined, but policy is %s', self.policy)
+                    logging.warning('Metro defined, but policy is %s',
+                                    self.policy)
                 self.policy = message.POLICY_METRO
             return
         if self.policy == message.POLICY_GEO:
@@ -254,7 +259,7 @@ class LookupQuery:
                 self.policy = message.POLICY_RANDOM
             return
         if self.policy == message.POLICY_COUNTRY:
-            if self.user_defined_country is None:
+            if not self._user_defined_country:
                 logging.warning('Policy country, but arg country not defined.')
                 self.policy = self._get_default_policy()
             return
@@ -263,7 +268,7 @@ class LookupQuery:
                 logging.warning('Policy metro, but arg metro not defined.')
                 self.policy = self._get_default_policy()
             return
-        if self.policy  ==  message.POLICY_RANDOM:
+        if self.policy == message.POLICY_RANDOM:
             return
         if self.policy == message.POLICY_GEO_OPTIONS:
             return

@@ -33,6 +33,10 @@
       var offlineMarkersArray = [];
       var errorMarkersArray = [];
 
+      function isProductionServer(serverName) {
+        return /^mlab[0-3]$/.test(serverName);
+      }
+
       function initialize() {
         var mapOptions = {
           center: new google.maps.LatLng(41.9000, 12.500),
@@ -74,9 +78,15 @@
               '</tr>';
             for (var j in _site.sliver_tools) {
               var sliver_tool = _site.sliver_tools[j];
+
               var status = sliver_tool.status;
-              statusCount[status] += 1;
-              sliverCount += 1;
+
+              // Only include production servers in the status count
+              if (isProductionServer(sliver_tool.server_id)) {
+                statusCount[status] += 1;
+                sliverCount += 1;
+              }
+
               htmlSiteInfo += '<tr>' +
                 '<td>' + sliver_tool.slice_id + '</td>' +
                 '<td>' + sliver_tool.tool_id + '</td>' +
@@ -277,12 +287,8 @@
 
       &nbsp;&nbsp;&nbsp;&nbsp;
 
-      <a href="http://www.measurementlab.net/content/about-measurement-lab"
-        class="footer">About M-Lab</a>
-
-      &nbsp;&nbsp;&nbsp;&nbsp;
-
-      <a href="http://www.measurementlab.net/usage" class="footer">Usage</a>
+      <a href="http://www.measurementlab.net/about" class="footer">About
+        M-Lab</a>
 
       &nbsp;&nbsp;&nbsp;&nbsp;
 
@@ -290,7 +296,7 @@
 
       &nbsp;&nbsp;&nbsp;&nbsp;
 
-      <a href="http://www.measurementlab.net/content/faq" class="footer">FAQ</a>
+      <a href="http://www.measurementlab.net/faq" class="footer">FAQ</a>
 
       &nbsp;&nbsp;&nbsp;&nbsp;
     </div>
