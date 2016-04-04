@@ -432,8 +432,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                 logging.error('Failed to update sliver status in memcache.')
 
-            updated_sliver_tools.append(sliver_tool)
-
     def get_slice_status(self, url):
         """Read slice status from Nagios.
 
