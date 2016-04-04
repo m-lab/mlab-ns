@@ -8,3 +8,6 @@ server/mlabns/conf/nagios.csv
 # Ignore log files from the Datastore bulkloader
 bulkloader-log*
 bulkloader-progress*
+
+# Unit test code coverage output file
+.coverage
