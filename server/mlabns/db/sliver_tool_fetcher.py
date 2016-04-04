@@ -14,13 +14,13 @@ def _filter_by_status(tools, address_family, status):
     Args:
         tools: A list of sliver tools to filter by status.
         address_family: Address family of the interface to which the status
-            parameter applies. If None, include tools that have the given
+            parameter applies. If None, include sliver tools that have the given
             status on any interface.
-        status: Tool status to filter for (i.e. only return tools with this
-            status).
+        status: Sliver tool status to filter for (i.e. only return sliver tools
+            with this status).
 
     Returns:
-        A subset of the provided tools, filtered by status.
+        A subset of the provided sliver tools, filtered by status.
     """
     status_attrs = []
     if address_family == message.ADDRESS_FAMILY_IPv4:
@@ -54,10 +54,10 @@ def _filter_choose_one_host_per_site(tools):
     the chosen site is up.
 
     Args:
-        tools: The list of tools to filter.
+        tools: The list of sliver tools to filter.
 
     Returns:
-        A list containing a unique tool for each site.
+        A list containing a unique sliver tool for each site.
     """
     sites = {}
     for tool in tools:
@@ -110,12 +110,12 @@ class ToolProperties(object):
                 self.__dict__ == other.__dict__)
 
 
-class ToolFetcher(object):
+class SliverToolFetcher(object):
     """Fetches SliverTools from AppEngine memcache and Datastore."""
 
     def __init__(self):
-        self._memcache_fetcher = ToolFetcherMemcache()
-        self._datastore_fetcher = ToolFetcherDatastore()
+        self._memcache_fetcher = SliverToolFetcherMemcache()
+        self._datastore_fetcher = SliverToolFetcherDatastore()
 
     def fetch(self, tool_properties):
         """Fetch SliverTool objects with specified criteria.
@@ -140,7 +140,7 @@ class ToolFetcher(object):
         return self._datastore_fetcher.fetch(tool_properties)
 
 
-class ToolFetcherMemcache(object):
+class SliverToolFetcherMemcache(object):
     """Fetches SliverTool objects from the AppEngine Memcache."""
 
     def fetch(self, tool_properties):
@@ -185,7 +185,7 @@ class ToolFetcherMemcache(object):
         return []
 
 
-class ToolFetcherDatastore(object):
+class SliverToolFetcherDatastore(object):
     """Fetches SliverTool objects from the AppEngine Datastore."""
 
     def fetch(self, tool_properties):
