@@ -183,6 +183,7 @@ def get_tool_from_tool_id(tool_id):
 
 def get_all_tool_ids():
     """Gets all Tool model objects.
+
     Returns:
         List of tool_ids.
     """
