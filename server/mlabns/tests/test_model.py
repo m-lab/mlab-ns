@@ -1,7 +1,5 @@
 import unittest2
 
-from google.appengine.ext import testbed
-
 from mlabns.db import model
 
 

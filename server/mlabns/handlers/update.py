@@ -425,7 +425,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         if updated_sliver_tools:
             if not memcache.set(tool_id,
-                                sliver_tool_list,
+                                updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                 logging.error('Failed to update sliver status in memcache.')
 
