@@ -312,11 +312,7 @@ class IPUpdateHandler(webapp.RequestHandler):
 
 
 class StatusUpdateHandler(webapp.RequestHandler):
-    """Updates SliverTools' status from nagios."""
-
-    IPV4 = constants.NAGIOS_IPV4_SUFFIX
-    IPV6 = constants.NAGIOS_IPV6_SUFFIX
-    NAGIOS_AF_SUFFIXES = [IPV4, IPV6]
+    """Updates SliverTools' status from Nagios."""
 
     def get(self):
         """Triggers the update handler.
@@ -332,16 +328,11 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         nagios_status.authenticate_nagios(nagios)
 
-        for tool in model.get_all_tool_ids():
-            logging.info('Pulling status of %s from Nagios.', tool.tool_id)
-            for family in StatusUpdateHandler.NAGIOS_AF_SUFFIXES:
-                slice_url = nagios.url + '?show_state=1&service_name=' + \
-                      tool.tool_id + family + \
-                      "&plugin_output=1"
+        for slice_info in nagios_status.get_slice_info(nagios.url):
 
-                slice_status = self.get_slice_status(slice_url)
-                self.update_sliver_tools_status(slice_status, tool.tool_id,
-                                                family)
+            slice_status = self.get_slice_status(slice_info.slice_url)
+            self.update_sliver_tools_status(slice_status, slice_info.tool_id,
+                                            slice_info.address_family)
         return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
@@ -456,7 +447,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
                     line)
             except nagios_status.NagiosStatusUnparseableError as e:
-                logging.error('Unable to parse nagios sliver status: %s', e)
+                logging.error('Unable to parse Nagios sliver status: %s', e)
                 continue
 
             if state != constants.NAGIOS_SERVICE_STATUS_OK:

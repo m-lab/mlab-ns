@@ -1,6 +1,8 @@
 import re
 import urllib2
 
+from mlabns.db import model
+
 
 class Error(Exception):
     pass
@@ -13,11 +15,46 @@ class NagiosStatusUnparseableError(Error):
         super(NagiosStatusUnparseableError, self).__init__(cause)
 
 
+class NagiosSliceInfo(object):
+    """Represents the information necessary to query Nagios by slice.
+
+    Attributes:
+        slice_url: URL for querying Nagios.
+        tool_id: Name of a specific tool.
+        address_family: Formatted string for specifying ipv4 or ipv6.
+    """
+
+    def __init__(self, slice_url, tool_id, address_family):
+        self._slice_url = slice_url
+        self._tool_id = tool_id
+        self._address_family = address_family
+
+    def __eq__(self, other):
+        return all([self.slice_url == other.slice_url, self.tool_id ==
+                    other.tool_id, self.address_family == other.address_family])
+
+    def __ne__(self, other):
+        return any([self.slice_url != other.slice_url, self.tool_id !=
+                    other.tool_id, self.address_family != other.address_family])
+
+    @property
+    def slice_url(self):
+        return self._slice_url
+
+    @property
+    def tool_id(self):
+        return self._tool_id
+
+    @property
+    def address_family(self):
+        return self._address_family
+
+
 def authenticate_nagios(nagios):
     """Configures urllib to do HTTP Password authentication for Nagios URLs.
 
     Args:
-        nagios: object containing nagios auth information
+        nagios: object containing Nagios auth information
     """
     password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
     password_manager.add_password(None, nagios.url, nagios.username,
@@ -59,3 +96,23 @@ def parse_sliver_tool_status(status):
     sliver_fqdn = slice_fqdn.split('/')[0]
 
     return sliver_fqdn, state, tool_extra
+
+
+def get_slice_info(nagios_base_url):
+    """Builds a list of NagiosSliceInfo objects to query Nagios for all slices.
+
+    Args:
+        nagios_base_url: Base URL to get Nagios slice information.
+
+    Returns:
+         List of NagiosSliceInfo objects.
+    """
+    slice_objects = []
+    for tool_id in model.get_all_tool_ids():
+        for address_family in ['', '_ipv6']:
+            slice_url = (nagios_base_url + '?show_state=1&service_name=' +
+                         tool_id + address_family + "&plugin_output=1")
+            slice_objects.append(NagiosSliceInfo(slice_url, tool_id,
+                                                 address_family))
+
+    return slice_objects
