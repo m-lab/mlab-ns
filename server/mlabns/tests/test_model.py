@@ -39,34 +39,5 @@ class ModelTestCase(unittest2.TestCase):
             'tool_id-slice_id-server_id-site_id')
 
 
-class GetAllToolIdsTest(unittest2.TestCase):
-
-    def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-
-    def tearDown(self):
-        self.testbed.deactivate()
-
-    def test_get_all_tool_ids_returns_successfully_from_datastore(self):
-        tool_a = model.Tool(tool_id='tool_a')
-        tool_b = model.Tool(tool_id='tool_b')
-        tool_c = model.Tool(tool_id='tool_c')
-        tools = [tool_a, tool_b, tool_c]
-
-        tool_a.put()
-        tool_b.put()
-        tool_c.put()
-
-        retrieved = model.get_all_tool_ids()
-        tool_id_lambda = lambda x: x.tool_id
-        assertObjectSetsEqualByAttribute(self, retrieved, tools, tool_id_lambda)
-
-    def test_get_all_tool_ids_no_stored_tools_returns_empty(self):
-        assertObjectSetsEqualByAttribute(self, model.get_all_tool_ids(), [],
-                                         None)
-
-
 if __name__ == '__main__':
     unittest2.main()

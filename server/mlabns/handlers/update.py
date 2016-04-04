@@ -357,13 +357,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
         """
         sliver_tools = sliver_tool_fetcher.SliverToolFetcher().fetch(
             sliver_tool_fetcher.ToolProperties(tool_id=tool_id))
-<<<<<<< dbe272e198cd5b7e707799beb153efcfdb178376
+
         updated_sliver_tools = []
         for sliver_tool in sliver_tools:
-=======
-        for sliver_tool in sliver_tools:
 
->>>>>>> Renamed tool_fetcher and deleted custom function to get SliverTools by tool_id
             if sliver_tool.fqdn not in slice_status:
                 logging.info('Nagios does not know sliver %s.',
                              sliver_tool.fqdn)
@@ -434,6 +431,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                 updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                 logging.error('Failed to update sliver status in memcache.')
+
+            updated_sliver_tools.append(sliver_tool)
+
 
     def get_slice_status(self, url):
         """Read slice status from Nagios.
