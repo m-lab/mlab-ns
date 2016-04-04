@@ -357,7 +357,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
         """
         sliver_tools = sliver_tool_fetcher.SliverToolFetcher().fetch(
             sliver_tool_fetcher.ToolProperties(tool_id=tool_id))
-
         updated_sliver_tools = []
         for sliver_tool in sliver_tools:
 
