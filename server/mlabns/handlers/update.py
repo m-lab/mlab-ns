@@ -171,7 +171,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
 
 class IPUpdateHandler(webapp.RequestHandler):
-    """ Updates SliverTools' IP addresses from Nagios."""
+    """Updates SliverTools' IP addresses from Nagios."""
 
     IP_LIST_URL = 'http://nagios.measurementlab.net/mlab-host-ips.txt'
 
@@ -320,6 +320,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def get(self):
         """Triggers the update handler.
+
         Updates sliver status with information from Nagios. The Nagios URL
         containing the information is stored in the Nagios db along with
         the credentials necessary to access the data.
@@ -345,13 +346,14 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
         """Updates status of sliver tools in input slice.
+
         Args:
             slice_status: A dict that contains the status of the
                 slivers in the slice {key=fqdn, status:online|offline}
             tool_id: A string representing the fqdn that resolves
                 to an IP address.
+            family: Address family to update.
         """
-
         sliver_tools_gql = model.SliverTool.gql('WHERE tool_id=:tool_id',
                                                 tool_id=tool_id)
         sliver_tool_list = []
@@ -433,11 +435,13 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def get_slice_status(self, url):
         """Read slice status from Nagios.
+
         Args:
             url: String representing the URL to Nagios for a single slice.
+
         Returns:
-            A dict that contains the status of the slivers in this
-            slice {key=fqdn, status:online|offline}
+            A dict that contains the status of the slivers in this slice
+            {key=fqdn, status:online|offline}
         """
         status = {}
         try:

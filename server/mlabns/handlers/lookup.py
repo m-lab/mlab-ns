@@ -171,13 +171,10 @@ class LookupHandler(webapp.RequestHandler):
         """Sends the response to the lookup request in html format.
 
         Args:
-            sliver_tools: A list of SliverTool instances,
-            representing the best sliver
-                tool selected for this lookup request.
+            sliver_tools: A list of SliverTool instances, representing the best
+                sliver tool selected for this lookup request.
             query: A LookupQuery instance representing the user lookup request.
-
         """
-
         if type(sliver_tools) != list:
             logging.error("Problem: sliver_tools is not a list.")
             return
@@ -193,11 +190,9 @@ class LookupHandler(webapp.RequestHandler):
         """Sends an HTTP redirect (for web-based tools only).
 
         Args:
-            sliver_tool: A list of SliverTool instances,
-                representing the best sliver
-                tool selected for this lookup request.
+            sliver_tools: A list of SliverTool instances, representing the best
+                sliver tool selected for this lookup request.
             query: A LookupQuery instance representing the user lookup request.
-
         """
         if type(sliver_tools) != list:
             logging.error("Problem: sliver_tools is not a list.")
@@ -286,8 +281,8 @@ class LookupHandler(webapp.RequestHandler):
 
         Args:
             query: A LookupQuery instance.
-            sliver_tool: SliverTool entity chosen in the server
-                selection phase.
+            sliver_tools: SliverTool entity chosen in the server selection
+                phase.
         """
         if sliver_tools is None:
             # TODO(claudiu) Log also the error.

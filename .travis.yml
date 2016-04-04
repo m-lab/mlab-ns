@@ -10,8 +10,6 @@ install:
   - pip install pyflakes
   - pip install unittest2
   - pip install yapf==0.6.2
+  - pip install pylint==1.5.5
 script:
-  - yapf --diff --exclude=server/mlabns/third_party/* --recursive --style=google server/mlabns/
-  - python server/unit_tests.py $GAE_PYTHONPATH server/mlabns/tests/
-  - PYFILE_LIST=$(find ./server/mlabns/ | grep \.py$ | grep -v third_party/)
-  - pyflakes $PYFILE_LIST
+  - ./build
