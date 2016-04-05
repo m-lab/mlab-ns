@@ -403,20 +403,15 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 continue
 
             sliver_tool.update_request_timestamp = long(time.time())
-            try:
-                sliver_tool.put()
-                logging.info(
-                    'Succeeded to update status of %s to %s in datastore.',
-                    sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
-            except db.TransactionFailedError:
-                # TODO(claudiu) Trigger an event/notification.
-                logging.error(
-                    'Failed to update status of %s to %s in datastore.',
-                    sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
-                continue
             updated_sliver_tools.append(sliver_tool)
 
         if updated_sliver_tools:
+            try:
+                db.put(updated_sliver_tools)
+            except db.TransactionFailedError:
+                logging.error(
+                    'Error updating sliver statuses in datastore, some' \
+                    'statuses might by outdated.')
             if not memcache.set(tool_id,
                                 updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
