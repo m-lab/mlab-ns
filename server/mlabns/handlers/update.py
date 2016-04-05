@@ -356,7 +356,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                              sliver_tool.fqdn)
                 continue
 
-            if family == StatusUpdateHandler.AF_IPV4:
+            if family == '':
                 if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
                         logging.info('No updates for sliver %s.',
@@ -377,7 +377,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                           slice_status[sliver_tool.fqdn]['status']
                         sliver_tool.tool_extra = \
                           slice_status[sliver_tool.fqdn]['tool_extra']
-            elif family == StatusUpdateHandler.AF_IPV6:
+            elif family == '_ipv6':
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
                         logging.info('No updates for sliver %s.',
