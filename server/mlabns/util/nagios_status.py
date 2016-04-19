@@ -88,7 +88,7 @@ def parse_sliver_tool_status(status):
 
     if len(sliver_fields) != 4:
         raise NagiosStatusUnparseableError(
-            'Nagios status missing or unparseable.')
+            'Nagios status missing or unparseable: {}'.format(status))
 
     slice_fqdn = sliver_fields[0]
     state = sliver_fields[1]
