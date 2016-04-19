@@ -332,8 +332,13 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for slice_info in nagios_status.get_slice_info(nagios.url):
 
             slice_status = self.get_slice_status(slice_info.slice_url)
-            self.update_sliver_tools_status(slice_status, slice_info.tool_id,
-                                            slice_info.address_family)
+            if slice_status is not None:
+                self.update_sliver_tools_status(
+                    slice_status, slice_info.tool_id, slice_info.address_family)
+            elif slice_info.address_family == '':
+                logging.error('Received blank slice status from %s ipv4',
+                              slice_info.tool_id)
+
         return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
@@ -414,7 +419,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         Returns:
             A dict that contains the status of the slivers in this slice
-            {key=fqdn, status:online|offline}
+            {key=fqdn, status:online|offline} or None if Nagios status is blank
+            or url is inaccessible.
         """
         status = {}
         try:
@@ -422,6 +428,12 @@ class StatusUpdateHandler(webapp.RequestHandler):
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', url)
+            return None
+
+        lines = filter(lambda x: not x.isspace(), lines)
+        if not lines:
+            logging.info('Nagios sliver status blank for the following url: %s',
+                         url)
             return None
 
         for line in lines:
