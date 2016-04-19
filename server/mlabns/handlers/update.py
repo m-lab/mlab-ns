@@ -358,42 +358,30 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
             if family == '':
                 if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
-                    if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
-                        logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
-                    else:
+                    if sliver_tool.status_ipv4 == message.STATUS_ONLINE:
                         logging.warning('Setting IPv4 status of %s to offline '\
                                         'due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
-                    if (sliver_tool.status_ipv4 == slice_status[
-                            sliver_tool.fqdn]['status'] and
-                            sliver_tool.tool_extra == slice_status[
+                    if (sliver_tool.status_ipv4 != slice_status[
+                            sliver_tool.fqdn]['status'] or
+                            sliver_tool.tool_extra != slice_status[
                                 sliver_tool.fqdn]['tool_extra']):
-                        logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
-                    else:
                         sliver_tool.status_ipv4 = \
                           slice_status[sliver_tool.fqdn]['status']
                         sliver_tool.tool_extra = \
                           slice_status[sliver_tool.fqdn]['tool_extra']
             elif family == '_ipv6':
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
-                    if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
-                        logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
-                    else:
+                    if sliver_tool.status_ipv6 == message.STATUS_ONLINE:
                         logging.warning('Setting IPv6 status for %s to offline'\
                                         ' due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv6 = message.STATUS_OFFLINE
                 else:
-                    if (sliver_tool.status_ipv6 == slice_status[
-                            sliver_tool.fqdn]['status'] and
-                            sliver_tool.tool_extra == slice_status[
+                    if (sliver_tool.status_ipv6 != slice_status[
+                            sliver_tool.fqdn]['status'] or
+                            sliver_tool.tool_extra != slice_status[
                                 sliver_tool.fqdn]['tool_extra']):
-                        logging.info('No updates for sliver %s.',
-                                     sliver_tool.fqdn)
-                    else:
                         sliver_tool.status_ipv6 = \
                           slice_status[sliver_tool.fqdn]['status']
                         sliver_tool.tool_extra = \
@@ -412,6 +400,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 logging.error(
                     'Error updating sliver statuses in datastore. Some' \
                     'statuses might be outdated. %s', e)
+
             if not memcache.set(tool_id,
                                 updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
@@ -440,7 +429,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
                     line)
             except nagios_status.NagiosStatusUnparseableError as e:
-                logging.error('Unable to parse Nagios sliver status: %s', e)
+                logging.error('Unable to parse Nagios sliver status. %s', e)
                 continue
 
             if state != constants.NAGIOS_SERVICE_STATUS_OK:
