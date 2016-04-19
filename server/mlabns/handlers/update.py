@@ -356,7 +356,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                              sliver_tool.fqdn)
                 continue
 
-            if family == StatusUpdateHandler.AF_IPV4:
+            if family == '':
                 if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
                         logging.info('No updates for sliver %s.',
@@ -377,7 +377,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                           slice_status[sliver_tool.fqdn]['status']
                         sliver_tool.tool_extra = \
                           slice_status[sliver_tool.fqdn]['tool_extra']
-            elif family == StatusUpdateHandler.AF_IPV6:
+            elif family == '_ipv6':
                 if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
                     if sliver_tool.status_ipv6 == message.STATUS_OFFLINE:
                         logging.info('No updates for sliver %s.',
@@ -403,20 +403,15 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 continue
 
             sliver_tool.update_request_timestamp = long(time.time())
-            try:
-                sliver_tool.put()
-                logging.info(
-                    'Succeeded to update status of %s to %s in datastore.',
-                    sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
-            except db.TransactionFailedError:
-                # TODO(claudiu) Trigger an event/notification.
-                logging.error(
-                    'Failed to update status of %s to %s in datastore.',
-                    sliver_tool.fqdn, slice_status[sliver_tool.fqdn])
-                continue
             updated_sliver_tools.append(sliver_tool)
 
         if updated_sliver_tools:
+            try:
+                db.put(updated_sliver_tools)
+            except db.TransactionFailedError as e:
+                logging.error(
+                    'Error updating sliver statuses in datastore. Some' \
+                    'statuses might be outdated. %s', e)
             if not memcache.set(tool_id,
                                 updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
