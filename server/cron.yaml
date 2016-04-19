@@ -5,7 +5,7 @@ cron:
 
 - description: Check sliver tools status
   url: /cron/check_status
-  schedule: every 13 minutes
+  schedule: every 1 minutes
 
 # Check for new sites every 24 hours, starting at 00:00
 - description: Check sites
