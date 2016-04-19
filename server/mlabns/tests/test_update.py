@@ -5,7 +5,6 @@ import urllib2
 
 from mlabns.handlers import update
 from mlabns.db import model
-
 from mlabns.util import util
 
 
