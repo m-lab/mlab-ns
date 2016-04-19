@@ -410,7 +410,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 db.put(updated_sliver_tools)
             except db.TransactionFailedError as e:
                 logging.error(
-                    'Error updating sliver statuses in datastore. some' \
+                    'Error updating sliver statuses in datastore. Some' \
                     'statuses might be outdated. %s', e)
             if not memcache.set(tool_id,
                                 updated_sliver_tools,
