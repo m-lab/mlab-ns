@@ -430,7 +430,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
             logging.error('Cannot open %s.', url)
             return None
 
-        lines = filter(lambda x: not x.isspace(), lines)
+        lines = filter(lambda x: not x.isspace() and x, lines)
         if not lines:
             logging.info('Nagios sliver status blank for the following url: %s',
                          url)
