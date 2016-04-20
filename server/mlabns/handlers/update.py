@@ -335,7 +335,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
             if slice_status is not None:
                 self.update_sliver_tools_status(
                     slice_status, slice_info.tool_id, slice_info.address_family)
-            elif slice_info.address_family == '':
+            elif slice_status is None and slice_info.address_family == '':
                 logging.error('Received blank slice status from %s ipv4',
                               slice_info.tool_id)
 
@@ -442,6 +442,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     line)
             except nagios_status.NagiosStatusUnparseableError as e:
                 logging.error('Unable to parse Nagios sliver status. %s', e)
+                # fernanda: delete
+                logging.error('Sliver status part of slice: %s', lines)
+                logging.error('Slice at this url: %s', url)
                 continue
 
             if state != constants.NAGIOS_SERVICE_STATUS_OK:
