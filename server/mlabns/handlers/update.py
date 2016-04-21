@@ -332,10 +332,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for slice_info in nagios_status.get_slice_info(nagios.url):
 
             slice_status = self.get_slice_status(slice_info.slice_url)
-            if slice_status is not None:
+            if slice_status:
                 self.update_sliver_tools_status(
                     slice_status, slice_info.tool_id, slice_info.address_family)
-            elif slice_status is None and slice_info.address_family == '':
+            elif not slice_status and slice_info.address_family == '':
                 logging.error('Received blank slice status from %s ipv4',
                               slice_info.tool_id)
 
@@ -418,25 +418,31 @@ class StatusUpdateHandler(webapp.RequestHandler):
             url: String representing the URL to Nagios for a single slice.
 
         Returns:
-            A dict that contains the status of the slivers in this slice
-            {key=fqdn, status:online|offline} or None if Nagios status is blank
-            or url is inaccessible.
+            A dict mapping sliver fqdn to a dictionary representing the sliver's
+            status. For example:
+
+            {'foo.mlab1.site1.measurement-lab.org': {
+                'status': message.STATUS_ONLINE,
+                'tool_extra': 'example tool extra'
+                }
+            }
+
+            None if Nagios status is blank or url is inaccessible.
         """
         status = {}
         try:
-            lines = urllib2.urlopen(url).read().strip('\n').split('\n')
+            nagios_response = urllib2.urlopen(url).read()
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', url)
             return None
 
-        lines = filter(lambda x: not x.isspace() and x, lines)
-        if not lines:
-            logging.info('Nagios sliver status blank for the following url: %s',
-                         url)
+        if not nagios_response or nagios_response.isspace():
+            logging.info('Nagios gave empty response for sliver status at the' \
+                         'following url: %s',url)
             return None
 
-        for line in lines:
+        for line in nagios_response.strip('\n').split('\n'):
             try:
                 sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
                     line)

@@ -1,7 +1,10 @@
+import logging
 import re
 import urllib2
 
 from mlabns.db import model
+from mlabns.util import constants
+from mlabns.util import message
 
 
 class Error(Exception):
@@ -116,3 +119,55 @@ def get_slice_info(nagios_base_url):
                                                  address_family))
 
     return slice_objects
+
+
+def get_slice_status(url):
+    """Read slice status from Nagios.
+
+    Args:
+        url: String representing the URL to Nagios for a single slice.
+
+    Returns:
+        A dict mapping sliver fqdn to a dictionary representing the sliver's
+        status. For example:
+
+        {'foo.mlab1.site1.measurement-lab.org': {
+            'status': message.STATUS_ONLINE,
+            'tool_extra': 'example tool extra'
+            }
+        }
+
+        None if Nagios status is blank or url is inaccessible.
+    """
+    status = {}
+    try:
+        nagios_response = urllib2.urlopen(url).read()
+    except urllib2.HTTPError:
+        # TODO(claudiu) Notify(email) when this happens.
+        logging.error('Cannot open %s.', url)
+        return None
+
+    if not nagios_response or nagios_response.isspace():
+        logging.info('Nagios gave empty response for sliver status at the' \
+                     'following url: %s',url)
+        return None
+
+    for line in nagios_response.strip('\n').split('\n'):
+        try:
+            sliver_fqdn, state, tool_extra = parse_sliver_tool_status(line)
+        except NagiosStatusUnparseableError as e:
+            logging.error('Unable to parse Nagios sliver status. %s', e)
+            continue
+
+        if state != constants.NAGIOS_SERVICE_STATUS_OK:
+            status[sliver_fqdn] = {
+                'status': message.STATUS_OFFLINE,
+                'tool_extra': tool_extra
+            }
+        else:
+            status[sliver_fqdn] = {
+                'status': message.STATUS_ONLINE,
+                'tool_extra': tool_extra
+            }
+
+    return status
