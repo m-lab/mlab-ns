@@ -142,9 +142,11 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
 
     def test_get_slice_status_returns_populated_dictionary_when_it_gets_valid_statuses(
             self):
-        mock_slice_status = 'mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra\n'
-        mock_slice_status += 'mock.mlab2.xyz01.measurement-lab.org/ndt 0 1 mock tool extra\n'
-        mock_slice_status += 'mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra\n'
+        mock_slice_status = """
+mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
+mock.mlab2.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
+mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
+""".lstrip()
 
         self.mock_urlopen_response.read.return_value = mock_slice_status
         nagios_status.parse_sliver_tool_status.side_effect = iter([
@@ -168,49 +170,25 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
             }
         }
 
-        actual_status = self.status_update_handler.get_slice_status(
+        actual_status = nagios_status.get_slice_status(
             'nagios.measurementlab.mock.net')
         nagios_status.urllib2.urlopen.assert_called_once_with(
             'nagios.measurementlab.mock.net')
-        self.assertEqual(actual_status, expected_status)
+        self.assertDictEqual(actual_status, expected_status)
 
-    def test_get_slice_status_returns_none_when_Nagios_response_is_whitespace_and_no_newline(
+    def test_get_slice_status_returns_populated_dictionary_when_it_gets_valid_statuses_and_one_whitespace_sliver_status(
             self):
-        mock_empty_slice_status = '  '
-        self.mock_urlopen_response.read.return_value = mock_empty_slice_status
-        actual_status = self.status_update_handler.get_slice_status(
-            'nagios.measurementlab.mock.net')
-        self.assertIsNone(actual_status)
-
-    def test_get_slice_status_returns_none_when_Nagios_response_is_tab_whitespace(
-            self):
-        mock_empty_tab_slice_status = '\t\t\t\n'
-        self.mock_urlopen_response.read.return_value = mock_empty_tab_slice_status
-        actual_status = self.status_update_handler.get_slice_status(
-            'nagios.measurementlab.mock.net')
-        self.assertIsNone(actual_status)
-
-    def test_get_slice_status_handles_NagiosStatusUnparseableError_from_one_status_in_parse_sliver_tool_status(
-            self):
-        mock_slice_status = 'mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra\n'
-        mock_slice_status += 'unparseable status\n'
-        mock_slice_status += 'mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra\n'
-
-        parsed_statuses = {
-            'mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra': (
-                'mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'),
-            'mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra': (
-                'mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
-        }
+        mock_slice_status = """
+mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
+\t\t
+mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
+""".lstrip()
 
         self.mock_urlopen_response.read.return_value = mock_slice_status
-
-        def parsed_statuses_with_exceptions(status):
-            if status not in parsed_statuses:
-                raise nagios_status.NagiosStatusUnparseableError('mock error')
-            return parsed_statuses[status]
-
-        nagios_status.parse_sliver_tool_status.side_effect = parsed_statuses_with_exceptions
+        nagios_status.parse_sliver_tool_status.side_effect = iter([
+            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'), (
+                'mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
+        ])
 
         expected_status = {
             'mock.mlab1.xyz01.measurement-lab.org': {
@@ -223,28 +201,72 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
             }
         }
 
-        actual_status = self.status_update_handler.get_slice_status(
+        actual_status = nagios_status.get_slice_status(
+            'nagios.measurementlab.mock.net')
+        nagios_status.urllib2.urlopen.assert_called_once_with(
+            'nagios.measurementlab.mock.net')
+        self.assertDictEqual(actual_status, expected_status)
+
+    def test_get_slice_status_returns_none_when_Nagios_response_is_whitespace_and_no_newline(
+            self):
+        self.mock_urlopen_response.read.return_value = '  '
+        actual_status = nagios_status.get_slice_status(
+            'nagios.measurementlab.mock.net')
+        self.assertIsNone(actual_status)
+
+    def test_get_slice_status_returns_none_when_Nagios_response_is_tab_whitespace(
+            self):
+        mock_empty_tab_slice_status = '\t\t\t\n'
+        self.mock_urlopen_response.read.return_value = mock_empty_tab_slice_status
+        actual_status = nagios_status.get_slice_status(
+            'nagios.measurementlab.mock.net')
+        self.assertIsNone(actual_status)
+
+    def test_get_slice_status_handles_NagiosStatusUnparseableError_from_one_status_in_parse_sliver_tool_status(
+            self):
+        mock_slice_status = """
+mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
+unparseable status
+mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
+""".lstrip()
+
+        self.mock_urlopen_response.read.return_value = mock_slice_status
+
+        nagios_status.parse_sliver_tool_status.side_effect = iter([
+            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'
+            ), nagios_status.NagiosStatusUnparseableError('mock error'), (
+                'mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
+        ])
+
+        expected_status = {
+            'mock.mlab1.xyz01.measurement-lab.org': {
+                'status': message.STATUS_ONLINE,
+                'tool_extra': 'mock tool extra'
+            },
+            'mock.mlab3.xyz01.measurement-lab.org': {
+                'status': message.STATUS_OFFLINE,
+                'tool_extra': 'mock tool extra'
+            }
+        }
+
+        actual_status = nagios_status.get_slice_status(
             'nagios.measurementlab.mock.net')
         self.assertDictEqual(actual_status, expected_status)
 
     def test_get_slice_status_handles_NagiosStatusUnparseableError_from_two_statuses_in_parse_sliver_tool_status(
             self):
-        mock_slice_status = 'mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra\n'
-        mock_slice_status += 'unparseable status 1\n'
-        mock_slice_status += 'unparseable status 2\n'
+        mock_slice_status = """
+mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
+unparseable status 1
+unparseable status 2
+""".lstrip()
+
         self.mock_urlopen_response.read.return_value = mock_slice_status
-
-        parsed_statuses = {
-            'mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra': (
-                'mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra')
-        }
-
-        def parsed_statuses_with_exceptions(status):
-            if status not in parsed_statuses:
-                raise nagios_status.NagiosStatusUnparseableError('mock error')
-            return parsed_statuses[status]
-
-        nagios_status.parse_sliver_tool_status.side_effect = parsed_statuses_with_exceptions
+        nagios_status.parse_sliver_tool_status.side_effect = iter([
+            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'
+            ), nagios_status.NagiosStatusUnparseableError('mock error'),
+            nagios_status.NagiosStatusUnparseableError('mock error')
+        ])
 
         expected_status = {
             'mock.mlab1.xyz01.measurement-lab.org': {
@@ -253,7 +275,7 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
             }
         }
 
-        actual_status = self.status_update_handler.get_slice_status(
+        actual_status = nagios_status.get_slice_status(
             'nagios.measurementlab.mock.net')
         self.assertDictEqual(actual_status, expected_status)
 
@@ -267,7 +289,7 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
 
         self.mock_urlopen_response.read.side_effect = MockHttpError(
             'mock http error')
-        self.assertIsNone(self.status_update_handler.get_slice_status(
+        self.assertIsNone(nagios_status.get_slice_status(
             'nagios.measurementlab.mock.net'))
 
 

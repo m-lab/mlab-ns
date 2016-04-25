@@ -132,7 +132,7 @@ def get_slice_status(url):
         status. For example:
 
         {'foo.mlab1.site1.measurement-lab.org': {
-            'status': message.STATUS_ONLINE,
+            'status': 'online',
             'tool_extra': 'example tool extra'
             }
         }
@@ -141,18 +141,19 @@ def get_slice_status(url):
     """
     status = {}
     try:
-        nagios_response = urllib2.urlopen(url).read()
+        lines = urllib2.urlopen(url).read().strip('\n').split('\n')
     except urllib2.HTTPError:
         # TODO(claudiu) Notify(email) when this happens.
         logging.error('Cannot open %s.', url)
         return None
 
-    if not nagios_response or nagios_response.isspace():
+    lines = filter(lambda x: not x.isspace(), lines)
+    if not lines:
         logging.info('Nagios gave empty response for sliver status at the' \
                      'following url: %s',url)
         return None
 
-    for line in nagios_response.strip('\n').split('\n'):
+    for line in lines:
         try:
             sliver_fqdn, state, tool_extra = parse_sliver_tool_status(line)
         except NagiosStatusUnparseableError as e:

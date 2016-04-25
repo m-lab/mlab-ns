@@ -335,10 +335,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
             if slice_status:
                 self.update_sliver_tools_status(
                     slice_status, slice_info.tool_id, slice_info.address_family)
-            elif not slice_status and slice_info.address_family == '':
-                logging.error('Received blank slice status from %s ipv4',
-                              slice_info.tool_id)
-
         return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
@@ -410,55 +406,3 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                 updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                 logging.error('Failed to update sliver status in memcache.')
-
-    def get_slice_status(self, url):
-        """Read slice status from Nagios.
-
-        Args:
-            url: String representing the URL to Nagios for a single slice.
-
-        Returns:
-            A dict mapping sliver fqdn to a dictionary representing the sliver's
-            status. For example:
-
-            {'foo.mlab1.site1.measurement-lab.org': {
-                'status': message.STATUS_ONLINE,
-                'tool_extra': 'example tool extra'
-                }
-            }
-
-            None if Nagios status is blank or url is inaccessible.
-        """
-        status = {}
-        try:
-            nagios_response = urllib2.urlopen(url).read()
-        except urllib2.HTTPError:
-            # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', url)
-            return None
-
-        if not nagios_response or nagios_response.isspace():
-            logging.info('Nagios gave empty response for sliver status at the' \
-                         'following url: %s',url)
-            return None
-
-        for line in nagios_response.strip('\n').split('\n'):
-            try:
-                sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
-                    line)
-            except nagios_status.NagiosStatusUnparseableError as e:
-                logging.error('Unable to parse Nagios sliver status. %s', e)
-                continue
-
-            if state != constants.NAGIOS_SERVICE_STATUS_OK:
-                status[sliver_fqdn] = {
-                    'status': message.STATUS_OFFLINE,
-                    'tool_extra': tool_extra
-                }
-            else:
-                status[sliver_fqdn] = {
-                    'status': message.STATUS_ONLINE,
-                    'tool_extra': tool_extra
-                }
-
-        return status
