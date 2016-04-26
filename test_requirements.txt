@@ -1,5 +1,6 @@
 coverage
 jinja2
+mock==2.0.0
 pyflakes==1.1.0
 pylint==1.5.5
 pyyaml

@@ -3,8 +3,8 @@ import StringIO
 import unittest2
 import urllib2
 
-from mlabns.handlers import update
 from mlabns.db import model
+from mlabns.handlers import update
 from mlabns.util import util
 
 

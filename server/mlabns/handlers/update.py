@@ -331,9 +331,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         for slice_info in nagios_status.get_slice_info(nagios.url):
 
-            slice_status = self.get_slice_status(slice_info.slice_url)
-            self.update_sliver_tools_status(slice_status, slice_info.tool_id,
-                                            slice_info.address_family)
+            slice_status = nagios_status.get_slice_status(slice_info.slice_url)
+            if slice_status:
+                self.update_sliver_tools_status(
+                    slice_status, slice_info.tool_id, slice_info.address_family)
         return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
@@ -405,42 +406,3 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                 updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                 logging.error('Failed to update sliver status in memcache.')
-
-    def get_slice_status(self, url):
-        """Read slice status from Nagios.
-
-        Args:
-            url: String representing the URL to Nagios for a single slice.
-
-        Returns:
-            A dict that contains the status of the slivers in this slice
-            {key=fqdn, status:online|offline}
-        """
-        status = {}
-        try:
-            lines = urllib2.urlopen(url).read().strip('\n').split('\n')
-        except urllib2.HTTPError:
-            # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', url)
-            return None
-
-        for line in lines:
-            try:
-                sliver_fqdn, state, tool_extra = nagios_status.parse_sliver_tool_status(
-                    line)
-            except nagios_status.NagiosStatusUnparseableError as e:
-                logging.error('Unable to parse Nagios sliver status. %s', e)
-                continue
-
-            if state != constants.NAGIOS_SERVICE_STATUS_OK:
-                status[sliver_fqdn] = {
-                    'status': message.STATUS_OFFLINE,
-                    'tool_extra': tool_extra
-                }
-            else:
-                status[sliver_fqdn] = {
-                    'status': message.STATUS_ONLINE,
-                    'tool_extra': tool_extra
-                }
-
-        return status
