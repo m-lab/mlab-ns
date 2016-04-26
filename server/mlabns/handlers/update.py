@@ -331,7 +331,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         for slice_info in nagios_status.get_slice_info(nagios.url):
 
-            slice_status = self.get_slice_status(slice_info.slice_url)
+            slice_status = nagios_status.get_slice_status(slice_info.slice_url)
             if slice_status:
                 self.update_sliver_tools_status(
                     slice_status, slice_info.tool_id, slice_info.address_family)

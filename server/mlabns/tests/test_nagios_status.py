@@ -142,18 +142,16 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
 
     def test_get_slice_status_returns_populated_dictionary_when_it_gets_valid_statuses(
             self):
-        mock_slice_status = """
+        self.mock_urlopen_response.read.return_value = """
 mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
 mock.mlab2.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
 mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
 """.lstrip()
-
-        self.mock_urlopen_response.read.return_value = mock_slice_status
-        nagios_status.parse_sliver_tool_status.side_effect = iter([
-            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'), (
-                'mock.mlab2.xyz01.measurement-lab.org', '0', 'mock tool extra'
-            ), ('mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
-        ])
+        nagios_status.parse_sliver_tool_status.side_effect = [
+            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'),
+            ('mock.mlab2.xyz01.measurement-lab.org', '0', 'mock tool extra'),
+            ('mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
+        ]
 
         expected_status = {
             'mock.mlab1.xyz01.measurement-lab.org': {
@@ -178,17 +176,15 @@ mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
 
     def test_get_slice_status_returns_populated_dictionary_when_it_gets_valid_statuses_and_one_whitespace_sliver_status(
             self):
-        mock_slice_status = """
+        self.mock_urlopen_response.read.return_value = """
 mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
 \t\t
 mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
 """.lstrip()
-
-        self.mock_urlopen_response.read.return_value = mock_slice_status
-        nagios_status.parse_sliver_tool_status.side_effect = iter([
+        nagios_status.parse_sliver_tool_status.side_effect = [
             ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'), (
                 'mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
-        ])
+        ]
 
         expected_status = {
             'mock.mlab1.xyz01.measurement-lab.org': {
@@ -216,27 +212,23 @@ mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
 
     def test_get_slice_status_returns_none_when_Nagios_response_is_tab_whitespace(
             self):
-        mock_empty_tab_slice_status = '\t\t\t\n'
-        self.mock_urlopen_response.read.return_value = mock_empty_tab_slice_status
+        self.mock_urlopen_response.read.return_value = '\t\t\t\n'
         actual_status = nagios_status.get_slice_status(
             'nagios.measurementlab.mock.net')
         self.assertIsNone(actual_status)
 
     def test_get_slice_status_handles_NagiosStatusUnparseableError_from_one_status_in_parse_sliver_tool_status(
             self):
-        mock_slice_status = """
+        self.mock_urlopen_response.read.return_value = """
 mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
 unparseable status
 mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
 """.lstrip()
-
-        self.mock_urlopen_response.read.return_value = mock_slice_status
-
-        nagios_status.parse_sliver_tool_status.side_effect = iter([
-            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'
-            ), nagios_status.NagiosStatusUnparseableError('mock error'), (
+        nagios_status.parse_sliver_tool_status.side_effect = [
+            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'),
+            nagios_status.NagiosStatusUnparseableError('mock error'), (
                 'mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
-        ])
+        ]
 
         expected_status = {
             'mock.mlab1.xyz01.measurement-lab.org': {
@@ -255,18 +247,16 @@ mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
 
     def test_get_slice_status_handles_NagiosStatusUnparseableError_from_two_statuses_in_parse_sliver_tool_status(
             self):
-        mock_slice_status = """
+        self.mock_urlopen_response.read.return_value = """
 mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
 unparseable status 1
 unparseable status 2
 """.lstrip()
-
-        self.mock_urlopen_response.read.return_value = mock_slice_status
-        nagios_status.parse_sliver_tool_status.side_effect = iter([
-            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'
-            ), nagios_status.NagiosStatusUnparseableError('mock error'),
+        nagios_status.parse_sliver_tool_status.side_effect = [
+            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'),
+            nagios_status.NagiosStatusUnparseableError('mock error'),
             nagios_status.NagiosStatusUnparseableError('mock error')
-        ])
+        ]
 
         expected_status = {
             'mock.mlab1.xyz01.measurement-lab.org': {

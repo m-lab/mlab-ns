@@ -131,10 +131,11 @@ def get_slice_status(url):
         A dict mapping sliver fqdn to a dictionary representing the sliver's
         status. For example:
 
-        {'foo.mlab1.site1.measurement-lab.org': {
-            'status': 'online',
-            'tool_extra': 'example tool extra'
-            }
+        {
+            'foo.mlab1.site1.measurement-lab.org': {
+                'status': 'online',
+                'tool_extra': 'example tool extra'
+                }
         }
 
         None if Nagios status is blank or url is inaccessible.
@@ -160,15 +161,10 @@ def get_slice_status(url):
             logging.error('Unable to parse Nagios sliver status. %s', e)
             continue
 
-        if state != constants.NAGIOS_SERVICE_STATUS_OK:
-            status[sliver_fqdn] = {
-                'status': message.STATUS_OFFLINE,
-                'tool_extra': tool_extra
-            }
+        status[sliver_fqdn] = {'tool_extra': tool_extra}
+        if state == constants.NAGIOS_SERVICE_STATUS_OK:
+            status[sliver_fqdn]['status'] = message.STATUS_ONLINE
         else:
-            status[sliver_fqdn] = {
-                'status': message.STATUS_ONLINE,
-                'tool_extra': tool_extra
-            }
+            status[sliver_fqdn]['status'] = message.STATUS_OFFLINE
 
     return status
