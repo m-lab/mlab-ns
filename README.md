@@ -42,6 +42,9 @@ python environment_bootstrap.py live
 # Deploy to production
 ~/google_appengine/appcfg.py --oauth2 update server/
 ```
+
+When deploying to production make sure to deploy from the master branch.
+
 # Bootstrapping a Fresh GCP Project
 
 To deploy mlab-ns in a fresh GCP project, it is necessary to first deploy the code (see above). Once the code is deployed, mlab-ns needs seed data so that it can properly query Nagios and build up its datastore. To create this seed data, follow the instructions below.
