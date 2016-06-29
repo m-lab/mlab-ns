@@ -168,22 +168,22 @@ class ToolFetcherCommonTests(object):
         self.initToolIdSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
             tool_id='mock_tool_a')
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc01', 'abc02', 'abc03'), tool_properties)
+        self.verifyPropertiesReturnExpectedSiteIds(('abc01', 'abc02', 'abc03'),
+                                                   tool_properties)
 
     def testFetchToolB(self):
         self.initToolIdSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
             tool_id='mock_tool_b')
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc01', 'abc02'), tool_properties)
+        self.verifyPropertiesReturnExpectedSiteIds(('abc01', 'abc02'),
+                                                   tool_properties)
 
     def testFetchToolC(self):
         self.initToolIdSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
             tool_id='mock_tool_c')
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc01', 'abc03'), tool_properties)
+        self.verifyPropertiesReturnExpectedSiteIds(('abc01', 'abc03'),
+                                                   tool_properties)
 
     def testFetchNonExistentTool(self):
         self.initToolIdSiteGroup()
@@ -219,16 +219,16 @@ class ToolFetcherCommonTests(object):
         tool_properties = sliver_tool_fetcher.ToolProperties(
             tool_id='mock_tool_a',
             status=message.STATUS_ONLINE)
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc01', 'abc02', 'xyz01'), tool_properties)
+        self.verifyPropertiesReturnExpectedSiteIds(('abc01', 'abc02', 'xyz01'),
+                                                   tool_properties)
 
     def testFetchToolsWithAtLeastOneOfflineInterface(self):
         self.initStatusSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
             tool_id='mock_tool_a',
             status=message.STATUS_OFFLINE)
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc02', 'abc03', 'xyz01'), tool_properties)
+        self.verifyPropertiesReturnExpectedSiteIds(('abc02', 'abc03', 'xyz01'),
+                                                   tool_properties)
 
     def testFetchToolsWithOnlineIpv4(self):
         self.initStatusSiteGroup()
@@ -236,8 +236,8 @@ class ToolFetcherCommonTests(object):
             tool_id='mock_tool_a',
             status=message.STATUS_ONLINE,
             address_family=message.ADDRESS_FAMILY_IPv4)
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc01', 'abc02'), tool_properties)
+        self.verifyPropertiesReturnExpectedSiteIds(('abc01', 'abc02'),
+                                                   tool_properties)
 
     def testFetchToolsWithOnlineIpv6(self):
         self.initStatusSiteGroup()
@@ -245,8 +245,8 @@ class ToolFetcherCommonTests(object):
             tool_id='mock_tool_a',
             status=message.STATUS_ONLINE,
             address_family=message.ADDRESS_FAMILY_IPv6)
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc01', 'xyz01'), tool_properties)
+        self.verifyPropertiesReturnExpectedSiteIds(('abc01', 'xyz01'),
+                                                   tool_properties)
 
     def testFetchWhenNoAfIsSpecifiedButStatusIsOmittedIgnoreAf(self):
         self.initStatusSiteGroup()
@@ -287,16 +287,14 @@ class ToolFetcherCommonTests(object):
     def testFetchToolsInCountryA(self):
         self.initCountrySiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            country='CountryA')
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc01', 'abc02', 'def01'), tool_properties)
+            tool_id='mock_tool_a', country='CountryA')
+        self.verifyPropertiesReturnExpectedSiteIds(('abc01', 'abc02', 'def01'),
+                                                   tool_properties)
 
     def testFetchToolsInCountryB(self):
         self.initCountrySiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            country='CountryB')
+            tool_id='mock_tool_a', country='CountryB')
         self.verifyPropertiesReturnExpectedSiteIds(('xyz01',), tool_properties)
 
     def testFetchToolsInNonExistentCountry(self):
@@ -337,8 +335,7 @@ class SliverToolFetcherMemcacheTestCase(unittest.TestCase,
                               status_ipv4=message.STATUS_ONLINE,
                               status_ipv6=message.STATUS_ONLINE)
         tool_properties = sliver_tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            metro='abc')
+            tool_id='mock_tool_a', metro='abc')
         self.verifyPropertiesReturnExpectedSiteIds([], tool_properties)
 
 
@@ -406,23 +403,20 @@ class SliverToolFetcherDatastoreTestCase(unittest.TestCase,
     def testFetchToolsInMetroAbc(self):
         self.initMetroSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            metro='abc')
-        self.verifyPropertiesReturnExpectedSiteIds(
-            ('abc01', 'abc02'), tool_properties)
+            tool_id='mock_tool_a', metro='abc')
+        self.verifyPropertiesReturnExpectedSiteIds(('abc01', 'abc02'),
+                                                   tool_properties)
 
     def testFetchToolsInMetroXyz(self):
         self.initMetroSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            metro='xyz')
+            tool_id='mock_tool_a', metro='xyz')
         self.verifyPropertiesReturnExpectedSiteIds(('xyz01',), tool_properties)
 
     def testFetchToolsInNonExistentMetro(self):
         self.initMetroSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a',
-            metro='qqq')
+            tool_id='mock_tool_a', metro='qqq')
         self.verifyPropertiesReturnExpectedSiteIds([], tool_properties)
 
     def testFetchToolsInMetroDefWithAtLeastOneOnlineInterface(self):

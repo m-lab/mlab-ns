@@ -364,10 +364,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                         'due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
-                    if (sliver_tool.status_ipv4 != slice_status[
-                            sliver_tool.fqdn]['status'] or
-                            sliver_tool.tool_extra != slice_status[
-                                sliver_tool.fqdn]['tool_extra']):
+                    if (sliver_tool.status_ipv4 !=
+                            slice_status[sliver_tool.fqdn]['status'] or
+                            sliver_tool.tool_extra !=
+                            slice_status[sliver_tool.fqdn]['tool_extra']):
                         sliver_tool.status_ipv4 = \
                           slice_status[sliver_tool.fqdn]['status']
                         sliver_tool.tool_extra = \
@@ -379,10 +379,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                         ' due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv6 = message.STATUS_OFFLINE
                 else:
-                    if (sliver_tool.status_ipv6 != slice_status[
-                            sliver_tool.fqdn]['status'] or
-                            sliver_tool.tool_extra != slice_status[
-                                sliver_tool.fqdn]['tool_extra']):
+                    if (sliver_tool.status_ipv6 !=
+                            slice_status[sliver_tool.fqdn]['status'] or
+                            sliver_tool.tool_extra !=
+                            slice_status[sliver_tool.fqdn]['tool_extra']):
                         sliver_tool.status_ipv6 = \
                           slice_status[sliver_tool.fqdn]['status']
                         sliver_tool.tool_extra = \
