@@ -182,8 +182,8 @@ mock.mlab1.xyz01.measurement-lab.org/ndt 0 1 mock tool extra
 mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
 """.lstrip()
         nagios_status.parse_sliver_tool_status.side_effect = [
-            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'), (
-                'mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
+            ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'),
+            ('mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
         ]
 
         expected_status = {
@@ -226,8 +226,8 @@ mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
 """.lstrip()
         nagios_status.parse_sliver_tool_status.side_effect = [
             ('mock.mlab1.xyz01.measurement-lab.org', '0', 'mock tool extra'),
-            nagios_status.NagiosStatusUnparseableError('mock error'), (
-                'mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
+            nagios_status.NagiosStatusUnparseableError('mock error'),
+            ('mock.mlab3.xyz01.measurement-lab.org', '2', 'mock tool extra')
         ]
 
         expected_status = {

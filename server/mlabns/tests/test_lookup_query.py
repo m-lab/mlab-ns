@@ -18,22 +18,19 @@ class LookupQueryTestCase(unittest2.TestCase):
     def setUp(self):
         # Mock out calls to Maxmind
         maxmind_get_ip_geolocation_patch = mock.patch.object(
-            maxmind,
-            'get_ip_geolocation',
+            maxmind, 'get_ip_geolocation',
             autospec=True)
         self.addCleanup(maxmind_get_ip_geolocation_patch.stop)
         maxmind_get_ip_geolocation_patch.start()
 
         maxmind_get_city_geolocation_patch = mock.patch.object(
-            maxmind,
-            'get_city_geolocation',
+            maxmind, 'get_city_geolocation',
             autospec=True)
         self.addCleanup(maxmind_get_city_geolocation_patch.stop)
         maxmind_get_city_geolocation_patch.start()
 
         maxmind_get_country_geolocation_patch = mock.patch.object(
-            maxmind,
-            'get_country_geolocation',
+            maxmind, 'get_country_geolocation',
             autospec=True)
         self.addCleanup(maxmind_get_country_geolocation_patch.stop)
         maxmind_get_country_geolocation_patch.start()

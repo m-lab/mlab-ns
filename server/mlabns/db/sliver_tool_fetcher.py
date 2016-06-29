@@ -155,10 +155,10 @@ class SliverToolFetcherMemcache(object):
         """
         tool_filters = []
         if tool_properties.status:
-            tool_filters.append(
-                partial(_filter_by_status,
-                        address_family=tool_properties.address_family,
-                        status=tool_properties.status))
+            tool_filters.append(partial(
+                _filter_by_status,
+                address_family=tool_properties.address_family,
+                status=tool_properties.status))
         if tool_properties.country:
             tool_filters.append(partial(_filter_by_country,
                                         country=tool_properties.country))

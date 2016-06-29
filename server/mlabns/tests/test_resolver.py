@@ -221,8 +221,7 @@ class AllResolverTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         self.assertQueryResultMultiTool(query, mock_fetched_tools,
                                         query_results_expected,
@@ -295,8 +294,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         mock_fetched_tools = [close_tool, far_tool]
         self.assertQueryResultSingleTool(query, mock_fetched_tools, close_tool,
@@ -360,8 +358,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         query_results_expected = [equidistant_tools[-1]]
 
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         self.assertQueryResultWithRandomShuffle(query, mock_fetched_tools,
                                                 query_results_expected,
@@ -397,8 +394,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         filtered_tools_expected = mock_fetched_tools
 
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         self.assertQueryResultMultiToolWithRandomSample(
             query, mock_fetched_tools, filtered_tools_expected, 1,
@@ -443,8 +439,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         self.assertQueryResultMultiTool(query, mock_fetched_tools,
                                         query_results_expected,
@@ -481,8 +476,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         self.assertQueryResultWithRandomShuffle(query, mock_fetched_tools,
                                                 query_results_expected,
@@ -520,8 +514,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         self.assertQueryResultWithRandomShuffle(query, mock_fetched_tools,
                                                 query_results_expected,
@@ -548,8 +541,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # Make sure the resolver is fetching only online tools that match the
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         self.assertQueryResultMultiTool(query, mock_fetched_tools,
                                         query_results_expected,
@@ -592,8 +584,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         filtered_tools_expected = mock_fetched_tools
 
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         self.assertQueryResultMultiToolWithRandomSample(
             query, mock_fetched_tools, filtered_tools_expected, 4,
@@ -621,8 +612,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         filtered_tools_expected = mock_fetched_tools
 
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
-            tool_id=_TOOL_ID,
-            status=message.STATUS_ONLINE)
+            tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         # Normally we expect a random sample of 4, but there are only 2
         # candidates in the set

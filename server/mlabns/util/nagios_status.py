@@ -33,12 +33,14 @@ class NagiosSliceInfo(object):
         self._address_family = address_family
 
     def __eq__(self, other):
-        return all([self.slice_url == other.slice_url, self.tool_id ==
-                    other.tool_id, self.address_family == other.address_family])
+        return all([self.slice_url == other.slice_url,
+                    self.tool_id == other.tool_id,
+                    self.address_family == other.address_family])
 
     def __ne__(self, other):
-        return any([self.slice_url != other.slice_url, self.tool_id !=
-                    other.tool_id, self.address_family != other.address_family])
+        return any([self.slice_url != other.slice_url,
+                    self.tool_id != other.tool_id,
+                    self.address_family != other.address_family])
 
     @property
     def slice_url(self):
