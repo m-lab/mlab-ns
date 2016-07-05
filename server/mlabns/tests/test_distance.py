@@ -2,6 +2,7 @@ import unittest2
 
 from mlabns.util import distance
 
+
 class DistanceTestCase(unittest2.TestCase):
 
     def testValidSmallDistance(self):
