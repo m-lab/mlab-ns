@@ -3,18 +3,26 @@ import unittest2
 from mlabns.util import message
 from mlabns.util import util
 
+
 class UtilTestCase(unittest2.TestCase):
+
     class OutMockup:
+
         def write(self, msg):
             self.msg = msg
+
     class ResponseMockup:
+
         def __init__(self):
             self.out = UtilTestCase.OutMockup()
             self.headers = {}
+
     class RequestMockup:
+
         def __init__(self):
             self.response = UtilTestCase.ResponseMockup()
             self.error_code = None
+
         def error(self, error_code):
             self.error_code = error_code
 
@@ -56,19 +64,16 @@ class UtilTestCase(unittest2.TestCase):
         self.assertEqual(request.error_code, None)
         self.assertEqual(request.response.headers['Content-Type'],
                          'application/json')
-        self.assertEqual(request.response.out.msg,
-                         '{"status_code": "200 OK"}')
+        self.assertEqual(request.response.out.msg, '{"status_code": "200 OK"}')
 
     def testSendSuccessNoJson(self):
         request = UtilTestCase.RequestMockup()
         util.send_success(request, output_type=message.FORMAT_HTML)
         self.assertEqual(request.error_code, None)
-        self.assertEqual(request.response.out.msg,
-                         '<html> Success! </html>')
+        self.assertEqual(request.response.out.msg, '<html> Success! </html>')
         util.send_success(request, output_type='not_suppored_format')
         self.assertEqual(request.error_code, None)
-        self.assertEqual(request.response.out.msg,
-                         '<html> Success! </html>')
+        self.assertEqual(request.response.out.msg, '<html> Success! </html>')
 
 
 if __name__ == '__main__':

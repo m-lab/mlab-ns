@@ -14,13 +14,13 @@ def _filter_by_status(tools, address_family, status):
     Args:
         tools: A list of sliver tools to filter by status.
         address_family: Address family of the interface to which the status
-            parameter applies. If None, include tools that have the given
+            parameter applies. If None, include sliver tools that have the given
             status on any interface.
-        status: Tool status to filter for (i.e. only return tools with this
-            status).
+        status: Sliver tool status to filter for (i.e. only return sliver tools
+            with this status).
 
     Returns:
-        A subset of the provided tools, filtered by status.
+        A subset of the provided sliver tools, filtered by status.
     """
     status_attrs = []
     if address_family == message.ADDRESS_FAMILY_IPv4:
@@ -46,6 +46,7 @@ def _filter_by_country(tools, country):
     """Filters sliver tools based on the tool's country."""
     return filter(lambda t: t.country == country, tools)
 
+
 def _filter_choose_one_host_per_site(tools):
     """Filters to make sure only one host is returned per site_id.
 
@@ -53,19 +54,21 @@ def _filter_choose_one_host_per_site(tools):
     the chosen site is up.
 
     Args:
-        tools: The list of tools to filter.
+        tools: The list of sliver tools to filter.
 
     Returns:
-        A list containing a unique tool for each site.
+        A list containing a unique sliver tool for each site.
     """
     sites = {}
     for tool in tools:
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
         else:
-            sites[tool.site_id] = min(sites[tool.site_id], tool,
+            sites[tool.site_id] = min(sites[tool.site_id],
+                                      tool,
                                       key=lambda t: t.fqdn)
     return [tool for tool in sites.values()]
+
 
 def _find_site_ids_for_metro(metro):
     """Determine which site IDs are present in a given metro.
@@ -76,8 +79,8 @@ def _find_site_ids_for_metro(metro):
     Returns:
         A list of site IDs for the given metro.
     """
-    sites = model.Site.all().filter('metro =', metro).fetch(
-        constants.MAX_FETCHED_RESULTS)
+    sites = model.Site.all().filter('metro =',
+                                    metro).fetch(constants.MAX_FETCHED_RESULTS)
 
     if not sites:
         logging.warning('No results found for metro %s.', metro)
@@ -90,7 +93,11 @@ def _find_site_ids_for_metro(metro):
 class ToolProperties(object):
     """A set of criteria to specify matching SliverTool(s)."""
 
-    def __init__(self, tool_id, status=None, address_family=None, metro=None,
+    def __init__(self,
+                 tool_id,
+                 status=None,
+                 address_family=None,
+                 metro=None,
                  country=None):
         self.tool_id = tool_id
         self.status = status
@@ -103,12 +110,12 @@ class ToolProperties(object):
                 self.__dict__ == other.__dict__)
 
 
-class ToolFetcher(object):
+class SliverToolFetcher(object):
     """Fetches SliverTools from AppEngine memcache and Datastore."""
 
     def __init__(self):
-        self._memcache_fetcher = ToolFetcherMemcache()
-        self._datastore_fetcher = ToolFetcherDatastore()
+        self._memcache_fetcher = SliverToolFetcherMemcache()
+        self._datastore_fetcher = SliverToolFetcherDatastore()
 
     def fetch(self, tool_properties):
         """Fetch SliverTool objects with specified criteria.
@@ -133,7 +140,7 @@ class ToolFetcher(object):
         return self._datastore_fetcher.fetch(tool_properties)
 
 
-class ToolFetcherMemcache(object):
+class SliverToolFetcherMemcache(object):
     """Fetches SliverTool objects from the AppEngine Memcache."""
 
     def fetch(self, tool_properties):
@@ -148,14 +155,13 @@ class ToolFetcherMemcache(object):
         """
         tool_filters = []
         if tool_properties.status:
-            tool_filters.append(
-                    partial(_filter_by_status,
-                            address_family=tool_properties.address_family,
-                            status=tool_properties.status))
+            tool_filters.append(partial(
+                _filter_by_status,
+                address_family=tool_properties.address_family,
+                status=tool_properties.status))
         if tool_properties.country:
-            tool_filters.append(
-                    partial(_filter_by_country,
-                            country=tool_properties.country))
+            tool_filters.append(partial(_filter_by_country,
+                                        country=tool_properties.country))
         if tool_properties.metro:
             # Can't filter by metro without hitting the Datastore because
             # Memcache does not have metro -> site ID mapping.
@@ -179,7 +185,7 @@ class ToolFetcherMemcache(object):
         return []
 
 
-class ToolFetcherDatastore(object):
+class SliverToolFetcherDatastore(object):
     """Fetches SliverTool objects from the AppEngine Datastore."""
 
     def fetch(self, tool_properties):
@@ -203,20 +209,19 @@ class ToolFetcherDatastore(object):
 
         gql = 'WHERE ' + ' AND '.join(gql_clauses)
 
-        gql_query = model.SliverTool.gql(
-            gql,
-            tool_id=tool_properties.tool_id,
-            status=tool_properties.status,
-            site_ids=site_ids,
-            country=tool_properties.country)
+        gql_query = model.SliverTool.gql(gql,
+                                         tool_id=tool_properties.tool_id,
+                                         status=tool_properties.status,
+                                         site_ids=site_ids,
+                                         country=tool_properties.country)
         results = gql_query.fetch(constants.MAX_FETCHED_RESULTS)
 
         # GQL doesn't have an OR operator, which makes it impossible to write
         # GQL like (status_ipv4 = 'online' OR status_ipv6 = 'online') so we do
         # status filtering in application code.
         if tool_properties.status:
-            results = _filter_by_status(
-                results, tool_properties.address_family, tool_properties.status)
+            results = _filter_by_status(results, tool_properties.address_family,
+                                        tool_properties.status)
         results = _filter_choose_one_host_per_site(results)
 
         logging.info('%d sliver tools found in Datastore.', len(results))
