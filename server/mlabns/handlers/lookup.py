@@ -23,7 +23,7 @@ def _create_tool_url(fqdn, http_port):
     Returns:
         A constructed tool HTTP URL with protocol and http port.
     """
-    return 'http://%s:%s' % (fqdn, http_port)
+    return str('http://%s:%s' % (fqdn, http_port))
 
 
 class LookupHandler(webapp.RequestHandler):
@@ -200,11 +200,16 @@ class LookupHandler(webapp.RequestHandler):
 
         sliver_tool = sliver_tools[0]
 
+        # npad uses a constant port of 8000
+        if sliver_tool.tool_id == 'npad' and not sliver_tool.http_port:
+            sliver_tool.http_port = '8000'
+
         if sliver_tool.http_port:
             fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
                                         query.tool_address_family,
                                         sliver_tool.tool_id)
             url = _create_tool_url(fqdn, sliver_tool.http_port)
+            logging.debug('Redirecting to this url: %s', url)
             return self.redirect(url)
 
         return util.send_not_found(self, 'html')
