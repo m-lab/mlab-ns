@@ -23,6 +23,7 @@ def _create_tool_url(fqdn, http_port):
     Returns:
         A constructed tool HTTP URL with protocol and http port.
     """
+    # Use str() to ensure we return a non-unicode string
     return str('http://%s:%s' % (fqdn, http_port))
 
 
