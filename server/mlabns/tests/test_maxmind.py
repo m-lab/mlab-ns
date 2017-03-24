@@ -6,6 +6,7 @@ import socket
 
 from mlabns.util import constants
 from mlabns.util import maxmind
+from mlabns.util import message
 
 sys.path.insert(1, os.path.abspath(os.path.join(
     os.path.dirname(__file__), '../third_party/pygeoip')))
@@ -89,33 +90,36 @@ class MaxmindTestClass(unittest2.TestCase):
 
     def testGetGeolocationNotValidAddress(self):
         ip_addr = 'abc'
+        address_family = None
         self.mock_record_by_addr.side_effect = socket.error
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
+                                                            address_family))
         self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE,
-            flags=pygeoip.const.STANDARD)
+        pygeoip.GeoIP.assert_called_with(None, flags=pygeoip.const.STANDARD)
 
     def testGetGeolocationNoneAddress(self):
         ip_addr = None
+        address_family = None
         self.mock_record_by_addr.side_effect = TypeError
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
+                                                            address_family))
         self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE,
-            flags=pygeoip.const.STANDARD)
+        pygeoip.GeoIP.assert_called_with(None, flags=pygeoip.const.STANDARD)
 
     def testGetGeolocationNoRecordForIp(self):
         ip_addr = '1.2.3.4'
+        address_family = message.ADDRESS_FAMILY_IPv4
         self.mock_record_by_addr.return_value = None
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
+                                                            address_family))
         self.mock_record_by_addr.assert_called_with(ip_addr)
         pygeoip.GeoIP.assert_called_with(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE,
+            constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4,
             flags=pygeoip.const.STANDARD)
 
     def testGetGeolocationValidLocation(self):
         ip_addr = '1.2.3.4'
+        address_family = message.ADDRESS_FAMILY_IPv4
         mock_record = {
             'city': 'Greenwich, London',
             'country_code': 'UK',
@@ -128,10 +132,11 @@ class MaxmindTestClass(unittest2.TestCase):
                                             longitude=mock_record['longitude'])
 
         self.mock_record_by_addr.return_value = mock_record
-        self.assertEqual(expected_record, maxmind.get_ip_geolocation(ip_addr))
+        self.assertEqual(expected_record,
+                         maxmind.get_ip_geolocation(ip_addr, address_family))
         self.mock_record_by_addr.assert_called_with(ip_addr)
         pygeoip.GeoIP.assert_called_with(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE,
+            constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4,
             flags=pygeoip.const.STANDARD)
 
     def testGetCountryGeolocationNoCountry(self):
