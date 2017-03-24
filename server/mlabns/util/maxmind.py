@@ -45,7 +45,9 @@ def get_ip_geolocation(ip_address, address_family):
     if address_family == message.ADDRESS_FAMILY_IPv4:
         maxmind_file = constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4
     elif address_family == message.ADDRESS_FAMILY_IPv6:
-        maxmind_file = constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4
+        maxmind_file = constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv6
+
+    logging.debug('Looking for geolocation in this file: %s', maxmind_file)
 
     try:
         # Code relies on modules for input validation, which throws one of two

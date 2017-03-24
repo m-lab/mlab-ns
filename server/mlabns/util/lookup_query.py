@@ -199,12 +199,14 @@ class LookupQuery:
         geo_record = maxmind.GeoRecord()
         address_family = None
 
-        if _is_valid_ipv4(ip_address):
-            address_family = message.ADDRESS_FAMILY_IPv4
-        elif _is_valid_ipv6(ip_address):
+        if _is_valid_ipv6(ip_address):
             address_family = message.ADDRESS_FAMILY_IPv6
+        elif _is_valid_ipv4(ip_address):
+            address_family = message.ADDRESS_FAMILY_IPv4
 
         if ip_address is not None:
+            logging.debug('Getting maxmind info for ip %s in family %s',
+                          ip_address, address_family)
             geo_record = maxmind.get_ip_geolocation(ip_address, address_family)
         elif city is not None and country is not None:
             geo_record = maxmind.get_city_geolocation(city, country)
