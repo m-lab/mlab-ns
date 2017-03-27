@@ -50,10 +50,13 @@ class LookupQuery:
         self.longitude = None
         self.distance = None
         self._ip_is_explicit = False
-        self._user_defined_city = None
         #TODO(mtlynch): We are using two country fields to store the same type
         # of information, but using user_defined_country in some cases and
         # country in others. We should consolidate them into a single field.
+        #
+        # Note: fields below are used to temporarily before one of these is
+        # assigned to the city and country fields above
+        self._user_defined_city = None
         self._user_defined_country = None
         self._user_defined_latitude = None
         self._user_defined_longitude = None
@@ -146,6 +149,7 @@ class LookupQuery:
             self.country = self._maxmind_country
             self.latitude = self._maxmind_latitude
             self.longitude = self._maxmind_longitude
+
         elif self._geolocation_type == constants.GEOLOCATION_APP_ENGINE:
             self.city = self._gae_city
             self.country = self._gae_country
@@ -193,8 +197,17 @@ class LookupQuery:
 
     def _set_maxmind_geolocation(self, ip_address, country, city):
         geo_record = maxmind.GeoRecord()
+        address_family = None
+
+        if _is_valid_ipv6(ip_address):
+            address_family = message.ADDRESS_FAMILY_IPv6
+        elif _is_valid_ipv4(ip_address):
+            address_family = message.ADDRESS_FAMILY_IPv4
+
         if ip_address is not None:
-            geo_record = maxmind.get_ip_geolocation(ip_address)
+            logging.debug('Getting maxmind info for ip %s in family %s',
+                          ip_address, address_family)
+            geo_record = maxmind.get_ip_geolocation(ip_address, address_family)
         elif city is not None and country is not None:
             geo_record = maxmind.get_city_geolocation(city, country)
         elif country is not None:

@@ -1,5 +1,6 @@
 from mlabns.db import model
 from mlabns.util import constants
+from mlabns.util import message
 
 import logging
 import os
@@ -29,16 +30,24 @@ class GeoRecord:
         return not self.__eq__(other)
 
 
-def get_ip_geolocation(ip_address):
+def get_ip_geolocation(ip_address, address_family):
     """Returns the geolocation data associated with an IP address from MaxMind.
 
     Args:
         ip_address: A string describing an IP address (v4 or v6).
+        address_family: the ip_address format, either ipv4 or ipv6
 
     Returns:
         A populated GeoRecord if matching geolocation data is found for the
         IP address. Otherwise, an empty GeoRecord.
     """
+    maxmind_file = None
+    if address_family == message.ADDRESS_FAMILY_IPv4:
+        maxmind_file = constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4
+    elif address_family == message.ADDRESS_FAMILY_IPv6:
+        maxmind_file = constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv6
+
+    logging.debug('Looking for geolocation in this file: %s', maxmind_file)
 
     try:
         # Code relies on modules for input validation, which throws one of two
@@ -47,8 +56,9 @@ def get_ip_geolocation(ip_address):
         #     to binary form while searching the MaxMind database; and,
         # 2.) TypeError: Passed a non-string IP address, such as None.
         geo_city_block = pygeoip.GeoIP(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE,
+            maxmind_file,
             flags=pygeoip.const.STANDARD).record_by_addr(ip_address)
+
     except (socket.error, TypeError) as e:
         logging.error('MaxMind Geolocation failed on query (%s) with error: %s',
                       ip_address, e)
