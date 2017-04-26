@@ -96,11 +96,13 @@ class ToolProperties(object):
     def __init__(self,
                  tool_id,
                  status=None,
+                 all_slivers=None,
                  address_family=None,
                  metro=None,
                  country=None):
         self.tool_id = tool_id
         self.status = status
+        self.all_slivers = all_slivers
         self.address_family = address_family
         self.metro = metro
         self.country = country
@@ -166,14 +168,16 @@ class SliverToolFetcherMemcache(object):
             # Can't filter by metro without hitting the Datastore because
             # Memcache does not have metro -> site ID mapping.
             return []
-        tool_filters.append(_filter_choose_one_host_per_site)
+
+        if not tool_properties.all_slivers:
+            tool_filters.append(_filter_choose_one_host_per_site)
 
         sliver_tools = memcache.get(
             tool_properties.tool_id,
             namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
         if sliver_tools:
-            logging.info('Sliver tools found in memcache (%d results).',
-                         len(sliver_tools))
+            logging.info('{}: {} sliver tools found in memcache.'.format(
+                tool_properties.tool_id, len(sliver_tools)))
 
             candidates = sliver_tools
             for tool_filter in tool_filters:
