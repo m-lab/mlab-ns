@@ -225,33 +225,36 @@ class IPUpdateHandler(webapp.RequestHandler):
             # a given slice_id might have multiple tools (e.g., iupui_ndt has
             # both 'ndt' and 'ndt_ssl' tools.
             tools = model.Tool.gql('WHERE slice_id=:slice_id',
-                                  slice_id=slice_id)
+                                   slice_id=slice_id)
             if tools.count() == 0:
                 continue
 
             for tool in tools.run():
                 # Query the datastore to see if this sliver_tool exists there.
                 sliver_tool_gql = model.SliverTool.gql(
-                        'WHERE fqdn=:fqdn AND tool_id=:tool_id',
-                        fqdn=fqdn,
-                        tool_id=tool.tool_id)
+                    'WHERE fqdn=:fqdn AND tool_id=:tool_id',
+                    fqdn=fqdn,
+                    tool_id=tool.tool_id)
 
                 # Check to see if the sliver_tool already exists in the
                 # datastore. If not, add it to the datastore.
                 if sliver_tool_gql.count() == 1:
                     sliver_tool = sliver_tool_gql.get(
-                            batch_size=constants.GQL_BATCH_SIZE)
+                        batch_size=constants.GQL_BATCH_SIZE)
                 elif sliver_tool_gql.count() == 0:
-                    logging.info('For tool {}, fqdn {} is not in datastore.  Adding it.'.format(tool.tool_id, fqdn))
-                    sliver_tool = self.initialize_sliver_tool(tool, site, server_id,
-                                                              fqdn)
+                    logging.info(
+                        'For tool {}, fqdn {} is not in datastore.  Adding it.'.format(
+                            tool.tool_id, fqdn))
+                    sliver_tool = self.initialize_sliver_tool(tool, site,
+                                                              server_id, fqdn)
                 else:
-                    logging.error('Error, or too many sliver_tools returned for {}:{}.'.format(tool.tool_id, fqdn))
+                    logging.error(
+                        'Error, or too many sliver_tools returned for {}:{}.'.format(
+                            tool.tool_id, fqdn))
                     continue
 
                 updated_sliver_tool = self.set_sliver_tool_ips(sliver_tool,
-                                                               ipv4,
-                                                               ipv6)
+                                                               ipv4, ipv6)
                 # If the sliver_tool got updated IPs then write the change to
                 # the datastore, else save the performance hit of writing a
                 # record with identical data.
