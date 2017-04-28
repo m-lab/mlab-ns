@@ -243,8 +243,8 @@ class IPUpdateHandler(webapp.RequestHandler):
                         batch_size=constants.GQL_BATCH_SIZE)
                 elif sliver_tool_gql.count() == 0:
                     logging.info(
-                        'For tool {}, fqdn {} is not in datastore.  Adding it.'.format(
-                            tool.tool_id, fqdn))
+                        'For tool %s, fqdn %s is not in datastore.  Adding it.',
+                        tool.tool_id, fqdn)
                     sliver_tool = self.initialize_sliver_tool(tool, site,
                                                               server_id, fqdn)
                 else:
