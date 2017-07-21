@@ -40,8 +40,6 @@ def create_environment_symlink(link_name, environment_type):
 def setup_environment(environment_type):
   create_environment_symlink('server/config.py',
                              environment_type)
-  create_environment_symlink('server/app.yaml',
-                             environment_type)
 
 
 def main(args):

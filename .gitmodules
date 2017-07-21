@@ -1,3 +1,6 @@
 [submodule "server/mlabns/third_party/pygeoip"]
 	path = server/mlabns/third_party/pygeoip
 	url = https://github.com/appliedsec/pygeoip.git
+[submodule "travis"]
+	path = travis
+	url = https://github.com/m-lab/travis.git
