@@ -20,8 +20,7 @@ after_success:
 
 deploy:
 - provider: script
-  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json server app.yaml
-
+  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
