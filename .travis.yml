@@ -3,9 +3,13 @@ python:
   - "2.7"
 env:
   - PYTHONPATH=$PYTHONPATH:$HOME/google_appengine/
+cache:
+  directories:
+    - "$HOME/google-cloud-sdk/"
 before_install:
-  - wget https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.32.zip
-  - unzip -q google_appengine_1.9.32.zip -d $HOME
+  - travis/decrypt.sh "$encrypted_a33ffc2cc437_key" "$encrypted_a33ffc2cc437_iv"
+    keys/service-accounts.tar.enc /tmp/service-accounts.tar /tmp
+  - $TRAVIS_BUILD_DIR/travis/install_gcloud.sh
 install:
   - pip install -r test_requirements.txt
   - pip install coveralls
@@ -13,3 +17,13 @@ script:
   - ./build
 after_success:
     coveralls
+
+deploy:
+- provider: script
+  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json server app.yaml
+
+  skip_cleanup: true
+  on:
+    repo: m-lab/mlab-ns
+    all_branches: true
+    condition: $TRAVIS_BRANCH == master && $TRAVIS_EVENT_TYPE == push
