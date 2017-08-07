@@ -377,44 +377,45 @@ class StatusUpdateHandler(webapp.RequestHandler):
         updated_sliver_tools = []
         for sliver_tool in sliver_tools:
 
-            if sliver_tool.fqdn not in slice_status:
-                logging.info('Nagios does not know sliver %s.',
-                             sliver_tool.fqdn)
-                continue
-
-            if family == '':
-                if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
-                    if sliver_tool.status_ipv4 == message.STATUS_ONLINE:
-                        logging.warning('Setting IPv4 status of %s to offline '\
-                                        'due to missing IP.', sliver_tool.fqdn)
-                        sliver_tool.status_ipv4 = message.STATUS_OFFLINE
+            if sliver_tool.fqdn in slice_status:
+                if family == '':
+                    if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
+                        if sliver_tool.status_ipv4 == message.STATUS_ONLINE:
+                            logging.warning('Setting IPv4 status of %s to offline '\
+                                            'due to missing IP.', sliver_tool.fqdn)
+                            sliver_tool.status_ipv4 = message.STATUS_OFFLINE
+                    else:
+                        if (sliver_tool.status_ipv4 !=
+                                slice_status[sliver_tool.fqdn]['status'] or
+                                sliver_tool.tool_extra !=
+                                slice_status[sliver_tool.fqdn]['tool_extra']):
+                            sliver_tool.status_ipv4 = \
+                              slice_status[sliver_tool.fqdn]['status']
+                            sliver_tool.tool_extra = \
+                              slice_status[sliver_tool.fqdn]['tool_extra']
+                elif family == '_ipv6':
+                    if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
+                        if sliver_tool.status_ipv6 == message.STATUS_ONLINE:
+                            logging.warning('Setting IPv6 status for %s to offline'\
+                                            ' due to missing IP.', sliver_tool.fqdn)
+                            sliver_tool.status_ipv6 = message.STATUS_OFFLINE
+                    else:
+                        if (sliver_tool.status_ipv6 !=
+                                slice_status[sliver_tool.fqdn]['status'] or
+                                sliver_tool.tool_extra !=
+                                slice_status[sliver_tool.fqdn]['tool_extra']):
+                            sliver_tool.status_ipv6 = \
+                              slice_status[sliver_tool.fqdn]['status']
+                            sliver_tool.tool_extra = \
+                              slice_status[sliver_tool.fqdn]['tool_extra']
                 else:
-                    if (sliver_tool.status_ipv4 !=
-                            slice_status[sliver_tool.fqdn]['status'] or
-                            sliver_tool.tool_extra !=
-                            slice_status[sliver_tool.fqdn]['tool_extra']):
-                        sliver_tool.status_ipv4 = \
-                          slice_status[sliver_tool.fqdn]['status']
-                        sliver_tool.tool_extra = \
-                          slice_status[sliver_tool.fqdn]['tool_extra']
-            elif family == '_ipv6':
-                if sliver_tool.sliver_ipv6 == message.NO_IP_ADDRESS:
-                    if sliver_tool.status_ipv6 == message.STATUS_ONLINE:
-                        logging.warning('Setting IPv6 status for %s to offline'\
-                                        ' due to missing IP.', sliver_tool.fqdn)
-                        sliver_tool.status_ipv6 = message.STATUS_OFFLINE
-                else:
-                    if (sliver_tool.status_ipv6 !=
-                            slice_status[sliver_tool.fqdn]['status'] or
-                            sliver_tool.tool_extra !=
-                            slice_status[sliver_tool.fqdn]['tool_extra']):
-                        sliver_tool.status_ipv6 = \
-                          slice_status[sliver_tool.fqdn]['status']
-                        sliver_tool.tool_extra = \
-                          slice_status[sliver_tool.fqdn]['tool_extra']
+                    logging.error('Unexpected address family: %s.', family)
+                    continue
             else:
-                logging.error('Unexpected address family: %s.', family)
-                continue
+                logging.info('Nagios does not know sliver %s. Taking it'\
+                             ' offline.', sliver_tool.fqdn)
+                sliver_tool.status_ipv4 = message.STATUS_OFFLINE
+                sliver_tool.status_ipv6 = message.STATUS_OFFLINE
 
             sliver_tool.update_request_timestamp = long(time.time())
             updated_sliver_tools.append(sliver_tool)
