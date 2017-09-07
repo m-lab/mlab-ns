@@ -40,8 +40,8 @@ UNKNOWN_CITY = 'Zion'
 
 # URL to the privacy doc. All requests to http://mlab-ns.appspot.com/privacy
 # will be redirected to this URL.
-PRIVACY_DOC_URL = 'https://www.measurementlab.net/privacy/'
+PRIVACY_DOC_URL = 'https://docs.google.com/a/google.com/document/d/1yQp7CcZngY6AfndoxvIbz8MzxcO7MpjZaj_VGFWe6Mo/pub'
 
 # URL to the design doc. All requests to http://mlab-ns.appspot.com/docs will be
 # redirected to this URL.
-DESIGN_DOC_URL = 'https://github.com/m-lab/mlab-ns/blob/master/DESIGN-DOC.md'
+DESIGN_DOC_URL = 'https://docs.google.com/document/d/1eJhS75EZHDLmC6exggStr_b1euiR24_MVBJc1L6eH2c/view'
