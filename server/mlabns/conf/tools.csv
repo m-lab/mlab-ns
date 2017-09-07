@@ -4,5 +4,4 @@ ndt_ssl,iupui_ndt,,False
 mobiperf,michigan_1,,False
 npad,iupui_npad,8000,False
 ooni,mlab_ooni,,True
-glasnost,mpisws_broadband,19981,False
 neubot,mlab_neubot,8080,False
