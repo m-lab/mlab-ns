@@ -18,12 +18,12 @@
 
     <script type="text/javascript">
       var map;
-      var green = '81F781';
+      var green = '009933';
       var red = 'FF0000';
       var white = 'FFFFFF';
       var blue = '0000FF';
       var black = '000000';
-      var warningColor = 'FF8000';
+      var warningColor = '99FF99';
       var userColor = '00BFFF';
       var defaultColor = green;
       var errorColor = red;
@@ -230,7 +230,7 @@
         </li>
         -->
 
-        {% with 'all glasnost mobiperf ndt neubot npad' as tool_list %} 
+        {% with 'all mobiperf ndt neubot npad' as tool_list %} 
         <li>
           {% ifequal address_family "ipv6" %}
             <a href="/admin/map/ipv4" class="header">Map IPv4</a>
@@ -275,6 +275,15 @@
     </div>
     <div id="map_canvas"></div>
     <div id="footer">
+      <a href="https://measurementlab.net" class="footer">M-Lab</a>
+
+      &nbsp;&nbsp;&nbsp;&nbsp;
+
+      <a href="https://www.measurementlab.net/about" class="footer">About
+        M-Lab</a>
+
+      &nbsp;&nbsp;&nbsp;&nbsp;
+
       <a href="{{ privacy_doc_url }}" class="footer">Privacy policy</a>
 
       &nbsp; &nbsp; &nbsp; &nbsp;
@@ -283,20 +292,12 @@
 
       &nbsp;&nbsp;&nbsp;&nbsp;
 
-      <a href="http://measurementlab.net" class="footer">M-Lab</a>
+
+      <a href="https://www.measurementlab.net/contact" class="footer">Contact</a>
 
       &nbsp;&nbsp;&nbsp;&nbsp;
 
-      <a href="http://www.measurementlab.net/about" class="footer">About
-        M-Lab</a>
-
-      &nbsp;&nbsp;&nbsp;&nbsp;
-
-      <a href="http://www.measurementlab.net/contact" class="footer">Contact</a>
-
-      &nbsp;&nbsp;&nbsp;&nbsp;
-
-      <a href="http://www.measurementlab.net/faq" class="footer">FAQ</a>
+      <a href="https://www.measurementlab.net/faq" class="footer">FAQ</a>
 
       &nbsp;&nbsp;&nbsp;&nbsp;
     </div>
