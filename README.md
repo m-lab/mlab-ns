@@ -3,47 +3,17 @@ Status](https://travis-ci.org/m-lab/mlab-ns.svg?branch=master)](https://travis-c
 [![Coverage
 Status](https://coveralls.io/repos/m-lab/mlab-ns/badge.svg?branch=master&service=github)](https://coveralls.io/github/m-lab/mlab-ns?branch=master)
 
-# Deploying Code to mlab-ns
+# Deploying Code to mlab-nstesting (testing) and mlab-ns (production)
 
-To deploy code updates to mlab-ns or to deploy mlab-ns to a fresh GCP test project, follow the instructions below.
+mlab-ns code is built and pushed to a Google App Engine (GAE) service automatically by Travis.ci. 
 
-## Testing environment
-To deploy to the standard mlab-ns testing environment (mlab-nstesting.appspot.com), follow the instructions below with no modifications. To deploy to a different testing environment, you must edit `server/app.yaml.testing` to update the "application" field to your test environment's GCP project ID.
+## Deploying to the mlab-ns testing environment (mlab-nstesting.appspot.com)
 
-```
-git clone --recursive https://github.com/m-lab/mlab-ns.git mlabns-testing
-cd mlabns-testing
+Commits made to any branch, including the master branch are built, tested and deployed automatically by Travis.ci to the GAE service, mlab-nstesting.appspot.com
 
-# Or, for an existing repo:
-# git checkout master
-# git submodule update --init
-# git pull origin master
+## Deploying to mlab-ns production
 
-python environment_bootstrap.py testing
-~/google_appengine/appcfg.py --oauth2 update server/
-```
-
-## Live environment
-
-```
-git clone --recursive https://github.com/m-lab/mlab-ns.git mlabns-live
-cd mlabns-live
-
-# Or, for an existing repo:
-# git checkout master
-# git submodule update --init
-# git pull origin master
-
-python environment_bootstrap.py live
-
-# Verify all tests are passing
-./build
-
-# Deploy to production
-~/google_appengine/appcfg.py --oauth2 update server/
-```
-
-When deploying to production make sure to deploy from the master branch.
+To deploy tested code to the mlab-ns production service, use Github to create a new release, incrementing the version tag to the date deployed. Once a release and tag are created, Travis.ci will build, test and push the updated release to production.
 
 # Bootstrapping a Fresh GCP Project
 
