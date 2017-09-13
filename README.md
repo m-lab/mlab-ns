@@ -5,15 +5,15 @@ Status](https://coveralls.io/repos/m-lab/mlab-ns/badge.svg?branch=master&service
 
 # Deploying Code to mlab-nstesting (testing) and mlab-ns (production)
 
-mlab-ns code is built and pushed to a Google App Engine (GAE) service automatically by Travis.ci. 
+mlab-ns code is built and pushed to a Google App Engine (GAE) service automatically by Travis CI. 
 
 ## Deploying to the mlab-ns testing environment (mlab-nstesting.appspot.com)
 
-Commits made to any branch, including the master branch are built, tested and deployed automatically by Travis.ci to the GAE service, mlab-nstesting.appspot.com
+Commits made to any branch, including the master branch are built, tested and deployed automatically by Travis CI to the GAE service, mlab-nstesting.appspot.com
 
 ## Deploying to mlab-ns production
 
-To deploy tested code to the mlab-ns production service, use Github to create a new release, incrementing the version tag to the date deployed. Once a release and tag are created, Travis.ci will build, test and push the updated release to production.
+To deploy tested code to the mlab-ns production service, use Github to create a new release, incrementing the version tag to the date deployed. Once a release and tag are created, Travis CI will build, test and push the updated release to production.
 
 # Bootstrapping a Fresh GCP Project
 
