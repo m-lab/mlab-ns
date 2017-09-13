@@ -15,6 +15,25 @@ Commits made to any branch, including the master branch are built, tested and de
 
 To deploy tested code to the mlab-ns production service, use Github to create a new release, incrementing the version tag to the date deployed. Once a release and tag are created, Travis CI will build, test and push the updated release to production.
 
+# Deploying to mlab-nstesting without commits
+
+It is sometimes advantageous to test local work on the testing GAE service without making commits to the repo, such as when debugging a specific issue.
+
+To deploy to the standard mlab-ns testing environment (mlab-nstesting.appspot.com), follow the instructions below with no modifications. To deploy to a different testing environment, you must edit `server/app.yaml.testing` to update the "application" field to your test environment's GCP project ID.
+
+```
+git clone --recursive https://github.com/m-lab/mlab-ns.git mlabns-testing
+cd mlabns-testing
+
+# Or, for an existing repo:
+# git checkout master
+# git submodule update --init
+# git pull origin master
+
+python environment_bootstrap.py testing
+~/google_appengine/appcfg.py --oauth2 update server/
+```
+
 # Bootstrapping a Fresh GCP Project
 
 To deploy mlab-ns in a fresh GCP project, it is necessary to first deploy the code (see above). Once the code is deployed, mlab-ns needs seed data so that it can properly query Nagios and build up its datastore. To create this seed data, follow the instructions below.
