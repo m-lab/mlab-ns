@@ -139,8 +139,8 @@ mlab-ns logs all lookup requests using standard AppEngine logging.
 Maps with sliver status (ipv4/ipv6, broken down by tool): http://mlab-ns.appspot.com/admin/map/
 
 # Privacy
-https://docs.google.com/document/pub?id=1yQp7CcZngY6AfndoxvIbz8MzxcO7MpjZaj_VGFWe6Mo
+[M-Lab NS Privacy Policy](MLAB-NS_PRIVACY_POLICY.md)
 
-# Code repository (with unit tests)
+# Code repository
 https://github.com/m-lab/mlab-ns
 
