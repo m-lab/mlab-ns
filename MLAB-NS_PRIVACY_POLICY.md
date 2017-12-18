@@ -33,6 +33,7 @@ The sections below described what GAE writes to these two logs, focusing primari
     * country
     * city
     * latitude, longitude
+    * ip
       * Note that these location parameters (country, city, latitude, longitude) can be defined by M-Lab tool developers and can be arbitrary. They are useful when debugging queries to determine what mlab-ns would return for a user with this location.
 
 2. When mlab-ns receives the above data, it collects some of those fields and computes other info based on them. In particular, mlab-ns:
