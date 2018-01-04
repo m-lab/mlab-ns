@@ -104,7 +104,7 @@ Supported arguments in query_string:
 |  format  |  json, bt, html, map, redirect  |  json  |  e.g., with format=json,the handler sends a response whose body contains the SliverTool information (IPv4 address, IPv6 address, URL, …) encoded in the json format.  |
 |  ip  |  _IP Address_  |  -  |  The request appears as if it was originated from the specified ip address. Note: This overrides the Google AppEngine header.  |
 |  address_family  |  ipv4, ipv6  |  ipv4  |  Allows to specify the address family. When the user specifies an address_family=ipvX, only sliver tools that have status_ipvX='online' will be considered in the server selection. If there is no sliver tool in the requested address family, an error (not found) is returned.  |
-|  country  |  _Country Code_  |  -  |  The request appears as if it was originated from the specified country. Note: This overrides the Google AppEngine header.  |
+|  country  |  _Country Code_  |  -  |  The request appears as if it was originated from the specified country. Note: This overrides the Google AppEngine header. Also note: The country code must be in capital letters.   |
 |  city  |  _City Name_  |  -  |  The request appears as if it was originated from the specified city. Note: This overrides the Google AppEngine header. It must be used together with country (e.g., city=Rome&country=IT). Note that these location parameters (country, city, latitude, longitude) can be defined by M-Lab tool developers and can be arbitrary. They are useful when debugging queries to determine what mlab-ns would return for a user with this location.  |
 
 ### Geo-based server selection policy
