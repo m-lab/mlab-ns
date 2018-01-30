@@ -26,8 +26,6 @@ class AdminHandler(webapp.RequestHandler):
             '/admin/map': lambda: self.redirect('/admin/map/ipv4/all'),
             '/admin/map/ipv4': lambda: self.redirect('/admin/map/ipv4/all'),
             '/admin/map/ipv4/all': lambda: self.map_view('all', 'ipv4'),
-            '/admin/map/ipv4/glasnost':
-            lambda: self.map_view('glasnost', 'ipv4'),
             '/admin/map/ipv4/mobiperf':
             lambda: self.map_view('mobiperf', 'ipv4'),
             '/admin/map/ipv4/neubot': lambda: self.map_view('neubot', 'ipv4'),
@@ -35,8 +33,6 @@ class AdminHandler(webapp.RequestHandler):
             '/admin/map/ipv4/npad': lambda: self.map_view('npad', 'ipv4'),
             '/admin/map/ipv6': lambda: self.map_view('all', 'ipv6'),
             '/admin/map/ipv6/all': lambda: self.map_view('all', 'ipv6'),
-            '/admin/map/ipv6/glasnost':
-            lambda: self.map_view('glasnost', 'ipv6'),
             '/admin/map/ipv6/mobiperf':
             lambda: self.map_view('mobiperf', 'ipv6'),
             '/admin/map/ipv6/neubot': lambda: self.map_view('neubot', 'ipv6'),
