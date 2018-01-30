@@ -99,13 +99,22 @@ Supported arguments in query_string:
 
 |  Parameter  |  Values  |  Default  |  Notes  |
 |  ---------  |  ------  |  -------  |  -----------  |
-|  policy  |  geo, random, metro, country, all  |  geo  |  -  |
+|  policy  |  geo, geo_options, metro, random, country, all  |  geo  | See _policy - parameter options_ section below. |
 |  metro  |  _Metro Code_  |  -  |  The SliverTool is selected only from the subset of the sites that match the specified metro attribute. If no server is found, an HTTP Not Found is returned to the client.  |
 |  format  |  json, bt, html, map, redirect  |  json  |  e.g., with format=json,the handler sends a response whose body contains the SliverTool information (IPv4 address, IPv6 address, URL, …) encoded in the json format.  |
 |  ip  |  _IP Address_  |  -  |  The request appears as if it was originated from the specified ip address. Note: This overrides the Google AppEngine header.  |
 |  address_family  |  ipv4, ipv6  |  ipv4  |  Allows to specify the address family. When the user specifies an address_family=ipvX, only sliver tools that have status_ipvX='online' will be considered in the server selection. If there is no sliver tool in the requested address family, an error (not found) is returned.  |
 |  country  |  _Country Code_  |  -  |  The request appears as if it was originated from the specified country. Note: This overrides the Google AppEngine header. Also note: The country code must be in capital letters.   |
 |  city  |  _City Name_  |  -  |  The request appears as if it was originated from the specified city. Note: This overrides the Google AppEngine header. It must be used together with country (e.g., city=Rome&country=IT). Note that these location parameters (country, city, latitude, longitude) can be defined by M-Lab tool developers and can be arbitrary. They are useful when debugging queries to determine what mlab-ns would return for a user with this location.  |
+
+#### policy - parameter options
+
+* **geo** - Returns a single server based on geolocation of the user's IP. Example: `https://mlab-ns.appspot.com/ndt?policy=geo`
+* **geo_options** - Chooses the N geographically closest servers to the client, where N is currently four.  Example: `https://mlab-ns.appspot.com/ndt?policy=geo_options`
+* **metro** - Used in combination with the _metro_ parameter below, returns a single server in the selected metro. Used without _metro_, functions similarly to _policy=geo_.  Example: `https://mlab-ns.appspot.com/ndt?policy=metro&metro=lax`
+* **random** - Selects a random server. Example: `https://mlab-ns.appspot.com/ndt?policy=random`
+* **country** - Used in combination with the _country_ parameter, returns a single server from the selected country. Example: `https://mlab-ns.appspot.com/ndt?policy=country&country=CA`
+* **all** - Returns a list of all currently available servers. Example: `https://mlab-ns.appspot.com/ndt?policy=all`
 
 ### Geo-based server selection policy
 By default, mlab-ns selects a SliverTool using the ‘closest-node’ policy, which means that the user is directed to a server in the geographically closest site. The server is chosen each time randomly from the servers in the same site, to ensure fairness. The geolocation data of the client making the request is included automatically in the headers of the request by Google AppEngine infrastructure:
@@ -132,6 +141,7 @@ If the Google AppEngine header does not have any location information, lat and l
 Using these tables increases the lookup response time.
 
 mlab-ns logs all the requests in which geolocation fails. Based on those logs, we may revisit the strategy above.
+
 # Logging
 mlab-ns logs all lookup requests using standard AppEngine logging.
 
