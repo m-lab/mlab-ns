@@ -5,9 +5,16 @@ Status](https://coveralls.io/repos/m-lab/mlab-ns/badge.svg?branch=master&service
 
 # Deploying Code to mlab-ns
 
-To deploy code updates to mlab-ns or to deploy mlab-ns to a fresh GCP test project, follow the instructions below.
+mlab-ns is intergrated with Travis to build and deploy to testing and production.
 
-## Testing environment
+* commits to master are built and pushed to mlab-ns-testing by travis
+* tagged releases are built and pushed to mlab-ns production by travis
+
+## Manual Deployments
+
+Though we use Travis now to build and deploy, the previous instructions are retained below for reference.
+
+### Testing environment
 To deploy to the standard mlab-ns testing environment (mlab-nstesting.appspot.com), follow the instructions below with no modifications. To deploy to a different testing environment, you must edit `server/app.yaml.testing` to update the "application" field to your test environment's GCP project ID.
 
 ```
@@ -23,7 +30,7 @@ python environment_bootstrap.py testing
 ~/google_appengine/appcfg.py --oauth2 update server/
 ```
 
-## Live environment
+### Live environment
 
 ```
 git clone --recursive https://github.com/m-lab/mlab-ns.git mlabns-live
@@ -45,7 +52,7 @@ python environment_bootstrap.py live
 
 When deploying to production make sure to deploy from the master branch.
 
-# Bootstrapping a Fresh GCP Project
+## Bootstrapping a Fresh GCP Project
 
 To deploy mlab-ns in a fresh GCP project, it is necessary to first deploy the code (see above). Once the code is deployed, mlab-ns needs seed data so that it can properly query Nagios and build up its datastore. To create this seed data, follow the instructions below.
 
