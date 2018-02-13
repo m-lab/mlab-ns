@@ -67,6 +67,7 @@ def _filter_choose_one_host_per_site(tools):
             sites[tool.site_id] = min(sites[tool.site_id],
                                       tool,
                                       key=lambda t: t.fqdn)
+        logging.info('Tool: %s ', tool)
     return [tool for tool in sites.values()]
 
 
