@@ -19,6 +19,7 @@ def distance(lat1, lon1, lat2, lon2):
     Returns:
         A float representing distance in km from origin to destination.
     """
+
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
     a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
