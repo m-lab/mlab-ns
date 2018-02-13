@@ -20,6 +20,15 @@ after_success:
     coveralls
 
 deploy:
+# Testing: deploy to ns-sandbox for testing purpose.
+- provider: script
+  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
+  skip_cleanup: true
+  on:
+    repo: m-lab/mlab-ns
+    all_branches: true
+    condition: $TRAVIS_BRANCH == sandbox && $TRAVIS_EVENT_TYPE == push
+
 # Testing: deploy to mlab-nstesting
 - provider: script
   script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
@@ -29,15 +38,6 @@ deploy:
     all_branches: true
     condition: $TRAVIS_BRANCH == master && $TRAVIS_EVENT_TYPE == push
     
-# Testing: deploy to ns-sandbox for testing purpose.
-- provider: script
-  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
-  skip_cleanup: true
-  on:
-    repo: m-lab/mlab-ns
-    all_branches: true
-    condition: $TRAVIS_BRANCH == ns-sandbox && $TRAVIS_EVENT_TYPE == push
-
 # Production: deploy to mlab-ns
 - provider: script
   script: python environment_bootstrap.py live && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns /tmp/mlab-ns.json . server/app.yaml
