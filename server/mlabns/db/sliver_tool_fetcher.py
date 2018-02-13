@@ -64,9 +64,11 @@ def _filter_choose_one_host_per_site(tools):
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
         else:
+            logging.info('Before %s', sites[tool.site_id])
             sites[tool.site_id] = min(sites[tool.site_id],
                                       tool,
                                       key=lambda t: t.fqdn)
+            logging.info('After %s', sites[tool.site_id])
         logging.info('Tool: %s ', tool)
     return [tool for tool in sites.values()]
 
