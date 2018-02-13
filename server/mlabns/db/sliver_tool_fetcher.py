@@ -68,6 +68,7 @@ def _filter_choose_one_host_per_site(tools):
         else:
             # instead of always return mlab1, we pick one randomly.
             logging.info('Before %s', sites[tool.site_id])
+            logging.info('new one: %s', tool)
             sites[tool.site_id] = min(sites[tool.site_id],
                                       tool,
                                       key=lambda t: t.fqdn)
