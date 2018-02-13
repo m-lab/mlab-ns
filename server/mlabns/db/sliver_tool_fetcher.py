@@ -60,7 +60,11 @@ def _filter_choose_one_host_per_site(tools):
         A list containing a unique sliver tool for each site.
     """
     sites = {}
+    RoundRobinSites = {"yyz", "lba"}
+    # check all 
     for tool in tools:
+        # Ckeck whether it is a round robin sites
+        # if not
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
             logging.info('First time for %s selected: %s ', tool.site_id,
@@ -73,6 +77,7 @@ def _filter_choose_one_host_per_site(tools):
                                       tool,
                                       key=lambda t: t.fqdn)
             logging.info('After %s', sites[tool.site_id].server_id)
+        # if Yes
         logging.info('here is for %s selected: %s ', tool.site_id,
                      sites[tool.site_id].server_id)
     return [tool for tool in sites.values()]
