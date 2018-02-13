@@ -37,7 +37,7 @@ deploy:
     repo: m-lab/mlab-ns
     all_branches: true
     condition: $TRAVIS_BRANCH == master && $TRAVIS_EVENT_TYPE == push
-    
+
 # Production: deploy to mlab-ns
 - provider: script
   script: python environment_bootstrap.py live && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns /tmp/mlab-ns.json . server/app.yaml
