@@ -76,8 +76,8 @@ def _filter_choose_one_host_per_site(tools):
     When we keep doing this, the probability of each server got selected
     is 1/n.
     """
-    RoundRobinSites = {"yyz01", "yyz02", "lba01"}
-    RRCounter = {2, 2, 2}
+    RoundRobinSites = ["yyz01", "yyz02", "lba01"]
+    RRCounter = [2, 2, 2]
     # check all 
     for tool in tools:
         # if not
