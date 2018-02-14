@@ -92,9 +92,9 @@ def _filter_choose_one_host_per_site(tools):
                 if tool.site_id == RoundRobinSites[i]:
                     # we need to decide whether
                     is_round_robin = true
-                    if random.uniform(0, 1) > 1.0/RRCount[i]:
+                    if random.uniform(0, 1) > 1.0/(float)RRCount[i]:
                         sites[tool.site_id] = tool
-                    RRCount[i]++
+                    RRCount[i] = RRCount[i] +1
                     break
             # instead of always return mlab1, we pick one randomly.
             logging.info('Before %s', sites[tool.site_id].server_id)
