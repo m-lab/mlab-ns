@@ -1,5 +1,6 @@
 from functools import partial
 import logging
+import random
 
 from mlabns.db import model
 from mlabns.util import constants
@@ -60,22 +61,48 @@ def _filter_choose_one_host_per_site(tools):
         A list containing a unique sliver tool for each site.
     """
     sites = {}
-    RoundRobinSites = {"yyz", "lba"}
+    """ Round Robin Implemetation: we need to select a random one from
+    a sequence of servers (length n), with probability 1/n. While we dd
+    not know exactly the value of n.
+    The algorithm is like this: for site "abc01", the candidate server
+    could be mlab1, mlab2, mlab3, ....
+    Keep the first server for that site.
+    When we see the second server of this site, replace the first server
+    with probability 1/2.
+    When we see the third server of this site, replace the cached server
+    with probability 1/3.
+    When we see the third server of this site, replace the cached server
+    with probability 1/4...
+    When we keep doing this, the probability of each server got selected
+    is 1/n.
+    """
+    RoundRobinSites = {"yyz01", "yyz02", "lba01"}
+    RRCounter = {2, 2, 2}
     # check all 
     for tool in tools:
-        # Ckeck whether it is a round robin sites
         # if not
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
             logging.info('First time for %s selected: %s ', tool.site_id,
                          sites[tool.site_id].server_id)
         else:
+            # Ckeck whether it is a round robin sites.
+            is_round_robin = false
+            for i in range(0, len(RoundRobinSites)):
+                if tool.site_id == RoundRobinSites[i]:
+                    # we need to decide whether
+                    is_round_robin = true
+                    if random.uniform(0, 1) > 1.0/RRCount[i]:
+                        sites[tool.site_id] = tool
+                    RRCount[i]++
+                    break
             # instead of always return mlab1, we pick one randomly.
             logging.info('Before %s', sites[tool.site_id].server_id)
             logging.info('new one: %s', tool.server_id)
-            sites[tool.site_id] = min(sites[tool.site_id],
-                                      tool,
-                                      key=lambda t: t.fqdn)
+            if not is_round_robin:
+                sites[tool.site_id] = min(sites[tool.site_id],
+                                          tool,
+                                          key=lambda t: t.fqdn)
             logging.info('After %s', sites[tool.site_id].server_id)
         # if Yes
         logging.info('here is for %s selected: %s ', tool.site_id,
