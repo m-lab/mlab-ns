@@ -87,11 +87,11 @@ def _filter_choose_one_host_per_site(tools):
                          sites[tool.site_id].server_id)
         else:
             # Ckeck whether it is a round robin sites.
-            is_round_robin = false
+            is_round_robin = False
             for i in range(0, len(RoundRobinSites)):
                 if tool.site_id == RoundRobinSites[i]:
                     # we need to decide whether
-                    is_round_robin = true
+                    is_round_robin = True
                     if random.uniform(0, 1) > 1.0/float(RRCount[i]):
                         sites[tool.site_id] = tool
                     RRCount[i] = RRCount[i] +1
