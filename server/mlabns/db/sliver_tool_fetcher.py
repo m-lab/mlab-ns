@@ -77,7 +77,7 @@ def _filter_choose_one_host_per_site(tools):
     is 1/n.
     """
     RoundRobinSites = ["yyz01", "yyz02", "lba01"]
-    RRCounter = [2, 2, 2]
+    RRCount = [2, 2, 2]
     for tool in tools:
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
