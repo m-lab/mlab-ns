@@ -157,33 +157,30 @@ class ToolFetcherCommonTests(object):
         self.insertCreatedTools()
 
     def initToolSetForRoundRobin(self):
-        self.createSliverTool(
-            tool_id='rr_tool',
-            site_id='test01',
-            server_id='mlab1',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE,
-            fqdn='rr_tool.mlab1.test01.measurement-lab.org')
-        self.createSliverTool(
-            tool_id='rr_tool',
-            site_id='test01',
-            server_id='mlab2',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE,
-            fqdn='rr_tool.mlab2.test01.measurement-lab.org')
-        self.createSliverTool(
-            tool_id='rr_tool',
-            site_id='test01',
-            server_id='mlab03',
-            country='CountryA',
-            status_ipv4=message.STATUS_ONLINE,
-            status_ipv6=message.STATUS_ONLINE,
-            fqdn='rr_tool.mlab3.test01.measurement-lab.org')
+        self.createSliverTool(tool_id='rr_tool',
+                              site_id='test01',
+                              server_id='mlab1',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE,
+                              fqdn='rr_tool.mlab1.test01.measurement-lab.org')
+        self.createSliverTool(tool_id='rr_tool',
+                              site_id='test01',
+                              server_id='mlab2',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE,
+                              fqdn='rr_tool.mlab2.test01.measurement-lab.org')
+        self.createSliverTool(tool_id='rr_tool',
+                              site_id='test01',
+                              server_id='mlab03',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE,
+                              fqdn='rr_tool.mlab3.test01.measurement-lab.org')
         self.insertCreatedTools()
         
-    def testRoundRonbin(self):
+    def testRoundRobin(self):
         self.initToolSetForRoundRobin()
         tool_properties = sliver_tool_fetcher.ToolProperties(
             tool_id='rr_tool')
