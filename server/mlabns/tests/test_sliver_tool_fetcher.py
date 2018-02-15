@@ -158,30 +158,46 @@ class ToolFetcherCommonTests(object):
 
     def initToolSetForRoundRobin(self):
         self.createSliverTool(
-            tool_id='rr_tool_a',
+            tool_id='rr_tool',
             site_id='test01',
             server_id='mlab1',
             country='CountryA',
             status_ipv4=message.STATUS_ONLINE,
             status_ipv6=message.STATUS_ONLINE,
-            fqdn='rr_tool_a.mlab1.test01.measurement-lab.org')
+            fqdn='rr_tool.mlab1.test01.measurement-lab.org')
         self.createSliverTool(
-            tool_id='rr_tool_b',
+            tool_id='rr_tool',
             site_id='test01',
             server_id='mlab2',
             country='CountryA',
             status_ipv4=message.STATUS_ONLINE,
             status_ipv6=message.STATUS_ONLINE,
-            fqdn='rr_tool_b.mlab2.test01.measurement-lab.org')
+            fqdn='rr_tool.mlab2.test01.measurement-lab.org')
         self.createSliverTool(
-            tool_id='rr_tool_c',
+            tool_id='rr_tool',
             site_id='test01',
             server_id='mlab03',
             country='CountryA',
             status_ipv4=message.STATUS_ONLINE,
             status_ipv6=message.STATUS_ONLINE,
-            fqdn='rr_tool_c.mlab3.test01.measurement-lab.org')
+            fqdn='rr_tool.mlab3.test01.measurement-lab.org')
         self.insertCreatedTools()
+        
+    def testRoundRonbin(self):
+        self.initToolSetForRoundRobin()
+        tool_properties = sliver_tool_fetcher.ToolProperties(
+            tool_id='rr_tool')
+        rr_counter = [0, 0, 0]
+        for i in range [1, 1000]:
+             tool = self.fetcher.fetch(tool_properties)
+             self.assertEqual(1, len(tool))
+             if tool[0].server_id == "mlab1":
+                 rr_counter[0]++
+             if tool[0].server_id == "mlab2":
+                 rr_counter[1]++
+             if tool[0].server_id == "mlab3":
+                 rr_counter[2]++
+        print rr_counter
         
     def testOnlyReturnMlab1(self):
         self.initToolIdSiteGroup()
