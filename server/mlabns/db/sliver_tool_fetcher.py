@@ -61,10 +61,10 @@ def _filter_choose_one_host_per_site(tools):
         A list containing a unique sliver tool for each site.
     """
     sites = {}
-    """ Round Robin Implemetation: we need to select a random one from
-    a sequence of servers (length n), with probability 1/n. While we dd
-    not know exactly the value of n.
-    The algorithm is like this: for site "abc01", the candidate server
+    """ Round Robin Implemetation: For one site, we need to select a 
+    random one from a sequence of servers (length n), with probability
+    1/n. While we do not know exactly the value of n.
+    The algorithm is like this: for site "abc01", the candidate servers
     could be mlab1, mlab2, mlab3, ....
     Keep the first server for that site.
     When we see the second server of this site, replace the first server
@@ -76,8 +76,8 @@ def _filter_choose_one_host_per_site(tools):
     When we keep doing this, the probability of each server got selected
     is 1/n.
     """
-    RoundRobinSites = ["yyz01", "yyz02", "lba01"]
-    RRCount = [2, 2, 2]
+    RoundRobinSites = ["yyz01", "yyz02", "lba01", "test01"]
+    RRCount = [2, 2, 2, 2]
     for tool in tools:
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
