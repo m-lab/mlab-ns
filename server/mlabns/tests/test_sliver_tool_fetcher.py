@@ -189,11 +189,11 @@ class ToolFetcherCommonTests(object):
              tool = self.fetcher.fetch(tool_properties)
              self.assertEqual(1, len(tool))
              if tool[0].server_id == "mlab1":
-                 rr_counter[0]++
+                 rr_counter[0] = rr_counter[0] + 1
              if tool[0].server_id == "mlab2":
-                 rr_counter[1]++
+                 rr_counter[1] = rr_counter[1] + 1
              if tool[0].server_id == "mlab3":
-                 rr_counter[2]++
+                 rr_counter[2] = rr_counter[2] + 1
         print rr_counter
         
     def testOnlyReturnMlab1(self):
