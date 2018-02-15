@@ -156,6 +156,33 @@ class ToolFetcherCommonTests(object):
             fqdn='mock_tool_c.mlab1.abc03.measurement-lab.org')
         self.insertCreatedTools()
 
+    def initToolSetForRoundRobin(self):
+        self.createSliverTool(
+            tool_id='rr_tool_a',
+            site_id='test01',
+            server_id='mlab1',
+            country='CountryA',
+            status_ipv4=message.STATUS_ONLINE,
+            status_ipv6=message.STATUS_ONLINE,
+            fqdn='rr_tool_a.mlab1.test01.measurement-lab.org')
+        self.createSliverTool(
+            tool_id='rr_tool_b',
+            site_id='test01',
+            server_id='mlab2',
+            country='CountryA',
+            status_ipv4=message.STATUS_ONLINE,
+            status_ipv6=message.STATUS_ONLINE,
+            fqdn='rr_tool_b.mlab2.test01.measurement-lab.org')
+        self.createSliverTool(
+            tool_id='rr_tool_c',
+            site_id='test01',
+            server_id='mlab03',
+            country='CountryA',
+            status_ipv4=message.STATUS_ONLINE,
+            status_ipv6=message.STATUS_ONLINE,
+            fqdn='rr_tool_c.mlab3.test01.measurement-lab.org')
+        self.insertCreatedTools()
+        
     def testOnlyReturnMlab1(self):
         self.initToolIdSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
