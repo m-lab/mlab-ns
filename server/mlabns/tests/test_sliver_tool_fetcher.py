@@ -195,7 +195,7 @@ class ToolFetcherCommonTests(object):
                 rr_counter[1] = rr_counter[1] + 1
             if tool[0].server_id == "mlab3":
                 rr_counter[2] = rr_counter[2] + 1
-        # Ideally each server should have count around 333.
+        # Ideally each server should have count around 3333.
         # The bar of the test was set for 10% variation due to the
         # random number simulation.
         self.assertGreater(rr_counter[0], 3000)
