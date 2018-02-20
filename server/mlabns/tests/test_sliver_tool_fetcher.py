@@ -179,14 +179,13 @@ class ToolFetcherCommonTests(object):
                               status_ipv4=message.STATUS_ONLINE,
                               status_ipv6=message.STATUS_ONLINE,
                               fqdn='rr_tool.mlab3.test01.measurement-lab.org',
-                              server_id='mlab03')
+                              server_id='mlab3')
         self.insertCreatedTools()
         
     def testRoundRobin(self):
         self.initToolSetForRoundRobin()
-        tool_properties = sliver_tool_fetcher.ToolProperties(
-            tool_id='rr_tool')
-        rr_counter = [0, 0, 0]
+        tool_properties = sliver_tool_fetcher.ToolProperties(tool_id='rr_tool')
+        rr_counter = [0, 0, 0, 0]
         for i in range(1, 1000):
              tool = self.fetcher.fetch(tool_properties)
              self.assertEqual(1, len(tool))
@@ -195,8 +194,11 @@ class ToolFetcherCommonTests(object):
              if tool[0].server_id == "mlab2":
                  rr_counter[1] = rr_counter[1] + 1
              if tool[0].server_id == "mlab3":
-                 rr_counter[2] = rr_counter[2] + 1
+                 rr_counter[2] = rr_counter[2] + 1 
         print rr_counter
+        self.assertGreater(rr_counter[0], 250)
+        self.assertGreater(rr_counter[1], 250)
+        self.assertGreater(rr_counter[2], 250)
         
     def testOnlyReturnMlab1(self):
         self.initToolIdSiteGroup()
