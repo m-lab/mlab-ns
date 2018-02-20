@@ -187,7 +187,7 @@ class ToolFetcherCommonTests(object):
         tool_properties = sliver_tool_fetcher.ToolProperties(
             tool_id='rr_tool')
         rr_counter = [0, 0, 0]
-        for i in range [1, 1000]:
+        for i in range(1, 1000):
              tool = self.fetcher.fetch(tool_properties)
              self.assertEqual(1, len(tool))
              if tool[0].server_id == "mlab1":
