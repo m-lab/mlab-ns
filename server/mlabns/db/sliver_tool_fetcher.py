@@ -91,7 +91,6 @@ def _filter_choose_one_host_per_site(tools):
                     if random.uniform(0, 1) < 1.0 / float(RRCount[i]):
                         sites[tool.site_id] = tool
                     RRCount[i] = RRCount[i] + 1
-                    logging.info('After %s', sites[tool.site_id].server_id)
                     break
             # For non-RR sites, we pick one randomly.
             if not is_round_robin:
