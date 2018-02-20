@@ -71,18 +71,16 @@ def _filter_choose_one_host_per_site(tools):
     with probability 1/2.
     When we see the third server of this site, replace the cached server
     with probability 1/3.
-    When we see the third server of this site, replace the cached server
+    When we see the fourth server of this site, replace the cached server
     with probability 1/4...
     When we keep doing this, the probability of each server got selected
     is 1/n.
     """
-    RoundRobinSites = ["yyz01", "yyz02", "lba01", "test01"]
-    RRCount = [2, 2, 2, 2]
+    RoundRobinSites = ["yyz01", "yyz02", "lba01", "syd02", "syd02", "test01"]
+    RRCount = [2, 2, 2, 2, 2, 2]
     for tool in tools:
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
-            logging.info('First time for %s selected: %s ', tool.site_id,
-                         sites[tool.site_id].server_id)
         else:
             # Check whether it is a round robin sites.
             is_round_robin = False
@@ -90,24 +88,16 @@ def _filter_choose_one_host_per_site(tools):
                 if tool.site_id == RoundRobinSites[i]:
                     # we need to decide whether
                     is_round_robin = True
-                    logging.info('Before RR %s', sites[tool.site_id].server_id)
-                    logging.info('new one: %s', tool.server_id)
                     if random.uniform(0, 1) < 1.0 / float(RRCount[i]):
                         sites[tool.site_id] = tool
                     RRCount[i] = RRCount[i] + 1
                     logging.info('After %s', sites[tool.site_id].server_id)
                     break
-            # instead of always return mlab1, we pick one randomly.
-            logging.info('Before %s', sites[tool.site_id].server_id)
-            logging.info('new one: %s', tool.server_id)
+            # For non-RR sites, we pick one randomly.
             if not is_round_robin:
                 sites[tool.site_id] = min(sites[tool.site_id],
                                           tool,
                                           key=lambda t: t.fqdn)
-            logging.info('After %s', sites[tool.site_id].server_id)
-        # if Yes
-        logging.info('here is for %s selected: %s ', tool.site_id,
-                     sites[tool.site_id].server_id)
     return [tool for tool in sites.values()]
 
 
