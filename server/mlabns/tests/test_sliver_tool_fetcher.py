@@ -186,7 +186,7 @@ class ToolFetcherCommonTests(object):
         self.initToolSetForRoundRobin()
         tool_properties = sliver_tool_fetcher.ToolProperties(tool_id='rr_tool')
         rr_counter = [0, 0, 0]
-        for i in range(1, 1000):
+        for i in range(1, 10000):
             tool = self.fetcher.fetch(tool_properties)
             self.assertEqual(1, len(tool))
             if tool[0].server_id == "mlab1":
@@ -195,10 +195,12 @@ class ToolFetcherCommonTests(object):
                 rr_counter[1] = rr_counter[1] + 1
             if tool[0].server_id == "mlab3":
                 rr_counter[2] = rr_counter[2] + 1
-        print rr_counter
-        self.assertGreater(rr_counter[0], 300)
-        self.assertGreater(rr_counter[1], 300)
-        self.assertGreater(rr_counter[2], 300)
+        # Ideally each server should have count around 333.
+        # The bar of the test was set for 10% variation due to the
+        # random number simulation.
+        self.assertGreater(rr_counter[0], 3000)
+        self.assertGreater(rr_counter[1], 3000)
+        self.assertGreater(rr_counter[2], 3000)
 
     def testOnlyReturnMlab1(self):
         self.initToolIdSiteGroup()
