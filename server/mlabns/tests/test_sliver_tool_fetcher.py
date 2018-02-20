@@ -194,12 +194,12 @@ class ToolFetcherCommonTests(object):
             if tool[0].server_id == "mlab2":
                 rr_counter[1] = rr_counter[1] + 1
             if tool[0].server_id == "mlab3":
-                rr_counter[2] = rr_counter[2] + 1 
+                rr_counter[2] = rr_counter[2] + 1
         print rr_counter
         self.assertGreater(rr_counter[0], 250)
         self.assertGreater(rr_counter[1], 250)
         self.assertGreater(rr_counter[2], 250)
-        
+
     def testOnlyReturnMlab1(self):
         self.initToolIdSiteGroup()
         tool_properties = sliver_tool_fetcher.ToolProperties(
