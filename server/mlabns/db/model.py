@@ -74,6 +74,9 @@ class Site(db.Model):
     # Date representing the registration time (the first time a new site
     # is added to mlab-ns).
     registration_timestamp = db.IntegerProperty(default=0)
+    
+    # Whether do round robin for this site. Default value is false.
+    roundrobin = db.BooleanProperty(required=False,default=False)
 
     # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
