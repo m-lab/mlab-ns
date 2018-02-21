@@ -131,6 +131,9 @@ transformers:
       external_name: registration_timestamp
       import_transform: transform.none_if_empty(int)
       export_transform: str
+      
+    - property: roundrobin
+      external_name: roundrobin
 
     - property: when
       external_name: when
