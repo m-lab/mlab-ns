@@ -166,6 +166,7 @@ class AdminHandler(webapp.RequestHandler):
             site_info['country'] = site.country
             site_info['latitude'] = site.latitude
             site_info['longitude'] = site.longitude
+            site_info['roundrobin'] = site.roundrobin
             site_info['sliver_tools'] = []
             site_dict[site.site_id] = site_info
             sites_per_city[site.city] = []
@@ -176,6 +177,7 @@ class AdminHandler(webapp.RequestHandler):
             sliver_tool_info['slice_id'] = sliver_tool.slice_id
             sliver_tool_info['tool_id'] = sliver_tool.tool_id
             sliver_tool_info['server_id'] = sliver_tool.server_id
+            sliver_tool_info['roundrobin'] = site_dict[sliver_tool.site_id]['roundrobin']
             if address_family == 'ipv4':
                 sliver_tool_info['status'] = sliver_tool.status_ipv4
             else:
