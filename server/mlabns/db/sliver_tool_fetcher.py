@@ -75,24 +75,23 @@ def _filter_choose_one_host_per_site(tools):
     with probability 1/4...
     When we keep doing this, the probability of each server got selected
     is 1/n.
+    Currently RoundRobinSites include "yyz01", "yyz02", "lba01", "syd02", "syd02".
     """
-    RoundRobinSites = ["yyz01", "yyz02", "lba01", "syd02", "syd02", "test01"]
-    RRCount = [2, 2, 2, 2, 2, 2]
+    RoundRobinCounter = {}
     for tool in tools:
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
         else:
-            # Check whether it is a round robin sites.
-            is_round_robin = False
-            for i in range(0, len(RoundRobinSites)):
-                if tool.site_id == RoundRobinSites[i]:
-                    is_round_robin = True
-                    if random.uniform(0, 1) < 1.0 / float(RRCount[i]):
-                        sites[tool.site_id] = tool
-                    RRCount[i] = RRCount[i] + 1
-                    break
-            # For non-RR sites, we pick one randomly.
-            if not is_round_robin:
+            if tool.roundrobin == true:
+                    if tool.site_id not in RoundRobinCounter:
+                        if random.uniform(0, 1) < 0.5:
+                            sites[tool.site_id] = tool
+                        RoundRobinCounter[tool.site_id] = 3
+                    else:
+                        if random.uniform(0, 1) < 1.0 / float(RoundRobinCounter[tool.site_id]):
+                            sites[tool.site_id] = tool
+                        RoundRobinCounter[tool.site_id] = RoundRobinCounter[tool.site_id] + 1 
+            else:
                 sites[tool.site_id] = min(sites[tool.site_id],
                                           tool,
                                           key=lambda t: t.fqdn)
