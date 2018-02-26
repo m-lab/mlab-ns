@@ -83,14 +83,14 @@ def _filter_choose_one_host_per_site(tools):
             sites[tool.site_id] = tool
         else:
             if tool.roundrobin == True:
-                    if tool.site_id not in RoundRobinCounter:
-                        if random.uniform(0, 1) < 0.5:
-                            sites[tool.site_id] = tool
-                        RoundRobinCounter[tool.site_id] = 3
-                    else:
-                        if random.uniform(0, 1) < 1.0 / float(RoundRobinCounter[tool.site_id]):
-                            sites[tool.site_id] = tool
-                        RoundRobinCounter[tool.site_id] = RoundRobinCounter[tool.site_id] + 1 
+                if tool.site_id not in RoundRobinCounter:
+                    if random.uniform(0, 1) < 0.5:
+                        sites[tool.site_id] = tool
+                    RoundRobinCounter[tool.site_id] = 3
+                else:
+                    if random.uniform(0, 1) < 1.0 / float(RoundRobinCounter[tool.site_id]):
+                        sites[tool.site_id] = tool
+                    RoundRobinCounter[tool.site_id] = RoundRobinCounter[tool.site_id] + 1 
             else:
                 sites[tool.site_id] = min(sites[tool.site_id],
                                           tool,
