@@ -82,7 +82,7 @@ def _filter_choose_one_host_per_site(tools):
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
         else:
-            if tool.roundrobin == true:
+            if tool.roundrobin == True:
                     if tool.site_id not in RoundRobinCounter:
                         if random.uniform(0, 1) < 0.5:
                             sites[tool.site_id] = tool
