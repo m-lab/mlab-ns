@@ -160,25 +160,25 @@ class ToolFetcherCommonTests(object):
 
     def initToolSetForRoundRobin(self):
         self.createSliverTool(tool_id='rr_tool',
-                              site_id='test01',
+                              site_id='yyz01',
                               country='CountryA',
                               status_ipv4=message.STATUS_ONLINE,
                               status_ipv6=message.STATUS_ONLINE,
-                              fqdn='rr_tool.mlab1.test01.measurement-lab.org',
+                              fqdn='rr_tool.mlab1.yyz01.measurement-lab.org',
                               server_id='mlab1')
         self.createSliverTool(tool_id='rr_tool',
-                              site_id='test01',
+                              site_id='yyz01',
                               country='CountryA',
                               status_ipv4=message.STATUS_ONLINE,
                               status_ipv6=message.STATUS_ONLINE,
-                              fqdn='rr_tool.mlab2.test01.measurement-lab.org',
+                              fqdn='rr_tool.mlab2.yyz01.measurement-lab.org',
                               server_id='mlab2')
         self.createSliverTool(tool_id='rr_tool',
-                              site_id='test01',
+                              site_id='yyz01',
                               country='CountryA',
                               status_ipv4=message.STATUS_ONLINE,
                               status_ipv6=message.STATUS_ONLINE,
-                              fqdn='rr_tool.mlab3.test01.measurement-lab.org',
+                              fqdn='rr_tool.mlab3.yyz01.measurement-lab.org',
                               server_id='mlab3')
         self.insertCreatedTools()
 
