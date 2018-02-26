@@ -38,6 +38,7 @@ class SliverTool(db.Model):
     longitude = db.FloatProperty()
     city = db.StringProperty()
     country = db.StringProperty()
+    roundrobin = db.BooleanProperty(required=False, default=False)
 
     # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
