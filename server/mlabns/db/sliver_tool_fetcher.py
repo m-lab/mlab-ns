@@ -55,7 +55,7 @@ def _filter_choose_one_host_per_site(tools):
     This filter should be run after _filter_by_status if you want to make sure
     the chosen site is up.
 
-    Round Robin Implemetation: For one site, we need to select a 
+    Round Robin Implemetation: For one site, we need to select a
     random one from a sequence of servers (length n), with probability
     1/n. While we do not know exactly the value of n.
     The algorithm is like this: for site "abc01", the candidate servers
@@ -70,7 +70,7 @@ def _filter_choose_one_host_per_site(tools):
     When we keep doing this, the probability of each server got selected
     is 1/n.
     Currently RoundRobinSites include "yyz01", "lba01", "syd01", "syd02".
-    
+   
     Args:
         tools: The list of sliver tools to filter.
 
