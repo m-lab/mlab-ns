@@ -70,7 +70,7 @@ def _filter_choose_one_host_per_site(tools):
     When we keep doing this, the probability of each server got selected
     is 1/n.
     Currently RoundRobinSites include "yyz01", "lba01", "syd01", "syd02".
-   
+
     Args:
         tools: The list of sliver tools to filter.
 
