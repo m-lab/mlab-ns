@@ -159,6 +159,7 @@ class AdminHandler(webapp.RequestHandler):
         sites = model.Site.gql('ORDER BY site_id DESC')
         site_dict = {}
         sites_per_city = {}
+        logging.info(len(sites))
         for site in sites:
             site_info = {}
             site_info['site_id'] = site.site_id
