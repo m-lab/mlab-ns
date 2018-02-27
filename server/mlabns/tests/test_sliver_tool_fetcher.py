@@ -195,14 +195,14 @@ class ToolFetcherCommonTests(object):
             tool = self.fetcher.fetch(tool_properties)
             self.assertEqual(1, len(tool))
             if tool[0].server_id == "mlab1":
-                rr_counter[0] = rr_counter[0] + 1
+                rr_counter[0] += 1
             if tool[0].server_id == "mlab2":
-                rr_counter[1] = rr_counter[1] + 1
+                rr_counter[1] += 1
             if tool[0].server_id == "mlab3":
-                rr_counter[2] = rr_counter[2] + 1
+                rr_counter[2] += 1
         # Ideally each server should have count around 3333.
-        # The bar of the test was set for 10% variation due to the
-        # random number simulation.
+        # The bar of the test was set for 10% to allow for variation
+        # caused by randomness of site selection.
         self.assertGreater(rr_counter[0], 3000)
         self.assertGreater(rr_counter[1], 3000)
         self.assertGreater(rr_counter[2], 3000)
