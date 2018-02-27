@@ -1,3 +1,4 @@
+from collections import defaultdict
 from functools import partial
 import logging
 import random
@@ -77,7 +78,7 @@ def _filter_choose_one_host_per_site(tools):
         A list containing a unique sliver tool for each site.
     """
     sites = {}
-    RoundRobinCounter = collections.defaultdict(lambda: 2)
+    RoundRobinCounter = defaultdict(lambda: 2)
     for tool in tools:
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
