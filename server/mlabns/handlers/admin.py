@@ -166,7 +166,7 @@ class AdminHandler(webapp.RequestHandler):
             site_info['country'] = site.country
             site_info['latitude'] = site.latitude
             site_info['longitude'] = site.longitude
-            if site.site_id == 'syd02' || site.site_id == 'syd01':
+            if site.site_id == 'syd02' or site.site_id == 'syd01':
                 logging.info(site.site_id)
                 logging.info(site.roundrobin)
             site_info['roundrobin'] = site.roundrobin
