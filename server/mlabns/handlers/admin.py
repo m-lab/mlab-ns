@@ -167,8 +167,8 @@ class AdminHandler(webapp.RequestHandler):
             site_info['country'] = site.country
             site_info['latitude'] = site.latitude
             site_info['longitude'] = site.longitude
-            if site.site_id == 'syd01':
-                logging.info('here is rr for syd01: ')
+            if site.site_id == 'syd02':
+                logging.info('here is rr for syd02: ')
                 logging.info(site.roundrobin)
             site_info['roundrobin'] = site.roundrobin
             site_info['sliver_tools'] = []
@@ -183,8 +183,8 @@ class AdminHandler(webapp.RequestHandler):
             sliver_tool_info['server_id'] = sliver_tool.server_id
             sliver_tool_info['roundrobin'] = site_dict[sliver_tool.site_id][
                 'roundrobin']
-            if sliver_tool.site_id == 'syd01':
-                logging.info('here is rr for syd01 again: ')
+            if sliver_tool.site_id == 'syd02':
+                logging.info('here is rr for syd02 again: ')
                 logging.info(sliver_tool_info['roundrobin'])
             if address_family == 'ipv4':
                 sliver_tool_info['status'] = sliver_tool.status_ipv4
