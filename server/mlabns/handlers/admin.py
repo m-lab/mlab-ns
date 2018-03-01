@@ -1,5 +1,4 @@
 from django.utils import simplejson
-import logging
 from google.appengine.api import memcache
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -166,9 +165,6 @@ class AdminHandler(webapp.RequestHandler):
             site_info['country'] = site.country
             site_info['latitude'] = site.latitude
             site_info['longitude'] = site.longitude
-            if site.site_id == 'syd02' or site.site_id == 'syd01':
-                logging.info(site.site_id)
-                logging.info(site.roundrobin)
             site_info['roundrobin'] = site.roundrobin
             site_info['sliver_tools'] = []
             site_dict[site.site_id] = site_info
@@ -182,9 +178,6 @@ class AdminHandler(webapp.RequestHandler):
             sliver_tool_info['server_id'] = sliver_tool.server_id
             sliver_tool_info['roundrobin'] = site_dict[sliver_tool.site_id][
                 'roundrobin']
-            if sliver_tool.site_id == 'syd02':
-                logging.info('here is rr for syd02 again: ')
-                logging.info(sliver_tool_info['roundrobin'])
             if address_family == 'ipv4':
                 sliver_tool_info['status'] = sliver_tool.status_ipv4
             else:
