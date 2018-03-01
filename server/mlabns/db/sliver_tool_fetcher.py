@@ -83,9 +83,6 @@ def _filter_choose_one_host_per_site(tools):
         if tool.site_id not in sites:
             sites[tool.site_id] = tool
         else:
-            if tool.site_id == 'syd02':
-                logging.info('here is for syd02:')
-                logging.info(tool.roundrobin)
             if tool.roundrobin == True:
                 if random.uniform(
                         0, 1) < 1.0 / float(RoundRobinCounter[tool.site_id]):
