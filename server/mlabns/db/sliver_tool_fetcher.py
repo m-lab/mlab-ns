@@ -84,8 +84,8 @@ def _filter_choose_one_host_per_site(tools):
             sites[tool.site_id] = tool
         else:
             if tool.roundrobin == True:
-                if random.uniform(
-                        0, 1) < 1.0 / float(RoundRobinCounter[tool.site_id]):
+                threshold = 1.0 / float(RoundRobinCounter[tool.site_id])
+                if random.uniform(0, 1) < threshold:
                     sites[tool.site_id] = tool
                 RoundRobinCounter[tool.site_id] += 1
             else:
