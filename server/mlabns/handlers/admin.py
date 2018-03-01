@@ -159,7 +159,6 @@ class AdminHandler(webapp.RequestHandler):
         sites = model.Site.gql('ORDER BY site_id DESC')
         site_dict = {}
         sites_per_city = {}
-        logging.info(len(sites))
         for site in sites:
             site_info = {}
             site_info['site_id'] = site.site_id
@@ -167,8 +166,8 @@ class AdminHandler(webapp.RequestHandler):
             site_info['country'] = site.country
             site_info['latitude'] = site.latitude
             site_info['longitude'] = site.longitude
-            if site.site_id == 'syd02':
-                logging.info('here is rr for syd02: ')
+            if site.site_id == 'syd02' || site.site_id == 'syd01':
+                logging.info(site.site_id)
                 logging.info(site.roundrobin)
             site_info['roundrobin'] = site.roundrobin
             site_info['sliver_tools'] = []
