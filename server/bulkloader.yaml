@@ -132,6 +132,9 @@ transformers:
       import_transform: transform.none_if_empty(int)
       export_transform: str
 
+    - property: roundrobin
+      external_name: roundrobin
+
     - property: when
       external_name: when
       import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
