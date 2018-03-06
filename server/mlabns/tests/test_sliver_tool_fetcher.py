@@ -32,7 +32,7 @@ class SliverToolFetcherTestCase(unittest.TestCase):
 
         self.fetcher = sliver_tool_fetcher.SliverToolFetcher()
 
-    """def testFetchDoesNotHitDatastoreIfMemcacheHasRequiredData(self):
+    def testFetchDoesNotHitDatastoreIfMemcacheHasRequiredData(self):
         # The mock response is just ints here for simplicity, though the real
         # function returns SliverTool objects.
         mock_memcache_response = [1, 2, 3]
@@ -45,7 +45,7 @@ class SliverToolFetcherTestCase(unittest.TestCase):
 
         # Verify that we did not attempt to read from the Datastore
         self.assertFalse(sliver_tool_fetcher.SliverToolFetcherDatastore(
-        ).fetch.called)"""
+        ).fetch.called)
 
     def testFetchFailsOverToDatastoreWhenDataIsNotInMemcache(self):
         sliver_tool_fetcher.SliverToolFetcherMemcache().fetch.return_value = []
