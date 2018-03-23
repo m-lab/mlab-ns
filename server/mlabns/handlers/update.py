@@ -66,7 +66,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         try:
             project = app_identity.get_application_id()
             logging.error(project)
-            if project is not None and project.find('testing') is not -1:
+            if project is not None and project == 'mlab-nstesting':
                 nagios_sites_json = json.loads(urllib2.urlopen(
                     self.TESTING_SITE_LIST_URL).read())
             else:
