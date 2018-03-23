@@ -67,11 +67,11 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             project = os.getenv("GCLOUD_PROJECT")
             print project
             if project is not None and project.find('testing') is not -1:
-              nagios_sites_json = json.loads(urllib2.urlopen(
-                  self.TESTING_SITE_LIST_URL).read())
+                nagios_sites_json = json.loads(urllib2.urlopen(
+                    self.TESTING_SITE_LIST_URL).read())
             else:
-              nagios_sites_json = json.loads(urllib2.urlopen(
-                  self.SITE_LIST_URL).read())
+                nagios_sites_json = json.loads(urllib2.urlopen(
+                    self.SITE_LIST_URL).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', self.SITE_LIST_URL)
