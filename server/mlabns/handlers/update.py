@@ -66,7 +66,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         try:
             project = os.getenv("GCLOUD_PROJECT")
             print project
-            if project.find('testing') is not -1:
+            if project is not None and project.find('testing') is not -1:
               nagios_sites_json = json.loads(urllib2.urlopen(
                   self.TESTING_SITE_LIST_URL).read())
             else:
