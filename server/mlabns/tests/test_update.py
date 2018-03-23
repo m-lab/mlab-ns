@@ -60,7 +60,7 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.assertTrue(util.send_success.called)
 
         self.assertFalse(model.Site.called,
-                         'Test site should not be added to the datastore')"""
+                         'Test site should not be added to the datastore')
 
 
 if __name__ == '__main__':
