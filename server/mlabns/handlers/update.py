@@ -1,9 +1,9 @@
 import json
 import logging
-import os
 import time
 import urllib2
 
+from google.appengine.api import app_identity
 from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -64,7 +64,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         Checks if new sites were added to Nagios and registers them.
         """
         try:
-            project = os.getenv("GCLOUD_PROJECT")
+            project = = app_identity.get_application_id()
             logging.error(project)
             if project is not None and project.find('testing') is not -1:
                 nagios_sites_json = json.loads(urllib2.urlopen(
