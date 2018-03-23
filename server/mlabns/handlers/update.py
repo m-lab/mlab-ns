@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import time
 import urllib2
 
@@ -31,6 +32,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                        LAT_FIELD, LON_FIELD]
     SITE_LIST_URL = 'http://nagios.measurementlab.net/mlab-site-stats.json'
+    TESTING_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/sites/mlab-site-stats.json'
 
     @classmethod
     def _is_valid_site(cls, site):
@@ -62,8 +64,14 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         Checks if new sites were added to Nagios and registers them.
         """
         try:
-            nagios_sites_json = json.loads(urllib2.urlopen(
-                self.SITE_LIST_URL).read())
+            project = os.getenv("GCLOUD_PROJECT")
+            print project
+            if project.find('testing') is not -1:
+              nagios_sites_json = json.loads(urllib2.urlopen(
+                  self.TESTING_SITE_LIST_URL).read())
+            else:
+              nagios_sites_json = json.loads(urllib2.urlopen(
+                  self.SITE_LIST_URL).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', self.SITE_LIST_URL)
