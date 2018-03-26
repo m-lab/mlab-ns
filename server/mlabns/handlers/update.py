@@ -28,6 +28,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     COUNTRY_FIELD = 'country'
     LAT_FIELD = 'latitude'
     LON_FIELD = 'longitude'
+    ROUNDROBIN_FIELD = 'roundrobin'
 
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                        LAT_FIELD, LON_FIELD]
@@ -90,6 +91,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 continue
             valid_nagios_sites_json.append(nagios_site)
             nagios_site_ids.add(nagios_site[self.SITE_FIELD])
+            if nagios_site[self.ROUNDROBIN_FIELD]:
+                logging.error('find rr site %s.', nagios_site[self.SITE_FIELD])
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
