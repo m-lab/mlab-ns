@@ -31,7 +31,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     ROUNDROBIN_FIELD = 'roundrobin'
 
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
-                       LAT_FIELD, LON_FIELD]
+                       LAT_FIELD, LON_FIELD, ROUNDROBIN_FIELD]
     SITE_LIST_URL = 'http://nagios.measurementlab.net/mlab-site-stats.json'
     TESTING_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/sites/mlab-site-stats.json'
 
@@ -149,7 +149,10 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                           longitude=lon_long,
                           metro=nagios_site[self.METRO_FIELD],
                           registration_timestamp=long(time.time()),
-                          key_name=nagios_site[self.SITE_FIELD])
+                          key_name=nagios_site[self.SITE_FIELD],
+                          roundrobin=nagios_site[self.ROUNDROBIN_FIELD])
+        if nagios_site[self.ROUNDROBIN_FIELD]:
+            logging.error('register rr site %s.', nagios_site[self.SITE_FIELD])
 
         try:
             site.put()
