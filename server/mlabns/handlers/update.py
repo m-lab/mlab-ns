@@ -140,7 +140,6 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         """
         self.register_site(nagios_site)
 
-
     def register_site(self, nagios_site):
         """Registers a new site.
 
