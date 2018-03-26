@@ -114,6 +114,10 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                          self.SITE_LIST_URL)
 
         for nagios_site in valid_nagios_sites_json:
+            if (nagios_site[self.SITE_FIELD] in unchanged_site_ids):
+                self.update_site(nagios_site)
+
+        for nagios_site in valid_nagios_sites_json:
             if (nagios_site[self.SITE_FIELD] in new_site_ids):
                 logging.info('Registering site %s.',
                              nagios_site[self.SITE_FIELD])
@@ -124,6 +128,18 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                     continue
 
         return util.send_success(self)
+
+    def update_site(self, nagios_site):
+        """Update an existing site.
+
+        Args:
+            nagios_site: A json representing the site info as provided by Nagios.
+
+        Returns:
+            True if the update succeeds, False otherwise.
+        """
+        self.register_site(nagios_site)
+
 
     def register_site(self, nagios_site):
         """Registers a new site.
