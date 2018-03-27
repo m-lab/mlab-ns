@@ -309,7 +309,7 @@ class IPUpdateHandler(webapp.RequestHandler):
             return updated
 
     def put_sliver_tool(self, sliver_tool):
-        try:
+        """try:
             sliver_tool.put()
             logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
                          sliver_tool.fqdn, sliver_tool.sliver_ipv4,
@@ -317,7 +317,14 @@ class IPUpdateHandler(webapp.RequestHandler):
         except db.TransactionFailedError:
             logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
-                          sliver_tool.sliver_ipv6)
+                          sliver_tool.sliver_ipv6)"""
+        # Update memcache WHENEVER datastore got updated. Otherwise
+        # the out-of-date memcache will revert the DS change in check_status
+        # next minute.
+        if not memcache.set(sliver_tool.tool_id,
+            sliver_tool,
+            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+            logging.error('Failed to update sliver IP addresses in memcache.')
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
         sliver_tool_id = model.get_sliver_tool_id(tool.tool_id, tool.slice_id,
