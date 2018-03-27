@@ -322,8 +322,8 @@ class IPUpdateHandler(webapp.RequestHandler):
         # the out-of-date memcache will revert the DS change in check_status
         # next minute.
         if not memcache.set(sliver_tool.tool_id,
-            sliver_tool,
-            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                            sliver_tool,
+                            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
             logging.error('Failed to update sliver IP addresses in memcache.')
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
