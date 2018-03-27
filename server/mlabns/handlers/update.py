@@ -317,7 +317,8 @@ class IPUpdateHandler(webapp.RequestHandler):
         except db.TransactionFailedError:
             logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
-                          sliver_tool.sliver_ipv6)"""
+                          sliver_tool.sliver_ipv6)
+        """
         # Update memcache WHENEVER datastore got updated. Otherwise
         # the out-of-date memcache will revert the DS change in check_status
         # next minute.
