@@ -158,9 +158,9 @@ class SliverToolFetcher(object):
         Returns:
             A list of SliverTool objects that match the specified criteria.
         """
-        #results = self._memcache_fetcher.fetch(tool_properties)
-        #if results:
-        #    return results
+        results = self._memcache_fetcher.fetch(tool_properties)
+        if results:
+            return results
 
         logging.info(
             'Sliver tools not found in memcache, falling back to data store.')
