@@ -112,8 +112,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         for nagios_site in valid_nagios_sites_json:
             if (nagios_site[self.SITE_FIELD] in new_site_ids) or (
                     nagios_site[self.SITE_FIELD] in unchanged_site_ids):
-                logging.info('Update site %s.',
-                             nagios_site[self.SITE_FIELD])
+                logging.info('Update site %s.', nagios_site[self.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
                 if not self.update_site(nagios_site):
                     logging.error('Error updating site %s.',
