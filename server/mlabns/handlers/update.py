@@ -340,6 +340,7 @@ class IPUpdateHandler(webapp.RequestHandler):
             tool_extra="",
             latitude=site.latitude,
             longitude=site.longitude,
+            roundrobin=site.roundrobin,
             city=site.city,
             country=site.country,
             update_request_timestamp=long(time.time()),
