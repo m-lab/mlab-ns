@@ -109,39 +109,20 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.warning('Site %s removed from %s.', site_id,
                             self.SITE_LIST_URL)
 
-        for site_id in unchanged_site_ids:
-            logging.info('Site %s unchanged in %s.', site_id,
-                         self.SITE_LIST_URL)
-
         for nagios_site in valid_nagios_sites_json:
-            if (nagios_site[self.SITE_FIELD] in unchanged_site_ids):
-                self.update_site(nagios_site)
-
-        for nagios_site in valid_nagios_sites_json:
-            if (nagios_site[self.SITE_FIELD] in new_site_ids):
-                logging.info('Registering site %s.',
+            if (nagios_site[self.SITE_FIELD] in new_site_ids) or (nagios_site[self.SITE_FIELD] in unchanged_site_ids):
+                logging.info('Update site %s.',
                              nagios_site[self.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
-                if not self.register_site(nagios_site):
-                    logging.error('Error registering site %s.',
+                if not self.update_site(nagios_site):
+                    logging.error('Error updating site %s.',
                                   nagios_site[self.SITE_FIELD])
                     continue
 
         return util.send_success(self)
 
     def update_site(self, nagios_site):
-        """Update an existing site.
-
-        Args:
-            nagios_site: A json representing the site info as provided by Nagios.
-
-        Returns:
-            True if the update succeeds, False otherwise.
-        """
-        self.register_site(nagios_site)
-
-    def register_site(self, nagios_site):
-        """Registers a new site.
+        """Update a site.
 
         Args:
             nagios_site: A json representing the site info as provided by Nagios.
