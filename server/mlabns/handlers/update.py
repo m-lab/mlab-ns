@@ -310,6 +310,7 @@ class IPUpdateHandler(webapp.RequestHandler):
 
     def put_sliver_tool(self, sliver_tool):
         """try:
+
             sliver_tool.put()
             logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
                          sliver_tool.fqdn, sliver_tool.sliver_ipv4,
