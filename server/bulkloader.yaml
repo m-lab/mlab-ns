@@ -228,6 +228,9 @@ transformers:
     - property: http_port
       external_name: http_port
 
+    - property: source
+      external_name: source
+
     - property: show_tool_extra
       external_name: show_tool_extra
       import_transform: transform.regexp_bool('true', re.IGNORECASE)
