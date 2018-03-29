@@ -124,9 +124,17 @@ class Tool(db.Model):
     # redirected to: http://fqdn[ipv4|ipv6]:http_port
     http_port = db.StringProperty()
     show_tool_extra = db.BooleanProperty()
+    status_source = db.StringProperty()
 
 
 class Nagios(db.Model):
+    key_id = db.StringProperty()
+    username = db.StringProperty()
+    password = db.StringProperty()
+    url = db.StringProperty()
+
+
+class Prometheus(db.Model):
     key_id = db.StringProperty()
     username = db.StringProperty()
     password = db.StringProperty()
