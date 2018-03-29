@@ -20,8 +20,9 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.addCleanup(urlopen_patch.stop)
         urlopen_patch.start()
 
-        get_application_id_patch = mock.patch.object(
-            app_identity, 'get_application_id', autospec=True)
+        get_application_id_patch = mock.patch.object(app_identity,
+                                                     'get_application_id',
+                                                     autospec=True)
         self.addCleanup(get_application_id_patch.stop)
         get_application_id_patch.start()
 

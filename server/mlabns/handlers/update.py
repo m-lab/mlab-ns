@@ -81,8 +81,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.error('Cannot open %s.', self.SITE_LIST_URL)
             return util.send_not_found(self)
         except (TypeError, ValueError) as e:
-            logging.error('The json format of %s in not valid: %s',
-                          json_file, e)
+            logging.error('The json format of %s in not valid: %s', json_file,
+                          e)
             return util.send_not_found(self)
 
         nagios_site_ids = set()
