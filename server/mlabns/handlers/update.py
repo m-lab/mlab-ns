@@ -368,12 +368,12 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 if tool.status_source == 'prometheus':
                     logging.info('Status source for %s is: prometheus' % tool_id)
                     slice_info = prometheus_status.get_slice_info(prometheus_config.url, tool_id, address_family)
-                    logging.info('Status URL for % is: %s' % (tool_id, slice_info.slice_url))
+                    logging.info('Status URL for %s is: %s' % (tool_id, slice_info.slice_url))
                     slice_status = prometheus_status.get_slice_status(slice_info.slice_url, tool.slice_id)
                 elif tool.status_source == 'nagios':
                     logging.info('Status source for %s is: nagios' % tool_id)
                     slice_info = nagios_status.get_slice_info(nagios_config.url, tool_id, address_family)
-                    logging.info('Status URL for % is: %s' % (tool_id, slice_info.slice_url))
+                    logging.info('Status URL for %s is: %s' % (tool_id, slice_info.slice_url))
                     slice_status = nagios_status.get_slice_status(slice_info.slice_url)
                 else:
                     logging.error('Unknown tool status_source: %s.', status_source)
