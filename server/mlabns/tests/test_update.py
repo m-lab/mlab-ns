@@ -31,7 +31,7 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.addCleanup(util_patch.stop)
         util_patch.start()
 
-    def XtestGetIgnoresTestSites(self):
+    def testGetIgnoresTestSites(self):
         """Test sites should not be processed in the sites update."""
         urllib2.urlopen.return_value = StringIO.StringIO("""[
 {
