@@ -9,10 +9,12 @@ from google.appengine.ext import webapp
 
 from mlabns.db import model
 from mlabns.db import nagios_config_wrapper
+from mlabns.db import prometheus_config_wrapper
 from mlabns.db import sliver_tool_fetcher
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import nagios_status
+from mlabns.util import prometheus_status
 from mlabns.util import production_check
 from mlabns.util import util
 
@@ -337,28 +339,41 @@ class IPUpdateHandler(webapp.RequestHandler):
 
 
 class StatusUpdateHandler(webapp.RequestHandler):
-    """Updates SliverTools' status from Nagios."""
+    """Updates SliverTools' status."""
 
     def get(self):
         """Triggers the update handler.
 
-        Updates sliver status with information from Nagios. The Nagios URL
-        containing the information is stored in the Nagios db along with
-        the credentials necessary to access the data.
+        Updates sliver status with information from either Nagios or Prometheus.
+        The URLs containing the information are stored in the datastore along
+        with the credentials necessary to access the data.
         """
-        nagios = nagios_config_wrapper.get_nagios_config()
-        if nagios is None:
-            logging.error('Datastore does not have the Nagios credentials.')
-            return util.send_not_found(self)
+        for tool_id in model.get_all_tool_ids():
+            tool = model.get_tool_from_tool_id(tool_id)
+            if tool.status_source == 'prometheus':
+                prometheus = prometheus_config_wrapper.get_prometheus_config()
+                if prometheus is None:
+                    logging.error('Datastore does not have the Prometheus credentials.')
+                    return util.send_not_found(self)
+                prometheus_status.authenticate_prometheus(prometheus)
+                slice_info = prometheus_status.get_slice_info(prometheus.url):
+                slice_status = prometheus_status.get_slice_status(slice_info.slice_url)
+            elif tool.status_source == 'nagios':
+                nagios = nagios_config_wrapper.get_nagios_config()
+                if nagios is None:
+                    logging.error('Datastore does not have the Nagios credentials.')
+                    return util.send_not_found(self)
+                nagios_status.authenticate_nagios(nagios)
+                slice_info = nagios_status.get_slice_info(nagios.url):
+                slice_status = nagios_status.get_slice_status(slice_info.slice_url)
+            else:
+                logging.error('Unknown tool status_source: %s.', status_source)
+                continue
 
-        nagios_status.authenticate_nagios(nagios)
-
-        for slice_info in nagios_status.get_slice_info(nagios.url):
-
-            slice_status = nagios_status.get_slice_status(slice_info.slice_url)
             if slice_status:
                 self.update_sliver_tools_status(
                     slice_status, slice_info.tool_id, slice_info.address_family)
+
         return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
@@ -378,7 +393,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for sliver_tool in sliver_tools:
 
             if sliver_tool.fqdn not in slice_status:
-                logging.info('Nagios does not know sliver %s.',
+                logging.info('Prometheus does not know sliver %s.',
                              sliver_tool.fqdn)
                 continue
 
