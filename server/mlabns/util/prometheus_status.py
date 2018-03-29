@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 import urllib
@@ -71,35 +72,21 @@ def authenticate_prometheus(prometheus):
     urllib2.install_opener(opener)
 
 
-def parse_sliver_tool_status(status):
+def parse_sliver_tool_status(status, slice_id):
     """Parses the status of a single sliver tool.
-
-    This status is returned from Prometheus, the M-Lab monitoring system.
-    Expected form is [fqdn][state][state type][extra notes]
-
-    Ex:
-        ndt.foo.measurement-lab.org/ndt 0 1 TCP OK - 0.242 second response time
 
     Args:
         status: One line corresponding to the status of a sliver tool.
+        slice_id: str, the name of the slice (e.g., iupui_ndt).
 
     Returns:
         Tuple of the form (sliver fqdn, current state, extra information)
-
-    Raises:
-        PrometheusStatusUnparseableError: Error can be triggered by empty statuses
-            or statuses that can't be separated into exactly four fields.
     """
-    sliver_fields = re.split(r'\s+', status.strip(), maxsplit=3)
+    experiment = '.'.join(slice_id.split('_')[::-1])
 
-    if len(sliver_fields) != 4:
-        raise PrometheusStatusUnparseableError(
-            'Prometheus status missing or unparseable: %s' % status)
-
-    slice_fqdn = sliver_fields[0]
-    state = sliver_fields[1]
-    tool_extra = sliver_fields[3]
-    sliver_fqdn = slice_fqdn.split('/')[0]
+    slice_fqdn = '.'.join(experiment, status['metric']['machine'])
+    state = status['value'][1]
+    tool_extra = status['value'][0]
 
     return sliver_fqdn, state, tool_extra
 
@@ -161,11 +148,12 @@ def get_slice_info(prometheus_base_url):
     return slice_objects
 
 
-def get_slice_status(url):
+def get_slice_status(url, slice_id):
     """Read slice status from Prometheus.
 
     Args:
-        url: String representing the URL to Prometheus for a single slice.
+        url: str, the API URL for Prometheus for a single tool.
+        slice_id: str, the name of the slice (e.g., iupui_ndt).
 
     Returns:
         A dict mapping sliver fqdn to a dictionary representing the sliver's
@@ -175,34 +163,36 @@ def get_slice_status(url):
             'foo.mlab1.site1.measurement-lab.org': {
                 'status': 'online',
                 'tool_extra': 'example tool extra'
-                }
+            }
         }
 
         None if Prometheus status is blank or url is inaccessible.
     """
     status = {}
     try:
-        lines = urllib2.urlopen(url).read().strip('\n').split('\n')
+        data = urllib2.urlopen(url).read()
     except urllib2.HTTPError:
         # TODO(claudiu) Notify(email) when this happens.
         logging.error('Cannot open %s.', url)
         return None
 
-    lines = filter(lambda x: not x.isspace(), lines)
-    if not lines:
-        logging.info('Prometheus gave empty response for sliver status at the' \
-                     'following url: %s',url)
+    statuses = json.loads(raw_data)
+
+    if statuses['status'] == 'error':
+        logging.info('Prometheus returned error "%s" for URL %s.'
+                     % (statuses['error'], url)
         return None
 
-    for line in lines:
+    for status in statuses['data']['result']:
         try:
-            sliver_fqdn, state, tool_extra = parse_sliver_tool_status(line)
+            sliver_fqdn, state, tool_extra = parse_sliver_tool_status(status,
+                    slice_id)
         except PrometheusStatusUnparseableError as e:
             logging.error('Unable to parse Prometheus sliver status. %s', e)
             continue
 
         status[sliver_fqdn] = {'tool_extra': tool_extra}
-        if state == constants.NAGIOS_SERVICE_STATUS_OK:
+        if state == constants.PROMETHEUS_SERVICE_STATUS_OK:
             status[sliver_fqdn]['status'] = message.STATUS_ONLINE
         else:
             status[sliver_fqdn]['status'] = message.STATUS_OFFLINE
