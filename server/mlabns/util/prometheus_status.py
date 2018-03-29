@@ -147,7 +147,7 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
 
     query = urllib.quote_plus(queries[tool_id + address_family])
     slice_url = prometheus_base_url + query
-    return PrometheusSliceInfo(slice_url, tool_id, address_family))
+    return PrometheusSliceInfo(slice_url, tool_id, address_family)
 
 
 def get_slice_status(url, slice_id):

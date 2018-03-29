@@ -116,7 +116,7 @@ def get_slice_info(nagios_base_url, tool_id, address_family):
     """
     slice_url = (nagios_base_url + '?show_state=1&service_name=' +
                  tool_id + address_family + "&plugin_output=1")
-    return NagiosSliceInfo(slice_url, tool_id, address_family))
+    return NagiosSliceInfo(slice_url, tool_id, address_family)
 
 
 def get_slice_status(url):
