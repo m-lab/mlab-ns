@@ -95,7 +95,7 @@ def parse_sliver_tool_status(status, slice_id):
     # Prometheus doesn't return any sort of "tool_extra" like baseList.pl does
     # for Nagios, so instead we drop in the timestamp returned by Prometheus,
     # just in case it could ever be useful.
-    tool_extra = status['value'][0]
+    tool_extra = str(status['value'][0])
 
     return sliver_fqdn, state, tool_extra
 
