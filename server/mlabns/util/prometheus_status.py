@@ -76,16 +76,22 @@ def parse_sliver_tool_status(status, slice_id):
     """Parses the status of a single sliver tool.
 
     Args:
-        status: One line corresponding to the status of a sliver tool.
+        status: dict, status of a sliver tool as returned by Prometheus.
         slice_id: str, the name of the slice (e.g., iupui_ndt).
 
     Returns:
         Tuple of the form (sliver fqdn, current state, extra information)
     """
+    # Turns 'iupui_ndt' into 'ndt.iupui', for example.
     experiment = '.'.join(slice_id.split('_')[::-1])
 
+    # Joins the experiment name with the machine name to form the FQDN fo the
+    # experiment.
     slice_fqdn = '.'.join(experiment, status['metric']['machine'])
     state = status['value'][1]
+    # Prometheus doesn't return any sort of "tool_extra" like baseList.pl does
+    # for Nagios, so instead we drop in the timestamp returned by Prometheus,
+    # just in case it could ever be useful.
     tool_extra = status['value'][0]
 
     return sliver_fqdn, state, tool_extra
@@ -170,9 +176,8 @@ def get_slice_status(url, slice_id):
     """
     status = {}
     try:
-        data = urllib2.urlopen(url).read()
+        raw_data = urllib2.urlopen(url).read()
     except urllib2.HTTPError:
-        # TODO(claudiu) Notify(email) when this happens.
         logging.error('Cannot open %s.', url)
         return None
 
