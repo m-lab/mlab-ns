@@ -72,8 +72,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 json_file = self.SITE_LIST_URL
         except AttributeError:
             logging.error('Cannot get project name.')
-            # TODO workaround for unitttest.
-            json_file = self.TESTING_SITE_LIST_URL
+            return util.send_not_found(self)
 
         try:
             nagios_sites_json = json.loads(urllib2.urlopen(json_file).read())

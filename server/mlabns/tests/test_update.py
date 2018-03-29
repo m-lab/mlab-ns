@@ -1,3 +1,4 @@
+import app_identity
 import mock
 import StringIO
 import unittest2
@@ -18,6 +19,11 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         urlopen_patch = mock.patch.object(urllib2, 'urlopen', autospec=True)
         self.addCleanup(urlopen_patch.stop)
         urlopen_patch.start()
+
+        get_application_id_path = mock.patch.object(
+            app_identity, 'get_application_id', autospec=True)
+        self.addCleanup(get_application_id_patch.stop)
+        get_application_id_patch.start()
 
         site_model_patch = mock.patch.object(model, 'Site', autospec=True)
         self.addCleanup(site_model_patch.stop)
@@ -41,7 +47,8 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
     "city": "Xyzville",
     "country": "AB",
     "latitude": null,
-    "longitude": null
+    "longitude": null,
+    "roundrobin": false
 },
 {
     "site": "xyz01",
@@ -50,9 +57,11 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
     "city": "Xyzville",
     "country": "AB",
     "latitude": 123.456789,
-    "longitude": 34.567890
+    "longitude": 34.567890,
+    "roundrobin": false
 }
 ]""")
+        app_identity.get_application_id.return_value = 'mlab-nstesting'
         model.Site.all.return_value = [mock.Mock(site_id='xyz01')]
         handler = update.SiteRegistrationHandler()
         handler.get()
