@@ -102,7 +102,7 @@ transformers:
   property_map:
     - property: __key__
       external_name: index
-      import_transform: "lambda x: 'default_prometheus'"
+      import_transform: "lambda x: 'prometheus_default'"
       export_transform: transform.key_id_or_name_as_string
 
     - property: username

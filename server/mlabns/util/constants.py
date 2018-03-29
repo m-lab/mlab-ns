@@ -4,7 +4,7 @@ DEFAULT_NAGIOS_ENTRY = 'default'
 
 # Name of the entry in the Prometheus table, containing the default
 # configuration.
-DEFAULT_PROMETHEUS_ENTRY = 'default_prometheus'
+DEFAULT_PROMETHEUS_ENTRY = 'prometheus_default'
 
 # Earth radius in km.
 EARTH_RADIUS = 6371
