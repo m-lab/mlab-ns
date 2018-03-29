@@ -305,7 +305,7 @@ class IPUpdateHandler(webapp.RequestHandler):
             return updated
 
     def put_sliver_tool(self, sliver_tool):
-        # Update memcache only while not updating datastore, since
+        # Update memcache only here while not updating datastore, since
         # the out-of-date DataStore will be updated next minute by cron job
         # check_status.
         if not memcache.set(sliver_tool.tool_id,
