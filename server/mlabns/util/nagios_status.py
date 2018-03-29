@@ -60,6 +60,9 @@ def authenticate_nagios(nagios):
 
     Args:
         nagios: object containing Nagios auth information
+
+    Returns:
+        A urllib2 OpenerDirector object.
     """
     password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
     password_manager.add_password(None, nagios.url, nagios.username,
@@ -67,7 +70,7 @@ def authenticate_nagios(nagios):
 
     authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
     opener = urllib2.build_opener(authhandler)
-    urllib2.install_opener(opener)
+    return opener
 
 
 def parse_sliver_tool_status(status):
@@ -119,11 +122,12 @@ def get_slice_info(nagios_base_url, tool_id, address_family):
     return NagiosSliceInfo(slice_url, tool_id, address_family)
 
 
-def get_slice_status(url):
+def get_slice_status(url, opener):
     """Read slice status from Nagios.
 
     Args:
         url: String representing the URL to Nagios for a single slice.
+        opener: urllib2.OpenerDirector, opener authenticated with Nagios.
 
     Returns:
         A dict mapping sliver fqdn to a dictionary representing the sliver's
@@ -140,7 +144,7 @@ def get_slice_status(url):
     """
     status = {}
     try:
-        lines = urllib2.urlopen(url).read().strip('\n').split('\n')
+        lines = opener.open(url).read().strip('\n').split('\n')
     except urllib2.HTTPError:
         # TODO(claudiu) Notify(email) when this happens.
         logging.error('Cannot open %s.', url)

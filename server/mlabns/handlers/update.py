@@ -353,14 +353,18 @@ class StatusUpdateHandler(webapp.RequestHandler):
         if prometheus_config is None:
             logging.error('Datastore does not have the Prometheus configs.')
             return util.send_not_found(self)
-        prometheus_status.authenticate_prometheus(prometheus_config)
+        prometheus_opener = prometheus_status.authenticate_prometheus(prometheus_config)
+        logging.info('FIRST prometheus_config.url: %s' % prometheus_config.url)
 
         # Get Nagios configs, and authenticate.
         nagios_config = nagios_config_wrapper.get_nagios_config()
         if nagios_config is None:
             logging.error('Datastore does not have the Nagios configs.')
             return util.send_not_found(self)
-        nagios_status.authenticate_nagios(nagios_config)
+        nagios_opener = nagios_status.authenticate_nagios(nagios_config)
+        logging.info('nagios_config.url: %s' % nagios_config.url)
+
+        logging.info('SECOND prometheus_config.url: %s' % prometheus_config.url)
 
         for tool_id in model.get_all_tool_ids():
             tool = model.get_tool_from_tool_id(tool_id)
@@ -369,12 +373,12 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     logging.info('Status source for %s is: prometheus' % tool_id)
                     slice_info = prometheus_status.get_slice_info(prometheus_config.url, tool_id, address_family)
                     logging.info('Status URL for %s is: %s' % (tool_id, slice_info.slice_url))
-                    slice_status = prometheus_status.get_slice_status(slice_info.slice_url, tool.slice_id)
+                    slice_status = prometheus_status.get_slice_status(slice_info.slice_url, prometheus_opener, tool.slice_id)
                 elif tool.status_source == 'nagios':
                     logging.info('Status source for %s is: nagios' % tool_id)
                     slice_info = nagios_status.get_slice_info(nagios_config.url, tool_id, address_family)
                     logging.info('Status URL for %s is: %s' % (tool_id, slice_info.slice_url))
-                    slice_status = nagios_status.get_slice_status(slice_info.slice_url)
+                    slice_status = nagios_status.get_slice_status(slice_info.slice_url, nagios_opener)
                 else:
                     logging.error('Unknown tool status_source: %s.', status_source)
                     continue

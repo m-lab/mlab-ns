@@ -62,6 +62,9 @@ def authenticate_prometheus(prometheus):
 
     Args:
         prometheus: object containing Prometheus auth information
+
+    Returns:
+        A urllib2 OpenerDirector object.
     """
     password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
     password_manager.add_password(None, prometheus.url, prometheus.username,
@@ -69,7 +72,7 @@ def authenticate_prometheus(prometheus):
 
     authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
     opener = urllib2.build_opener(authhandler)
-    urllib2.install_opener(opener)
+    return opener
 
 
 def parse_sliver_tool_status(status, slice_id):
@@ -119,7 +122,7 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
                  'vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR '
               'lame_duck_node{} != bool 1)'
         ),
-        'ndt_ipv6': '',
+        'ndt_ipv6': None,
         'ndt_ssl': (
             'min by (machine) ( '
               'probe_success{service="ndt_ssl"} OR '
@@ -128,7 +131,7 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
                  'vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR '
               'lame_duck_node{} != bool 1)'
         ),
-        'ndt_ssl_ipv6': '',
+        'ndt_ssl_ipv6': None,
         'neubot': 'probe_success{service="neubot"}',
         'neubot_ipv6': 'probe_success{service="neubot_ipv6"}',
         'mobiperf': (
@@ -150,11 +153,12 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
     return PrometheusSliceInfo(slice_url, tool_id, address_family)
 
 
-def get_slice_status(url, slice_id):
+def get_slice_status(url, opener, slice_id):
     """Read slice status from Prometheus.
 
     Args:
         url: str, the API URL for Prometheus for a single tool.
+        opener: urllib2.OpenerDirector, opener authenticated with Prometheus.
         slice_id: str, the name of the slice (e.g., iupui_ndt).
 
     Returns:
@@ -172,7 +176,7 @@ def get_slice_status(url, slice_id):
     """
     status = {}
     try:
-        raw_data = urllib2.urlopen(url).read()
+        raw_data = opener.open(url).read()
     except urllib2.HTTPError:
         logging.error('Cannot open %s.', url)
         return None
