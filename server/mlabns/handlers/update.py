@@ -351,6 +351,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for tool_id in model.get_all_tool_ids():
             tool = model.get_tool_from_tool_id(tool_id)
             if tool.status_source == 'prometheus':
+                logging.info('Status source for %s is: prometheus' % tool_id)
                 prometheus = prometheus_config_wrapper.get_prometheus_config()
                 if prometheus is None:
                     logging.error('Datastore does not have the Prometheus credentials.')
@@ -360,6 +361,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 slice_status = prometheus_status.get_slice_status(
                         slice_info.slice_url, tool.slice_id)
             elif tool.status_source == 'nagios':
+                logging.info('Status source for %s is: nagios' % tool_id)
                 nagios = nagios_config_wrapper.get_nagios_config()
                 if nagios is None:
                     logging.error('Datastore does not have the Nagios credentials.')
