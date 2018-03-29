@@ -90,7 +90,7 @@ def parse_sliver_tool_status(status, slice_id):
 
     # Joins the experiment name with the machine name to form the FQDN fo the
     # experiment.
-    slice_fqdn = experiment + status['metric']['machine']
+    sliver_fqdn = experiment + status['metric']['machine']
     state = status['value'][1]
     # Prometheus doesn't return any sort of "tool_extra" like baseList.pl does
     # for Nagios, so instead we drop in the timestamp returned by Prometheus,
