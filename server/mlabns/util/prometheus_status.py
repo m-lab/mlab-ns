@@ -97,14 +97,16 @@ def parse_sliver_tool_status(status, slice_id):
     return sliver_fqdn, state, tool_extra
 
 
-def get_slice_info(prometheus_base_url):
-    """Builds a list of PrometheusSliceInfo objects to query Prometheus for all slices.
+def get_slice_info(prometheus_base_url, tool_id, address_family):
+    """Builds a a PrometheusSliceInfo object to query Prometheus for a slice.
 
     Args:
         prometheus_base_url: Base URL to get Prometheus slice information.
+        tool_id: str, the name of the sliver tool.
+        address_family: str, empty for IPv4 or '_ipv6' for IPv6.
 
     Returns:
-         List of PrometheusSliceInfo objects.
+         A PrometheusSliceInfo object for a slice.
     """
     # This dict maps tool_ids to the corresponding Prometheus query that will
     # return the status for the tool.
@@ -143,15 +145,9 @@ def get_slice_info(prometheus_base_url):
         )
     }
 
-    slice_objects = []
-    for tool_id in model.get_all_tool_ids():
-        for address_family in ['', '_ipv6']:
-            query = urllib.quote_plus(queries[tool_id + address_family])
-            slice_url = prometheus_base_url + query
-            slice_objects.append(PrometheusSliceInfo(slice_url, tool_id,
-                                                     address_family))
-
-    return slice_objects
+    query = urllib.quote_plus(queries[tool_id + address_family])
+    slice_url = prometheus_base_url + query
+    return PrometheusSliceInfo(slice_url, tool_id, address_family))
 
 
 def get_slice_status(url, slice_id):

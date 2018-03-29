@@ -103,24 +103,20 @@ def parse_sliver_tool_status(status):
     return sliver_fqdn, state, tool_extra
 
 
-def get_slice_info(nagios_base_url):
-    """Builds a list of NagiosSliceInfo objects to query Nagios for all slices.
+def get_slice_info(nagios_base_url, tool_id, address_family):
+    """Builds a NagiosSliceInfo object to query Nagios for a slice.
 
     Args:
         nagios_base_url: Base URL to get Nagios slice information.
+        tool_id: str, the name of the sliver tool.
+        address_family: str, empty for IPv4 or '_ipv6' for IPv6.
 
     Returns:
-         List of NagiosSliceInfo objects.
+         NagiosSliceInfo object.
     """
-    slice_objects = []
-    for tool_id in model.get_all_tool_ids():
-        for address_family in ['', '_ipv6']:
-            slice_url = (nagios_base_url + '?show_state=1&service_name=' +
-                         tool_id + address_family + "&plugin_output=1")
-            slice_objects.append(NagiosSliceInfo(slice_url, tool_id,
-                                                 address_family))
-
-    return slice_objects
+    slice_url = (nagios_base_url + '?show_state=1&service_name=' +
+                 tool_id + address_family + "&plugin_output=1")
+    return NagiosSliceInfo(slice_url, tool_id, address_family))
 
 
 def get_slice_status(url):
