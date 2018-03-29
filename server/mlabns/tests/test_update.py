@@ -62,7 +62,7 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.assertFalse(model.Site.called,
                          'Test site should not be added to the datastore')
 
-    def testGetIgnoresTestSites(self):
+    def testUpdateExistingSites(self):
         """Test updating an existing site."""
         urllib2.urlopen.return_value = StringIO.StringIO("""[
 {
