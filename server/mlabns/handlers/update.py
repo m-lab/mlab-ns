@@ -66,13 +66,17 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         """
         try:
             project = app_identity.get_application_id()
-            logging.error(project)
             if project is not None and project == 'mlab-nstesting':
-                nagios_sites_json = json.loads(urllib2.urlopen(
-                    self.TESTING_SITE_LIST_URL).read())
+                json_file = self.TESTING_SITE_LIST_URL
             else:
-                nagios_sites_json = json.loads(urllib2.urlopen(
-                    self.SITE_LIST_URL).read())
+                json_file = self.SITE_LIST_URL
+        except AttributeError:
+            logging.error('Cannot get project name.')
+            # TODO workaround for unitttest.
+            json_file = self.TESTING_SITE_LIST_URL
+
+        try:
+            nagios_sites_json = json.loads(urllib2.urlopen(json_file).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', self.SITE_LIST_URL)
