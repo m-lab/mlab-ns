@@ -202,6 +202,6 @@ def get_slice_status(url, opener, slice_id):
         else:
             results[sliver_fqdn]['status'] = message.STATUS_OFFLINE
 
-        logging.info('STATUS: %s' % results[sliver_fqdn])
+        logging.info('STATUS: %s: %s' % (sliver_fqdn, results[sliver_fqdn]))
 
     return results
