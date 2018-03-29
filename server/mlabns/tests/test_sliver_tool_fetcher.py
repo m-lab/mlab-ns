@@ -32,7 +32,7 @@ class SliverToolFetcherTestCase(unittest.TestCase):
 
         self.fetcher = sliver_tool_fetcher.SliverToolFetcher()
 
-    def XtestFetchDoesNotHitDatastoreIfMemcacheHasRequiredData(self):
+    def testFetchDoesNotHitDatastoreIfMemcacheHasRequiredData(self):
         # The mock response is just ints here for simplicity, though the real
         # function returns SliverTool objects.
         mock_memcache_response = [1, 2, 3]

@@ -91,8 +91,6 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 continue
             valid_nagios_sites_json.append(nagios_site)
             nagios_site_ids.add(nagios_site[self.SITE_FIELD])
-            if nagios_site[self.ROUNDROBIN_FIELD]:
-                logging.error('find rr site %s.', nagios_site[self.SITE_FIELD])
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
@@ -147,8 +145,6 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                           registration_timestamp=long(time.time()),
                           key_name=nagios_site[self.SITE_FIELD],
                           roundrobin=nagios_site[self.ROUNDROBIN_FIELD])
-        if nagios_site[self.ROUNDROBIN_FIELD]:
-            logging.error('register rr site %s.', nagios_site[self.SITE_FIELD])
 
         try:
             site.put()
@@ -309,20 +305,9 @@ class IPUpdateHandler(webapp.RequestHandler):
             return updated
 
     def put_sliver_tool(self, sliver_tool):
-        """try:
-
-            sliver_tool.put()
-            logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
-                         sliver_tool.fqdn, sliver_tool.sliver_ipv4,
-                         sliver_tool.sliver_ipv6)
-        except db.TransactionFailedError:
-            logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
-                          sliver_tool.fqdn, sliver_tool.sliver_ipv4,
-                          sliver_tool.sliver_ipv6)
-        """
-        # Update memcache WHENEVER datastore got updated. Otherwise
-        # the out-of-date memcache will revert the DS change in check_status
-        # next minute.
+        # Update memcache only while not updating datastore, since
+        # the out-of-date DataStore will be updated next minute by cron job
+        # check_status.
         if not memcache.set(sliver_tool.tool_id,
                             sliver_tool,
                             namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
