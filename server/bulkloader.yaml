@@ -228,8 +228,8 @@ transformers:
     - property: http_port
       external_name: http_port
 
-    - property: source
-      external_name: source
+    - property: status_source
+      external_name: status_source
 
     - property: show_tool_extra
       external_name: show_tool_extra
