@@ -354,7 +354,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
             logging.error('Datastore does not have the Prometheus configs.')
             return util.send_not_found(self)
         prometheus_opener = prometheus_status.authenticate_prometheus(prometheus_config)
-        logging.info('FIRST prometheus_config.url: %s' % prometheus_config.url)
 
         # Get Nagios configs, and authenticate.
         nagios_config = nagios_config_wrapper.get_nagios_config()
@@ -362,9 +361,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
             logging.error('Datastore does not have the Nagios configs.')
             return util.send_not_found(self)
         nagios_opener = nagios_status.authenticate_nagios(nagios_config)
-        logging.info('nagios_config.url: %s' % nagios_config.url)
-
-        logging.info('SECOND prometheus_config.url: %s' % prometheus_config.url)
 
         for tool_id in model.get_all_tool_ids():
             tool = model.get_tool_from_tool_id(tool_id)
