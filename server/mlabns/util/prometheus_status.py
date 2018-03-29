@@ -185,7 +185,7 @@ def get_slice_status(url, slice_id):
 
     if statuses['status'] == 'error':
         logging.info('Prometheus returned error "%s" for URL %s.'
-                     % (statuses['error'], url)
+                     % (statuses['error'], url))
         return None
 
     for status in statuses['data']['result']:
