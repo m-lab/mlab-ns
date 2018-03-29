@@ -86,5 +86,6 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.assertTrue(model.Site.called,
                         'Update an existing site to the datastore')
 
+
 if __name__ == '__main__':
     unittest2.main()
