@@ -174,7 +174,7 @@ def get_slice_status(url, opener, slice_id):
 
         None if Prometheus status is blank or url is inaccessible.
     """
-    status = {}
+    results = {}
     try:
         raw_data = opener.open(url).read()
     except urllib2.HTTPError:
@@ -196,10 +196,10 @@ def get_slice_status(url, opener, slice_id):
             logging.error('Unable to parse Prometheus sliver status. %s', e)
             continue
 
-        status[sliver_fqdn] = {'tool_extra': tool_extra}
+        results[sliver_fqdn] = {'tool_extra': tool_extra}
         if state == constants.PROMETHEUS_SERVICE_STATUS_OK:
-            status[sliver_fqdn]['status'] = message.STATUS_ONLINE
+            results[sliver_fqdn]['status'] = message.STATUS_ONLINE
         else:
-            status[sliver_fqdn]['status'] = message.STATUS_OFFLINE
+            results[sliver_fqdn]['status'] = message.STATUS_OFFLINE
 
-    return status
+    return results
