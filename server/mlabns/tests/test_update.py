@@ -1,9 +1,9 @@
-import app_identity
 import mock
 import StringIO
 import unittest2
 import urllib2
 
+from google.appengine.api import app_identity
 from mlabns.db import model
 from mlabns.handlers import update
 from mlabns.util import util
