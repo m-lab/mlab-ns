@@ -357,7 +357,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     return util.send_not_found(self)
                 prometheus_status.authenticate_prometheus(prometheus)
                 slice_info = prometheus_status.get_slice_info(prometheus.url):
-                slice_status = prometheus_status.get_slice_status(slice_info.slice_url)
+                slice_status = prometheus_status.get_slice_status(
+                        slice_info.slice_url, tool.slice_id)
             elif tool.status_source == 'nagios':
                 nagios = nagios_config_wrapper.get_nagios_config()
                 if nagios is None:
