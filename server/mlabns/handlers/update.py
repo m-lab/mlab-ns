@@ -358,7 +358,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         logging.error('Datastore does not have the Prometheus credentials.')
                         return util.send_not_found(self)
                     prometheus_status.authenticate_prometheus(prometheus)
-                    slice_info = prometheus_status.get_slice_info(prometheus.url, address_family)
+                    slice_info = prometheus_status.get_slice_info(prometheus.url, tool_id, address_family)
                     slice_status = prometheus_status.get_slice_status(
                             slice_info.slice_url, tool.slice_id)
                 elif tool.status_source == 'nagios':
@@ -368,7 +368,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         logging.error('Datastore does not have the Nagios credentials.')
                         return util.send_not_found(self)
                     nagios_status.authenticate_nagios(nagios)
-                    slice_info = nagios_status.get_slice_info(nagios.url, address_family)
+                    slice_info = nagios_status.get_slice_info(nagios.url, tool_id, address_family)
                     slice_status = nagios_status.get_slice_status(slice_info.slice_url)
                 else:
                     logging.error('Unknown tool status_source: %s.', status_source)
