@@ -82,7 +82,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             return util.send_not_found(self)
         except (TypeError, ValueError) as e:
             logging.error('The json format of %s in not valid: %s',
-                          self.SITE_LIST_URL, e)
+                          json_file, e)
             return util.send_not_found(self)
 
         nagios_site_ids = set()
@@ -111,6 +111,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                             self.SITE_LIST_URL)
 
         for nagios_site in valid_nagios_sites_json:
+            # Register new site AND update an existing site anyway.
             if (nagios_site[self.SITE_FIELD] in new_site_ids) or (
                     nagios_site[self.SITE_FIELD] in unchanged_site_ids):
                 logging.info('Update site %s.', nagios_site[self.SITE_FIELD])

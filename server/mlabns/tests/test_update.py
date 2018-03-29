@@ -49,7 +49,21 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
     "latitude": null,
     "longitude": null,
     "roundrobin": false
-},
+}
+]""")
+        app_identity.get_application_id.return_value = 'mlab-nstesting'
+        model.Site.all.return_value = [mock.Mock(site_id='xyz01')]
+        handler = update.SiteRegistrationHandler()
+        handler.get()
+
+        self.assertTrue(util.send_success.called)
+
+        self.assertFalse(model.Site.called,
+                         'Test site should not be added to the datastore')
+
+    def testGetIgnoresTestSites(self):
+        """Test updating an existing site."""
+        urllib2.urlopen.return_value = StringIO.StringIO("""[
 {
     "site": "xyz01",
     "metro": ["xyz01", "xyz"],
@@ -68,9 +82,8 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
 
         self.assertTrue(util.send_success.called)
 
-        self.assertFalse(model.Site.called,
-                         'Test site should not be added to the datastore')
-
+        self.assertTrue(model.Site.called,
+                        'Update an existing site to the datastore')
 
 if __name__ == '__main__':
     unittest2.main()
