@@ -348,27 +348,32 @@ class StatusUpdateHandler(webapp.RequestHandler):
         The URLs containing the information are stored in the datastore along
         with the credentials necessary to access the data.
         """
+        # Get Prometheus configs, and authenticate.
+        prometheus_config = prometheus_config_wrapper.get_prometheus_config()
+        if prometheus_config is None:
+            logging.error('Datastore does not have the Prometheus configs.')
+            return util.send_not_found(self)
+        prometheus_status.authenticate_prometheus(prometheus_config)
+
+        # Get Nagios configs, and authenticate.
+        nagios_config = nagios_config_wrapper.get_nagios_config()
+        if nagios_config is None:
+            logging.error('Datastore does not have the Nagios configs.')
+            return util.send_not_found(self)
+        nagios_status.authenticate_nagios(nagios_config)
+
         for tool_id in model.get_all_tool_ids():
             tool = model.get_tool_from_tool_id(tool_id)
             for address_family in ['', '_ipv6']:
                 if tool.status_source == 'prometheus':
                     logging.info('Status source for %s is: prometheus' % tool_id)
-                    prometheus = prometheus_config_wrapper.get_prometheus_config()
-                    if prometheus is None:
-                        logging.error('Datastore does not have the Prometheus credentials.')
-                        return util.send_not_found(self)
-                    prometheus_status.authenticate_prometheus(prometheus)
-                    slice_info = prometheus_status.get_slice_info(prometheus.url, tool_id, address_family)
-                    slice_status = prometheus_status.get_slice_status(
-                            slice_info.slice_url, tool.slice_id)
+                    slice_info = prometheus_status.get_slice_info(prometheus_config.url, tool_id, address_family)
+                    logging.info('Status URL for % is: %s' % (tool_id, slice_info.slice_url))
+                    slice_status = prometheus_status.get_slice_status(slice_info.slice_url, tool.slice_id)
                 elif tool.status_source == 'nagios':
                     logging.info('Status source for %s is: nagios' % tool_id)
-                    nagios = nagios_config_wrapper.get_nagios_config()
-                    if nagios is None:
-                        logging.error('Datastore does not have the Nagios credentials.')
-                        return util.send_not_found(self)
-                    nagios_status.authenticate_nagios(nagios)
-                    slice_info = nagios_status.get_slice_info(nagios.url, tool_id, address_family)
+                    slice_info = nagios_status.get_slice_info(nagios_config.url, tool_id, address_family)
+                    logging.info('Status URL for % is: %s' % (tool_id, slice_info.slice_url))
                     slice_status = nagios_status.get_slice_status(slice_info.slice_url)
                 else:
                     logging.error('Unknown tool status_source: %s.', status_source)
