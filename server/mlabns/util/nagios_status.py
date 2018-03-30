@@ -2,7 +2,6 @@ import logging
 import re
 import urllib2
 
-from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import message
 

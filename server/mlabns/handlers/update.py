@@ -381,7 +381,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         slice_info.slice_url, nagios_opener)
                 else:
                     logging.error('Unknown tool status_source: %s.',
-                                  status_source)
+                                  tool.status_source)
                     continue
 
                 if slice_status:
