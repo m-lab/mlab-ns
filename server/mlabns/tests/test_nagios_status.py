@@ -90,33 +90,29 @@ class GetSliceInfoTest(unittest2.TestCase):
         self.nagios_base_url = 'http://nagios.mock-mlab.net/baseList'
 
     def test_get_slice_info_returns_valid_objects_when_tools_stored(self):
-        slice_a_url = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_a&plugin_output=1'
-        slice_a_info = nagios_status.NagiosSliceInfo(slice_a_url, 'mock_tool_a',
-                                                     '')
-        slice_a_v6_url = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_a_ipv6&plugin_output=1'
-        slice_a_v6_info = nagios_status.NagiosSliceInfo(slice_a_v6_url,
-                                                        'mock_tool_a', '_ipv6')
-        slice_b_url = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_b&plugin_output=1'
-        slice_b_info = nagios_status.NagiosSliceInfo(slice_b_url, 'mock_tool_b',
-                                                     '')
-        slice_b_v6_url = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_b_ipv6&plugin_output=1'
-        slice_b_v6_info = nagios_status.NagiosSliceInfo(slice_b_v6_url,
-                                                        'mock_tool_b', '_ipv6')
-        expected = [slice_a_info, slice_a_v6_info, slice_b_info,
-                    slice_b_v6_info]
+        mock_tool_a_url_ipv4 = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_a&plugin_output=1'
+        mock_tool_a_url_ipv6 = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_a_ipv6&plugin_output=1'
+        mock_tool_b_url_ipv4 = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_b&plugin_output=1'
+        mock_tool_b_url_ipv6 = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_b_ipv6&plugin_output=1'
+        slice_data = {
+            'mock_tool_a': {
+                'info': nagios_status.NagiosSliceInfo(mock_tool_a_url_ipv4, 'mock_tool_a', ''),
+                'info_ipv6': nagios_status.NagiosSliceInfo(mock_tool_a_url_ipv6, 'mock_tool_a', '_ipv6'),
+            },
+            'mock_tool_b': {
+                'info': nagios_status.NagiosSliceInfo(mock_tool_b_url_ipv4, 'mock_tool_b', ''),
+                'info_ipv6': nagios_status.NagiosSliceInfo(mock_tool_b_url_ipv6, 'mock_tool_b', '_ipv6'),
+            }
+         }
 
-        with mock.patch.object(model, 'get_all_tool_ids') as get_all_tool_ids:
-            get_all_tool_ids.return_value = ['mock_tool_a', 'mock_tool_b']
-            retrieved = nagios_status.get_slice_info(self.nagios_base_url)
+        tool_ids = ['mock_tool_a', 'mock_tool_b']
+        for tool_id in tool_ids:
+            for address_family in ['', '_ipv6']:
+                retrieved = nagios_status.get_slice_info(
+                        self.nagios_base_url, tool_id, address_family)
+                expected = slice_data[tool_id]['info' + address_family]
 
-        self.assertListEqual(expected, retrieved)
-
-    def test_get_slice_info_returns_empty_list_when_no_tools_stored(self):
-        with mock.patch.object(model, 'get_all_tool_ids') as get_all_tool_ids:
-            get_all_tool_ids.return_value = []
-            retrieved = nagios_status.get_slice_info(self.nagios_base_url)
-        expected = []
-        self.assertListEqual(expected, retrieved)
+                self.assertEqual(expected, retrieved)
 
 
 class StatusUpdateHandlerTest(unittest2.TestCase):
@@ -124,10 +120,11 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
     def setUp(self):
         self.status_update_handler = update.StatusUpdateHandler()
         self.mock_urlopen_response = mock.Mock()
+        self.opener = urllib2.OpenerDirector()
 
         urlopen_patch = mock.patch.object(
-            nagios_status.urllib2,
-            'urlopen',
+            nagios_status.urllib2.OpenerDirector,
+            'open',
             return_value=self.mock_urlopen_response,
             autospec=True)
         self.addCleanup(urlopen_patch.stop)
@@ -169,9 +166,9 @@ mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
         }
 
         actual_status = nagios_status.get_slice_status(
-            'nagios.measurementlab.mock.net')
-        nagios_status.urllib2.urlopen.assert_called_once_with(
-            'nagios.measurementlab.mock.net')
+            'nagios.measurementlab.mock.net', self.opener)
+        nagios_status.urllib2.OpenerDirector.open.assert_called_once_with(
+            self.opener, 'nagios.measurementlab.mock.net')
         self.assertDictEqual(actual_status, expected_status)
 
     def test_get_slice_status_returns_populated_dictionary_when_it_gets_valid_statuses_and_one_whitespace_sliver_status(
@@ -198,23 +195,23 @@ mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
         }
 
         actual_status = nagios_status.get_slice_status(
-            'nagios.measurementlab.mock.net')
-        nagios_status.urllib2.urlopen.assert_called_once_with(
-            'nagios.measurementlab.mock.net')
+            'nagios.measurementlab.mock.net', self.opener)
+        nagios_status.urllib2.OpenerDirector.open.assert_called_once_with(
+            self.opener, 'nagios.measurementlab.mock.net')
         self.assertDictEqual(actual_status, expected_status)
 
     def test_get_slice_status_returns_none_when_Nagios_response_is_whitespace_and_no_newline(
             self):
         self.mock_urlopen_response.read.return_value = '  '
         actual_status = nagios_status.get_slice_status(
-            'nagios.measurementlab.mock.net')
+            'nagios.measurementlab.mock.net', self.opener)
         self.assertIsNone(actual_status)
 
     def test_get_slice_status_returns_none_when_Nagios_response_is_tab_whitespace(
             self):
         self.mock_urlopen_response.read.return_value = '\t\t\t\n'
         actual_status = nagios_status.get_slice_status(
-            'nagios.measurementlab.mock.net')
+            'nagios.measurementlab.mock.net', self.opener)
         self.assertIsNone(actual_status)
 
     def test_get_slice_status_handles_NagiosStatusUnparseableError_from_one_status_in_parse_sliver_tool_status(
@@ -242,7 +239,7 @@ mock.mlab3.xyz01.measurement-lab.org/ndt 2 1 mock tool extra
         }
 
         actual_status = nagios_status.get_slice_status(
-            'nagios.measurementlab.mock.net')
+            'nagios.measurementlab.mock.net', self.opener)
         self.assertDictEqual(actual_status, expected_status)
 
     def test_get_slice_status_handles_NagiosStatusUnparseableError_from_two_statuses_in_parse_sliver_tool_status(
@@ -266,7 +263,7 @@ unparseable status 2
         }
 
         actual_status = nagios_status.get_slice_status(
-            'nagios.measurementlab.mock.net')
+            'nagios.measurementlab.mock.net', self.opener)
         self.assertDictEqual(actual_status, expected_status)
 
     def test_get_slice_status_returns_none_when_a_HTTPError_is_raised_by_urlopen(
@@ -280,7 +277,7 @@ unparseable status 2
         self.mock_urlopen_response.read.side_effect = MockHttpError(
             'mock http error')
         self.assertIsNone(nagios_status.get_slice_status(
-            'nagios.measurementlab.mock.net'))
+            'nagios.measurementlab.mock.net', self.opener))
 
 
 if __name__ == '__main__':
