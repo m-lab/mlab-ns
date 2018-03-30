@@ -14,7 +14,8 @@ def get_prometheus_config():
     """
     prometheus = memcache.get(constants.DEFAULT_PROMETHEUS_ENTRY)
     if not prometheus:
-        prometheus = model.Prometheus.get_by_key_name(constants.DEFAULT_PROMETHEUS_ENTRY)
+        prometheus = model.Prometheus.get_by_key_name(
+            constants.DEFAULT_PROMETHEUS_ENTRY)
         if prometheus:
             memcache.set(constants.DEFAULT_PROMETHEUS_ENTRY, prometheus)
         else:

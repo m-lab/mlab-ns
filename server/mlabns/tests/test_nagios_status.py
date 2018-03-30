@@ -96,20 +96,24 @@ class GetSliceInfoTest(unittest2.TestCase):
         mock_tool_b_url_ipv6 = 'http://nagios.mock-mlab.net/baseList?show_state=1&service_name=mock_tool_b_ipv6&plugin_output=1'
         slice_data = {
             'mock_tool_a': {
-                'info': nagios_status.NagiosSliceInfo(mock_tool_a_url_ipv4, 'mock_tool_a', ''),
-                'info_ipv6': nagios_status.NagiosSliceInfo(mock_tool_a_url_ipv6, 'mock_tool_a', '_ipv6'),
+                'info': nagios_status.NagiosSliceInfo(mock_tool_a_url_ipv4,
+                                                      'mock_tool_a', ''),
+                'info_ipv6': nagios_status.NagiosSliceInfo(
+                    mock_tool_a_url_ipv6, 'mock_tool_a', '_ipv6'),
             },
             'mock_tool_b': {
-                'info': nagios_status.NagiosSliceInfo(mock_tool_b_url_ipv4, 'mock_tool_b', ''),
-                'info_ipv6': nagios_status.NagiosSliceInfo(mock_tool_b_url_ipv6, 'mock_tool_b', '_ipv6'),
+                'info': nagios_status.NagiosSliceInfo(mock_tool_b_url_ipv4,
+                                                      'mock_tool_b', ''),
+                'info_ipv6': nagios_status.NagiosSliceInfo(
+                    mock_tool_b_url_ipv6, 'mock_tool_b', '_ipv6'),
             }
-         }
+        }
 
         tool_ids = ['mock_tool_a', 'mock_tool_b']
         for tool_id in tool_ids:
             for address_family in ['', '_ipv6']:
                 retrieved = nagios_status.get_slice_info(
-                        self.nagios_base_url, tool_id, address_family)
+                    self.nagios_base_url, tool_id, address_family)
                 expected = slice_data[tool_id]['info' + address_family]
 
                 self.assertEqual(expected, retrieved)
