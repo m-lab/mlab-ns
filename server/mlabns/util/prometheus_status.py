@@ -24,9 +24,9 @@ class PrometheusSliceInfo(object):
     """Represents the information necessary to query Prometheus by slice.
 
     Attributes:
-        slice_url: URL for querying Prometheus.
-        tool_id: Name of a specific tool.
-        address_family: Formatted string for specifying ipv4 or ipv6.
+        slice_url: str, URL for querying Prometheus.
+        tool_id: str, name of a specific tool.
+        address_family: str, formatted string for specifying ipv4 or ipv6.
     """
 
     def __init__(self, slice_url, tool_id, address_family):
@@ -61,7 +61,8 @@ def authenticate_prometheus(prometheus):
     """Configures urllib to do HTTP Password authentication for Prometheus URLs.
 
     Args:
-        prometheus: object containing Prometheus auth information
+        prometheus: self.PrometheusSliceInfo, authentication information for
+        Prometheus.
 
     Returns:
         A urllib2 OpenerDirector object.
@@ -104,12 +105,12 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
     """Builds a a PrometheusSliceInfo object to query Prometheus for a slice.
 
     Args:
-        prometheus_base_url: Base URL to get Prometheus slice information.
+        prometheus_base_url: str, base URL to get Prometheus slice information.
         tool_id: str, the name of the sliver tool.
         address_family: str, empty for IPv4 or '_ipv6' for IPv6.
 
     Returns:
-         A PrometheusSliceInfo object for a slice.
+         A self.PrometheusSliceInfo object for a slice.
     """
     # This dict maps tool_ids to the corresponding Prometheus query that will
     # return the status for the tool.

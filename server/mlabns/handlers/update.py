@@ -345,8 +345,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
         """Triggers the update handler.
 
         Updates sliver status with information from either Nagios or Prometheus.
-        The URLs containing the information are stored in the datastore along
-        with the credentials necessary to access the data.
+        The base URLs for accessing status information are stored in the
+        datastore along with the credentials necessary to access the data.
         """
         # Get Prometheus configs, and authenticate.
         prometheus_config = prometheus_config_wrapper.get_prometheus_config()
