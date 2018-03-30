@@ -368,12 +368,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 if tool.status_source == 'prometheus':
                     logging.info('Status source for %s is: prometheus' % tool_id)
                     slice_info = prometheus_status.get_slice_info(prometheus_config.url, tool_id, address_family)
-                    logging.info('Status URL for %s is: %s' % (tool_id, slice_info.slice_url))
                     slice_status = prometheus_status.get_slice_status(slice_info.slice_url, prometheus_opener, tool.slice_id)
                 elif tool.status_source == 'nagios':
                     logging.info('Status source for %s is: nagios' % tool_id)
                     slice_info = nagios_status.get_slice_info(nagios_config.url, tool_id, address_family)
-                    logging.info('Status URL for %s is: %s' % (tool_id, slice_info.slice_url))
                     slice_status = nagios_status.get_slice_status(slice_info.slice_url, nagios_opener)
                 else:
                     logging.error('Unknown tool status_source: %s.', status_source)
@@ -402,7 +400,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for sliver_tool in sliver_tools:
 
             if sliver_tool.fqdn not in slice_status:
-                logging.info('Prometheus does not know sliver %s.',
+                logging.info('Monitoring does not know sliver %s.',
                              sliver_tool.fqdn)
                 continue
 
