@@ -93,8 +93,8 @@ def parse_sliver_tool_status(status, slice_id):
     sliver_fqdn = experiment + '.' + status['metric']['machine']
     state = status['value'][1]
     # Prometheus doesn't return any sort of "tool_extra" like baseList.pl does
-    # for Nagios, so instead we drop in the timestamp returned by Prometheus,
-    # just in case it could ever be useful.
+    # for Nagios, so instead just drop in a note that this was processed from
+    # Prometheus data.
     tool_extra = 'Prometheus was here \o/.'
 
     return sliver_fqdn, state, tool_extra
