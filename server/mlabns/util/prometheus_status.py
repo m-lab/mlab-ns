@@ -87,9 +87,12 @@ def parse_sliver_tool_status(status, slice_id):
     # Turns 'iupui_ndt' into 'ndt.iupui', for example.
     experiment = '.'.join(slice_id.split('_')[::-1])
 
-    # Joins the experiment name with the machine name to form the FQDN fo the
+    # Joins the experiment name with the machine name to form the FQDN of the
     # experiment.
     sliver_fqdn = experiment + '.' + status['metric']['machine']
+    # 'status' is a list with two items. The first item ([0]) is a timestamp
+    # marking the Prometheus evaluation time. The second, which is the one we
+    # want, is the binary status value of the service.
     state = status['value'][1]
     # Prometheus doesn't return any sort of "tool_extra" like baseList.pl does
     # for Nagios, so instead just drop in a note that this was processed from
