@@ -69,7 +69,7 @@ def authenticate_prometheus(prometheus):
     password_manager.add_password(None, prometheus.url, prometheus.username,
                                   prometheus.password)
 
-    authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
+    authhandler = urllib2.HTTPBasicAuthHandler(password_manager)
     opener = urllib2.build_opener(authhandler)
     return opener
 
