@@ -1,5 +1,6 @@
 import json
 import logging
+import textwrap
 import urllib
 import urllib2
 
@@ -116,43 +117,46 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
     # This dict maps tool_ids to the corresponding Prometheus query that will
     # return the status for the tool.
     queries = {
-        'ndt': ('min by (machine) ( '
-                'probe_success{service="ndt_raw"} OR '
-                'script_success{service="ndt_e2e"} OR '
-                '(vdlimit_used{experiment="ndt.iupui"} / '
-                'vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR '
-                'lame_duck_node{} != bool 1)'),
-        'ndt_ipv6': ('min by (machine) ( '
-                     'probe_success{service="ndt_raw_ipv6"} OR '
-                     'script_success{service="ndt_e2e"} OR '
-                     '(vdlimit_used{experiment="ndt.iupui"} / '
-                     'vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR '
-                     'lame_duck_node{} != bool 1)'),
-        'ndt_ssl': ('min by (machine) ( '
-                    'probe_success{service="ndt_ssl"} OR '
-                    'script_success{service="ndt_e2e"} OR '
-                    '(vdlimit_used{experiment="ndt.iupui"} / '
-                    'vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR '
-                    'lame_duck_node{} != bool 1)'),
-        'ndt_ssl_ipv6':
-        ('min by (machine) ( '
-         'probe_success{service="ndt_ssl_ipv6"} OR '
-         'script_success{service="ndt_e2e"} OR '
-         '(vdlimit_used{experiment="ndt.iupui"} / '
-         'vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR '
-         'lame_duck_node{} != bool 1)'),
+        'ndt': textwrap.dedent("""\
+            min by (machine) (
+              probe_success{service="ndt_raw"} OR
+              script_success{service="ndt_e2e"} OR
+              (vdlimit_used{experiment="ndt.iupui"} /
+                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
+              lame_duck_node{} != bool 1)"""),
+        'ndt_ipv6': textwrap.dedent("""\
+            min by (machine) (
+              probe_success{service="ndt_raw_ipv6"} OR
+              script_success{service="ndt_e2e"} OR
+              (vdlimit_used{experiment="ndt.iupui"} /
+                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
+              lame_duck_node{} != bool 1)"""),
+        'ndt_ssl': textwrap.dedent("""\
+            min by (machine) (
+              probe_success{service="ndt_ssl"} OR
+              script_success{service="ndt_e2e"} OR
+              (vdlimit_used{experiment="ndt.iupui"} /
+                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
+              lame_duck_node{} != bool 1)"""),
+        'ndt_ssl_ipv6': textwrap.dedent("""\
+            min by (machine) (
+              probe_success{service="ndt_ssl_ipv6"} OR
+              script_success{service="ndt_e2e"} OR
+              (vdlimit_used{experiment="ndt.iupui"} /
+                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
+              lame_duck_node{} != bool 1)"""),
         'neubot': 'probe_success{service="neubot"}',
         'neubot_ipv6': 'probe_success{service="neubot_ipv6"}',
-        'mobiperf':
-        ('min by (machine) ( '
-         'probe_success{service="mobiperf", instance=~".*:6001"} OR '
-         'probe_success{service="mobiperf", instance=~".*:6002"} OR '
-         'probe_success{service="mobiperf", instance=~".*:6003"})'),
-        'mobiperf_ipv6':
-        ('min by (machine) ( '
-         'probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR '
-         'probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR '
-         'probe_success{service="mobiperf_ipv6", instance=~".*:6003"})')
+        'mobiperf': textwrap.dedent("""\
+            min by (machine) (
+              probe_success{service="mobiperf", instance=~".*:6001"} OR
+              probe_success{service="mobiperf", instance=~".*:6002"} OR
+              probe_success{service="mobiperf", instance=~".*:6003"})"""),
+        'mobiperf_ipv6': textwrap.dedent("""\
+            min by (machine) (
+              probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR
+              probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR
+              probe_success{service="mobiperf_ipv6", instance=~".*:6003"})""")
     }
 
     query = urllib.quote_plus(queries[tool_id + address_family])
