@@ -58,7 +58,7 @@ To deploy mlab-ns in a fresh GCP project, it is necessary to first deploy the co
 
 Note: These instructions require billing to be enabled on your GCP project, as the data population process will exhaust a free-tiered project's daily AppEngine quota.
 
-Note: These instructions require you to have `nagios.csv`, which is not under source control as it contains secret credentials, but is available to authorized users here: https://goo.gl/tfEg1v.
+Note: These instructions require you to have files named `nagios.csv` and `prometheus.csv`, which are not under source control as they contains secret credentials, but is available to authorized users here: https://goo.gl/tfEg1v. Manually create those two files and paste the file content found at that URL into the files before running the `appcfg.py` commands below.
 
 ```
 # Replace URL with other project's URL if not populating mlab-nstesting
@@ -73,6 +73,11 @@ appcfg.py --url ${GAE_URL}/_ah/remote_api upload_data \
   --config_file=server/bulkloader.yaml \
   --filename=server/mlabns/conf/nagios.csv \
   --kind=Nagios
+
+appcfg.py --url ${GAE_URL}/_ah/remote_api upload_data \
+  --config_file=server/bulkloader.yaml \
+  --filename=server/mlabns/conf/prometheus.csv \
+  --kind=Prometheus
 ```
 
 Note: If you see repeated errors including `Refreshing due to a 401 (attempt
