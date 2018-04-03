@@ -119,40 +119,48 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
               script_success{service="ndt_e2e"} OR
               (vdlimit_used{experiment="ndt.iupui"} /
                   vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-              lame_duck_node{} != bool 1)"""),
+              lame_duck_experiment{} != bool 1)"""),
         'ndt_ipv6': textwrap.dedent("""\
             min by (experiment, machine) (
               probe_success{service="ndt_raw_ipv6"} OR
               script_success{service="ndt_e2e"} OR
               (vdlimit_used{experiment="ndt.iupui"} /
                   vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-              lame_duck_node{} != bool 1)"""),
+              lame_duck_experiment{} != bool 1)"""),
         'ndt_ssl': textwrap.dedent("""\
             min by (experiment, machine) (
               probe_success{service="ndt_ssl"} OR
               script_success{service="ndt_e2e"} OR
               (vdlimit_used{experiment="ndt.iupui"} /
                   vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-              lame_duck_node{} != bool 1)"""),
+              lame_duck_experiment{} != bool 1)"""),
         'ndt_ssl_ipv6': textwrap.dedent("""\
             min by (experiment, machine) (
               probe_success{service="ndt_ssl_ipv6"} OR
               script_success{service="ndt_e2e"} OR
               (vdlimit_used{experiment="ndt.iupui"} /
                   vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-              lame_duck_node{} != bool 1)"""),
-        'neubot': 'probe_success{service="neubot"}',
-        'neubot_ipv6': 'probe_success{service="neubot_ipv6"}',
+              lame_duck_experiment{} != bool 1)"""),
+        'neubot': textwrap.dedent("""\
+            min by (experiment, machine) (
+              probe_success{service="neubot"} OR
+              lame_duck_experiment{} != bool 1)"""),
+        'neubot_ipv6': textwrap.dedent("""\
+            min by (experiment, machine) (
+              probe_success{service="neubot_ipv6"} OR
+              lame_duck_experiment{} != bool 1)"""),
         'mobiperf': textwrap.dedent("""\
             min by (experiment, machine) (
               probe_success{service="mobiperf", instance=~".*:6001"} OR
               probe_success{service="mobiperf", instance=~".*:6002"} OR
-              probe_success{service="mobiperf", instance=~".*:6003"})"""),
+              probe_success{service="mobiperf", instance=~".*:6003"} OR
+              lame_duck_experiment{} != bool 1)"""),
         'mobiperf_ipv6': textwrap.dedent("""\
             min by (experiment, machine) (
               probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR
               probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR
-              probe_success{service="mobiperf_ipv6", instance=~".*:6003"})""")
+              probe_success{service="mobiperf_ipv6", instance=~".*:6003"} OR
+              lame_duck_experiment{} != bool 1)"""),
     }
 
     query = urllib.quote_plus(queries[tool_id + address_family])
