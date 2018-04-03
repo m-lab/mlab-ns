@@ -75,22 +75,18 @@ def authenticate_prometheus(prometheus):
     return opener
 
 
-def parse_sliver_tool_status(status, slice_id):
+def parse_sliver_tool_status(status):
     """Parses the status of a single sliver tool.
 
     Args:
         status: dict, status of a sliver tool as returned by Prometheus.
-        slice_id: str, the name of the slice (e.g., iupui_ndt).
 
     Returns:
         Tuple of the form (sliver fqdn, current state, extra information)
     """
-    # Turns 'iupui_ndt' into 'ndt.iupui', for example.
-    experiment = '.'.join(slice_id.split('_')[::-1])
-
     # Joins the experiment name with the machine name to form the FQDN of the
     # experiment.
-    sliver_fqdn = experiment + '.' + status['metric']['machine']
+    sliver_fqdn = status['metric']['experiment'] + '.' + status['metric']['machine']
     # 'status' is a list with two items. The first item ([0]) is a timestamp
     # marking the Prometheus evaluation time. The second, which is the one we
     # want, is the binary status value of the service.
@@ -118,28 +114,28 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
     # return the status for the tool.
     queries = {
         'ndt': textwrap.dedent("""\
-            min by (machine) (
+            min by (experiment, machine) (
               probe_success{service="ndt_raw"} OR
               script_success{service="ndt_e2e"} OR
               (vdlimit_used{experiment="ndt.iupui"} /
                   vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
               lame_duck_node{} != bool 1)"""),
         'ndt_ipv6': textwrap.dedent("""\
-            min by (machine) (
+            min by (experiment, machine) (
               probe_success{service="ndt_raw_ipv6"} OR
               script_success{service="ndt_e2e"} OR
               (vdlimit_used{experiment="ndt.iupui"} /
                   vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
               lame_duck_node{} != bool 1)"""),
         'ndt_ssl': textwrap.dedent("""\
-            min by (machine) (
+            min by (experiment, machine) (
               probe_success{service="ndt_ssl"} OR
               script_success{service="ndt_e2e"} OR
               (vdlimit_used{experiment="ndt.iupui"} /
                   vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
               lame_duck_node{} != bool 1)"""),
         'ndt_ssl_ipv6': textwrap.dedent("""\
-            min by (machine) (
+            min by (experiment, machine) (
               probe_success{service="ndt_ssl_ipv6"} OR
               script_success{service="ndt_e2e"} OR
               (vdlimit_used{experiment="ndt.iupui"} /
@@ -148,12 +144,12 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
         'neubot': 'probe_success{service="neubot"}',
         'neubot_ipv6': 'probe_success{service="neubot_ipv6"}',
         'mobiperf': textwrap.dedent("""\
-            min by (machine) (
+            min by (experiment, machine) (
               probe_success{service="mobiperf", instance=~".*:6001"} OR
               probe_success{service="mobiperf", instance=~".*:6002"} OR
               probe_success{service="mobiperf", instance=~".*:6003"})"""),
         'mobiperf_ipv6': textwrap.dedent("""\
-            min by (machine) (
+            min by (experiment, machine) (
               probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR
               probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR
               probe_success{service="mobiperf_ipv6", instance=~".*:6003"})""")
@@ -164,13 +160,12 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
     return PrometheusSliceInfo(slice_url, tool_id, address_family)
 
 
-def get_slice_status(url, opener, slice_id):
+def get_slice_status(url, opener):
     """Read slice status from Prometheus.
 
     Args:
         url: str, the API URL for Prometheus for a single tool.
         opener: urllib2.OpenerDirector, opener authenticated with Prometheus.
-        slice_id: str, the name of the slice (e.g., iupui_ndt).
 
     Returns:
         A dict mapping sliver fqdn to a dictionary representing the sliver's
@@ -204,8 +199,7 @@ def get_slice_status(url, opener, slice_id):
 
     for status in statuses['data']['result']:
         try:
-            sliver_fqdn, state, tool_extra = parse_sliver_tool_status(status,
-                                                                      slice_id)
+            sliver_fqdn, state, tool_extra = parse_sliver_tool_status(status)
         except PrometheusStatusUnparseableError as e:
             logging.error('Unable to parse Prometheus sliver status. %s', e)
             continue
