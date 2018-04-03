@@ -86,7 +86,8 @@ def parse_sliver_tool_status(status):
     """
     # Joins the experiment name with the machine name to form the FQDN of the
     # experiment.
-    sliver_fqdn = status['metric']['experiment'] + '.' + status['metric']['machine']
+    sliver_fqdn = status['metric']['experiment'] + '.' + status['metric'][
+        'machine']
     # 'status' is a list with two items. The first item ([0]) is a timestamp
     # marking the Prometheus evaluation time. The second, which is the one we
     # want, is the binary status value of the service.
@@ -202,7 +203,7 @@ def get_slice_status(url, opener):
 
     if statuses['status'] == 'error':
         logging.error('Prometheus returned error "%s" for URL %s.' %
-                     (statuses['error'], url))
+                      (statuses['error'], url))
         return None
 
     for status in statuses['data']['result']:

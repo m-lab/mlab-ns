@@ -371,9 +371,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
         # of the configs is available, then abort, because we can't fetch status
         # from either. However, if we have one or the other, then continue,
         # because it may be preferable to update _some_ statuses than none.
-        if (prometheus_deps and not prometheus_config) and (nagios_deps and not
-                nagios_config):
-            logging.error('Neither Nagios nor Prometheus configs are available.')
+        if (prometheus_deps and not prometheus_config) and (nagios_deps and
+                                                            not nagios_config):
+            logging.error(
+                'Neither Nagios nor Prometheus configs are available.')
             return util.send_not_found(self)
 
         for tool_id in model.get_all_tool_ids():
@@ -381,14 +382,14 @@ class StatusUpdateHandler(webapp.RequestHandler):
             for address_family in ['', '_ipv6']:
                 if tool.status_source == 'prometheus':
                     logging.info('Status source for %s%s is: prometheus' %
-                                 tool_id, address_family)
+                                 (tool_id, address_family))
                     slice_info = prometheus_status.get_slice_info(
                         prometheus_config.url, tool_id, address_family)
                     slice_status = prometheus_status.get_slice_status(
                         slice_info.slice_url, prometheus_opener)
                 elif tool.status_source == 'nagios':
-                    logging.info('Status source for %s%s is: nagios' % tool_id,
-                            address_family)
+                    logging.info('Status source for %s%s is: nagios' %
+                                 (tool_id, address_family))
                     slice_info = nagios_status.get_slice_info(
                         nagios_config.url, tool_id, address_family)
                     slice_status = nagios_status.get_slice_status(
