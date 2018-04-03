@@ -380,15 +380,15 @@ class StatusUpdateHandler(webapp.RequestHandler):
             tool = model.get_tool_from_tool_id(tool_id)
             for address_family in ['', '_ipv6']:
                 if tool.status_source == 'prometheus':
-                    logging.info('Status source for %s is: prometheus' %
-                                 tool_id)
+                    logging.info('Status source for %s%s is: prometheus' %
+                                 tool_id, address_family)
                     slice_info = prometheus_status.get_slice_info(
                         prometheus_config.url, tool_id, address_family)
-                    logging.warning('PROM URL: %s' % slice_info.slice_url)
                     slice_status = prometheus_status.get_slice_status(
                         slice_info.slice_url, prometheus_opener, tool.slice_id)
                 elif tool.status_source == 'nagios':
-                    logging.info('Status source for %s is: nagios' % tool_id)
+                    logging.info('Status source for %s%s is: nagios' % tool_id,
+                            address_family)
                     slice_info = nagios_status.get_slice_info(
                         nagios_config.url, tool_id, address_family)
                     slice_status = nagios_status.get_slice_status(
