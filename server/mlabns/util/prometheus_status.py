@@ -207,12 +207,12 @@ def get_slice_status(url, opener):
     try:
         statuses = json.loads(raw_data)
     except ValueError:
-        logging.error('Unable to parse JSON from: %s' % url)
+        logging.error('Unable to parse JSON from: %s', url)
         return None
 
     if statuses['status'] == 'error':
-        logging.error('Prometheus returned error "%s" for URL %s.' %
-                      (statuses['error'], url))
+        logging.error('Prometheus returned error "%s" for URL %s.',
+                      statuses['error'], url)
         return None
 
     for status in statuses['data']['result']:

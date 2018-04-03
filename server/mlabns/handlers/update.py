@@ -381,19 +381,35 @@ class StatusUpdateHandler(webapp.RequestHandler):
             tool = model.get_tool_from_tool_id(tool_id)
             for address_family in ['', '_ipv6']:
                 if tool.status_source == 'prometheus':
-                    logging.info('Status source for %s%s is: prometheus' %
-                                 (tool_id, address_family))
-                    slice_info = prometheus_status.get_slice_info(
-                        prometheus_config.url, tool_id, address_family)
-                    slice_status = prometheus_status.get_slice_status(
-                        slice_info.slice_url, prometheus_opener)
+                    logging.info('Status source for %s%s is: prometheus',
+                                 tool_id, address_family)
+                    # Only proceed if prometheus_config exists, and hence
+                    # prometheus_opener should also exist.
+                    if prometheus_config:
+                        slice_info = prometheus_status.get_slice_info(
+                            prometheus_config.url, tool_id, address_family)
+                        slice_status = prometheus_status.get_slice_status(
+                            slice_info.slice_url, prometheus_opener)
+                    else:
+                        logging.error(
+                            'Prometheus config unavailable. Skipping %s%s',
+                            tool_id, address_family)
+                        continue
                 elif tool.status_source == 'nagios':
-                    logging.info('Status source for %s%s is: nagios' %
-                                 (tool_id, address_family))
-                    slice_info = nagios_status.get_slice_info(
-                        nagios_config.url, tool_id, address_family)
-                    slice_status = nagios_status.get_slice_status(
-                        slice_info.slice_url, nagios_opener)
+                    logging.info('Status source for %s%s is: nagios', tool_id,
+                                 address_family)
+                    # Only proceed if nagios_config exists, and hence
+                    # nagios_opener should also exist.
+                    if nagios_config:
+                        slice_info = nagios_status.get_slice_info(
+                            nagios_config.url, tool_id, address_family)
+                        slice_status = nagios_status.get_slice_status(
+                            slice_info.slice_url, nagios_opener)
+                    else:
+                        logging.error(
+                            'Nagios config unavailable. Skipping %s%s', tool_id,
+                            address_family)
+                        continue
                 else:
                     logging.error('Unknown tool status_source: %s.',
                                   tool.status_source)
