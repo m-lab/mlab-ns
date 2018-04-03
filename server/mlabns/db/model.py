@@ -203,3 +203,21 @@ def get_all_tool_ids():
     for tool in Tool.all().run(batch_size=constants.GQL_BATCH_SIZE):
         tool_ids.append(tool.tool_id)
     return tool_ids
+
+
+def get_status_source_deps(source):
+    """Gets all Tools that rely on the given status source.
+
+    Args:
+        source: str, status source, either 'nagios or 'prometheus'.
+
+    Returns:
+        list, Tools that depend on `source`.
+    """
+    tools = []
+    tools_gql = Tool.gql("WHERE status_source = :source", source=source)
+    for tool in tools_gql.run():
+        tools.append(tool)
+    if not tools:
+        logging.info('No tools get their status from %s.', source)
+    return tools

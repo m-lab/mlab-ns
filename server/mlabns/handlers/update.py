@@ -348,20 +348,33 @@ class StatusUpdateHandler(webapp.RequestHandler):
         The base URLs for accessing status information are stored in the
         datastore along with the credentials necessary to access the data.
         """
+        # Determine if there are any dependencies on Prometheus.
+        prometheus_deps = model.get_status_source_deps('prometheus')
         # Get Prometheus configs, and authenticate.
         prometheus_config = prometheus_config_wrapper.get_prometheus_config()
         if prometheus_config is None:
             logging.error('Datastore does not have the Prometheus configs.')
-            return util.send_not_found(self)
-        prometheus_opener = prometheus_status.authenticate_prometheus(
-            prometheus_config)
+        else:
+            prometheus_opener = prometheus_status.authenticate_prometheus(
+                prometheus_config)
 
+        # Determine if there are any dependencies on Nagios.
+        nagios_deps = model.get_status_source_deps('nagios')
         # Get Nagios configs, and authenticate.
         nagios_config = nagios_config_wrapper.get_nagios_config()
         if nagios_config is None:
             logging.error('Datastore does not have the Nagios configs.')
+        else:
+            nagios_opener = nagios_status.authenticate_nagios(nagios_config)
+
+        # If we have dependencies on both Prometheus and Nagios, and neither one
+        # of the configs is available, then abort, because we can't fetch status
+        # from either. However, if we have one or the other, then continue,
+        # because it may be preferable to update _some_ statuses than none.
+        if (prometheus_deps and not prometheus_config) and (nagios_deps and not
+                nagios_config):
+            logging.error('Neither Nagios nor Prometheus configs are available.')
             return util.send_not_found(self)
-        nagios_opener = nagios_status.authenticate_nagios(nagios_config)
 
         for tool_id in model.get_all_tool_ids():
             tool = model.get_tool_from_tool_id(tool_id)
