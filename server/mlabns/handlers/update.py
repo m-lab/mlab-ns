@@ -384,6 +384,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                  tool_id)
                     slice_info = prometheus_status.get_slice_info(
                         prometheus_config.url, tool_id, address_family)
+                    logging.warning('PROM URL: %s' % slice_info.slice_url)
                     slice_status = prometheus_status.get_slice_status(
                         slice_info.slice_url, prometheus_opener, tool.slice_id)
                 elif tool.status_source == 'nagios':
