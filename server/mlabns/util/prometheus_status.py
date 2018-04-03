@@ -208,6 +208,7 @@ def get_slice_status(url, opener):
         statuses = json.loads(raw_data)
     except ValueError:
         logging.error('Unable to parse JSON from: %s' % url)
+        return None
 
     if statuses['status'] == 'error':
         logging.error('Prometheus returned error "%s" for URL %s.' %
