@@ -6,6 +6,12 @@ DEFAULT_NAGIOS_ENTRY = 'default'
 # configuration.
 DEFAULT_PROMETHEUS_ENTRY = 'prometheus_default'
 
+# String that the code will insert into SliverTool.tool_extra when the status
+# source in Prometheus. For Nagios, tool_extra comes from the Nagios plugin that
+# runs the check. This string for Prometheus is arbitrary and mostly used to
+# signal that the current status was set from Prometheus data.
+PROMETHEUS_TOOL_EXTRA = 'Prometheus was here \o/.'
+
 # Earth radius in km.
 EARTH_RADIUS = 6371
 

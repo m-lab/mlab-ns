@@ -388,6 +388,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     if prometheus_config:
                         slice_info = prometheus_status.get_slice_info(
                             prometheus_config.url, tool_id, address_family)
+                        if not slice_info:
+                            continue
                         slice_status = prometheus_status.get_slice_status(
                             slice_info.slice_url, prometheus_opener)
                     else:

@@ -7,6 +7,67 @@ import urllib2
 from mlabns.util import constants
 from mlabns.util import message
 
+# This global dict maps tool_ids to the corresponding Prometheus query that will
+# return the status for that tool.
+QUERIES = {
+    'ndt': textwrap.dedent("""\
+        min by (experiment, machine) (
+          probe_success{service="ndt_raw"} OR
+          script_success{service="ndt_e2e"} OR
+          (vdlimit_used{experiment="ndt.iupui"} /
+              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
+          lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+          """),
+    'ndt_ipv6': textwrap.dedent("""\
+        min by (experiment, machine) (
+          probe_success{service="ndt_raw_ipv6"} OR
+          script_success{service="ndt_e2e"} OR
+          (vdlimit_used{experiment="ndt.iupui"} /
+              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
+          lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+          """),
+    'ndt_ssl': textwrap.dedent("""\
+        min by (experiment, machine) (
+          probe_success{service="ndt_ssl"} OR
+          script_success{service="ndt_e2e"} OR
+          (vdlimit_used{experiment="ndt.iupui"} /
+              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
+          lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+          """),
+    'ndt_ssl_ipv6': textwrap.dedent("""\
+        min by (experiment, machine) (
+          probe_success{service="ndt_ssl_ipv6"} OR
+          script_success{service="ndt_e2e"} OR
+          (vdlimit_used{experiment="ndt.iupui"} /
+              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
+          lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+          """),
+    'neubot': textwrap.dedent("""\
+        min by (experiment, machine) (
+          probe_success{service="neubot"} OR
+          lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
+          """),
+    'neubot_ipv6': textwrap.dedent("""\
+        min by (experiment, machine) (
+          probe_success{service="neubot_ipv6"} OR
+          lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
+          """),
+    'mobiperf': textwrap.dedent("""\
+        min by (experiment, machine) (
+          probe_success{service="mobiperf", instance=~".*:6001"} OR
+          probe_success{service="mobiperf", instance=~".*:6002"} OR
+          probe_success{service="mobiperf", instance=~".*:6003"} OR
+          lame_duck_experiment{experiment="1.michigan"} != bool 1)
+          """),
+    'mobiperf_ipv6': textwrap.dedent("""\
+        min by (experiment, machine) (
+          probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR
+          probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR
+          probe_success{service="mobiperf_ipv6", instance=~".*:6003"} OR
+          lame_duck_experiment{experiment="1.michigan"} != bool 1)
+          """),
+}
+
 
 class Error(Exception):
     pass
@@ -84,6 +145,12 @@ def parse_sliver_tool_status(status):
     Returns:
         Tuple of the form (sliver fqdn, current state, extra information)
     """
+    # Make sure that the status is minimally correct.
+    if not 'value' in status or not 'experiment' in status[
+            'metric'] or not 'machine' in status['metric']:
+        raise PrometheusStatusUnparseableError(
+            'Prometheus status format unrecognized: %s' % status)
+
     # Joins the experiment name with the machine name to form the FQDN of the
     # experiment.
     sliver_fqdn = status['metric']['experiment'] + '.' + status['metric'][
@@ -95,7 +162,7 @@ def parse_sliver_tool_status(status):
     # Prometheus doesn't return any sort of "tool_extra" like baseList.pl does
     # for Nagios, so instead just drop in a note that this was processed from
     # Prometheus data.
-    tool_extra = 'Prometheus was here \o/.'
+    tool_extra = constants.PROMETHEUS_TOOL_EXTRA
 
     return sliver_fqdn, state, tool_extra
 
@@ -111,68 +178,11 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
     Returns:
          A self.PrometheusSliceInfo object for a slice.
     """
-    # This dict maps tool_ids to the corresponding Prometheus query that will
-    # return the status for the tool.
-    queries = {
-        'ndt': textwrap.dedent("""\
-            min by (experiment, machine) (
-              probe_success{service="ndt_raw"} OR
-              script_success{service="ndt_e2e"} OR
-              (vdlimit_used{experiment="ndt.iupui"} /
-                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-              lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-              """),
-        'ndt_ipv6': textwrap.dedent("""\
-            min by (experiment, machine) (
-              probe_success{service="ndt_raw_ipv6"} OR
-              script_success{service="ndt_e2e"} OR
-              (vdlimit_used{experiment="ndt.iupui"} /
-                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-              lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-              """),
-        'ndt_ssl': textwrap.dedent("""\
-            min by (experiment, machine) (
-              probe_success{service="ndt_ssl"} OR
-              script_success{service="ndt_e2e"} OR
-              (vdlimit_used{experiment="ndt.iupui"} /
-                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-              lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-              """),
-        'ndt_ssl_ipv6': textwrap.dedent("""\
-            min by (experiment, machine) (
-              probe_success{service="ndt_ssl_ipv6"} OR
-              script_success{service="ndt_e2e"} OR
-              (vdlimit_used{experiment="ndt.iupui"} /
-                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-              lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-              """),
-        'neubot': textwrap.dedent("""\
-            min by (experiment, machine) (
-              probe_success{service="neubot"} OR
-              lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
-              """),
-        'neubot_ipv6': textwrap.dedent("""\
-            min by (experiment, machine) (
-              probe_success{service="neubot_ipv6"} OR
-              lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
-              """),
-        'mobiperf': textwrap.dedent("""\
-            min by (experiment, machine) (
-              probe_success{service="mobiperf", instance=~".*:6001"} OR
-              probe_success{service="mobiperf", instance=~".*:6002"} OR
-              probe_success{service="mobiperf", instance=~".*:6003"} OR
-              lame_duck_experiment{experiment="1.michigan"} != bool 1)
-              """),
-        'mobiperf_ipv6': textwrap.dedent("""\
-            min by (experiment, machine) (
-              probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR
-              probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR
-              probe_success{service="mobiperf_ipv6", instance=~".*:6003"} OR
-              lame_duck_experiment{experiment="1.michigan"} != bool 1)
-              """),
-    }
-
-    query = urllib.quote_plus(queries[tool_id + address_family])
+    tool_name = tool_id + address_family
+    if not tool_name in QUERIES:
+        logging.error('There is no Prometheus query for tool: %s, tool_name')
+        return None
+    query = urllib.quote_plus(QUERIES[tool_name])
     slice_url = prometheus_base_url + query
     return PrometheusSliceInfo(slice_url, tool_id, address_family)
 
