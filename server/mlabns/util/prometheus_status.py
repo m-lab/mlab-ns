@@ -180,7 +180,7 @@ def get_slice_info(prometheus_base_url, tool_id, address_family):
     """
     tool_name = tool_id + address_family
     if not tool_name in QUERIES:
-        logging.error('There is no Prometheus query for tool: %s, tool_name')
+        logging.error('There is no Prometheus query for tool: %s', tool_name)
         return None
     query = urllib.quote_plus(QUERIES[tool_name])
     slice_url = prometheus_base_url + query
