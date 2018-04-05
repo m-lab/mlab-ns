@@ -153,6 +153,8 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
     def test_get_slice_status_returns_none_when_a_HTTPError_is_raised_by_urlopen(
             self, mock_open):
 
+        # urllib2.HTTPError() requires 6 arguments. Subclassing to override
+        # __init__ makes instantiating this easier.
         class MockHttpError(urllib2.HTTPError):
 
             def __init__(self, cause):
