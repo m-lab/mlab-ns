@@ -124,9 +124,17 @@ class Tool(db.Model):
     # redirected to: http://fqdn[ipv4|ipv6]:http_port
     http_port = db.StringProperty()
     show_tool_extra = db.BooleanProperty()
+    status_source = db.StringProperty()
 
 
 class Nagios(db.Model):
+    key_id = db.StringProperty()
+    username = db.StringProperty()
+    password = db.StringProperty()
+    url = db.StringProperty()
+
+
+class Prometheus(db.Model):
     key_id = db.StringProperty()
     username = db.StringProperty()
     password = db.StringProperty()
@@ -195,3 +203,21 @@ def get_all_tool_ids():
     for tool in Tool.all().run(batch_size=constants.GQL_BATCH_SIZE):
         tool_ids.append(tool.tool_id)
     return tool_ids
+
+
+def get_status_source_deps(source):
+    """Gets all Tools that rely on the given status source.
+
+    Args:
+        source: str, status source, either 'nagios or 'prometheus'.
+
+    Returns:
+        list, Tools that depend on `source`.
+    """
+    tools = []
+    tools_gql = Tool.gql("WHERE status_source = :source", source=source)
+    for tool in tools_gql.run():
+        tools.append(tool)
+    if not tools:
+        logging.info('No tools get their status from %s.', source)
+    return tools

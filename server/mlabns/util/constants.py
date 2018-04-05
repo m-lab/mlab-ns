@@ -2,6 +2,16 @@
 # configuration.
 DEFAULT_NAGIOS_ENTRY = 'default'
 
+# Name of the entry in the Prometheus table, containing the default
+# configuration.
+DEFAULT_PROMETHEUS_ENTRY = 'prometheus_default'
+
+# String that the code will insert into SliverTool.tool_extra when the status
+# source in Prometheus. For Nagios, tool_extra comes from the Nagios plugin that
+# runs the check. This string for Prometheus is arbitrary and mostly used to
+# signal that the current status was set from Prometheus data.
+PROMETHEUS_TOOL_EXTRA = 'Prometheus was here \o/.'
+
 # Earth radius in km.
 EARTH_RADIUS = 6371
 
@@ -25,6 +35,11 @@ MEMCACHE_NAMESPACE_TOOLS = 'memcache_tools'
 # CRITICAL      2
 # UNKNOWN       3
 NAGIOS_SERVICE_STATUS_OK = '0'
+
+# Service state status values from Prometheus:
+# OK            1
+# CRITICAL      0
+PROMETHEUS_SERVICE_STATUS_OK = '1'
 
 # Maximum number of entities fetched from datastore in a single query.
 GQL_BATCH_SIZE = 1000
