@@ -3,7 +3,6 @@ import unittest2
 import urllib
 import urllib2
 
-from mlabns.handlers import update
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import prometheus_status
