@@ -264,7 +264,7 @@ def main():
             discrepancy_2_1_avg)
 
         # Sleep for 60s
-        time.sleep(10)
+        time.sleep(60)
 
 
 if __name__ == '__main__':
