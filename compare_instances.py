@@ -48,6 +48,10 @@ def parse_options(args):
         dest='infer_queueing',
         action="store_true",
         help='Attempts to determine if queueing accounts for differences.')
+    parser.add_argument('--verbose',
+                        dest='verbose',
+                        action="store_true",
+                        help='Whether to print extra information.')
     parser.add_argument('--ignore_pattern',
                         dest='ignore_patterns',
                         nargs='*',
@@ -110,6 +114,36 @@ def filter_results(results, args):
     return filtered_results
 
 
+def infer_queueing(results1, results2):
+    """Makes a loose determination of whether NDT node is queueing.
+
+    NOTE: This function is temporary and highly specific to comparing Nagios status to Prometheus status, AND is only relevant for --tool_id=ndt. Nagios does not know whether NDT is queueing or not, whereas Prometheus has a check for this, and will fail NDT if it detects that queueing is happening. This function dumbly assumes that Nagios (results1) is advertising mlab1, and if Prometheus (results2) is advertising anything other than mlab1 for the same site, then we assume it has detected queueing.
+
+    Arguments:
+        results1: list of dicts, with each dict containing status for a service.
+        results2: list of dicts, with each dict containing status for a service.
+
+    Returns:
+        list, list of dicts with possible NDT queueing reconciled.
+    """
+    munged_results2 = []
+    for result1 in results1:
+        r1_node, r1_site = re.search('(mlab[1-4])\.([a-z]{3}[0-9]{2})',
+                                     result1['fqdn']).groups()
+        for result2 in results2:
+            r2_node, r2_site = re.search('(mlab[1-4])\.([a-z]{3}[0-9]{2})',
+                                         result2['fqdn']).groups()
+            if r1_site == r2_site:
+                if r1_node < r2_node:
+                    munged_results2.append(result1)
+                else:
+                    munged_results2.append(result2)
+            else:
+                munged_results2.append(result2)
+
+    return munged_results2
+
+
 def convert_results(results, args):
     """Converts JSON results into a python set().
     
@@ -146,13 +180,12 @@ def compare_results(s1, s2):
         s2: set, first set for comparison.
     
     Returns:
-        dict, data with comparison metrics for sets.
+        dict, data with comparison results for sets.
     """
     data = {}
-    data['s1_count'] = len(s1)
-    data['s1_not_s2'] = len(s1.difference(s2))
-    data['s2_not_s1'] = len(s2.difference(s1))
-    data['s1_and_s2'] = len(s1.intersection(s2))
+    data['s1_not_s2'] = s1.difference(s2)
+    data['s2_not_s1'] = s2.difference(s1)
+    data['s1_and_s2'] = s1.intersection(s2)
 
     return data
 
@@ -160,35 +193,78 @@ def compare_results(s1, s2):
 def main():
     args = parse_options(sys.argv[1:])
 
+    samples = 0
+    s1_count_total = 0
+    s1_and_s2_total = 0
     s1_not_s2_total = 0
     s2_not_s1_total = 0
-    s1_and_s2_total = 0
 
-    while True:
+    while samples < 10:
         url_one = '%s/%s?%s' % (args.instance_one_url, args.tool_id,
                                 QUERY_STRING)
         results_one = get_mlabns_status(url_one)
         results_one_filtered = filter_results(results_one, args)
-        set_one = convert_results(results_one_filtered, args)
 
         url_two = '%s/%s?%s' % (args.instance_two_url, args.tool_id,
                                 QUERY_STRING)
         results_two = get_mlabns_status(url_two)
         results_two_filtered = filter_results(results_two, args)
+
+        if args.infer_queueing:
+            results_two_filtered = infer_queueing(results_one_filtered,
+                                                  results_two_filtered)
+
+        set_one = convert_results(results_one_filtered, args)
         set_two = convert_results(results_two_filtered, args)
 
         data = compare_results(set_one, set_two)
-        s1_and_s2_total = s1_and_s2_total + data['s1_and_s2']
-        s1_not_s2_total = s1_not_s2_total + data['s1_not_s2']
-        s2_not_s1_total = s2_not_s1_total + data['s2_not_s1']
-        print 'Instance 1 AND instance 2: %d' % data['s1_and_s2']
-        print 'Instance 1 NOT instance 2: %d' % data['s1_not_s2']
-        print 'Instance 2 NOT instance 1: %d' % data['s2_not_s1']
-        discrepancy = data['s1_not_s2'] / (data['s1_count'] * 1.0) * 100
-        print 'Discrepancy between 1 and 2: {0:.2f}%'.format(discrepancy)
 
-        # Sleep for 100s
-        time.sleep(100)
+        samples = samples + 1
+
+        # Calculate counts and totals
+        s1_count = len(set_one)
+        s1_and_s2_count = len(data['s1_and_s2'])
+        s1_not_s2_count = len(data['s1_not_s2'])
+        s2_not_s1_count = len(data['s2_not_s1'])
+        s1_count_total = s1_count_total + s1_count
+        s1_and_s2_total = s1_and_s2_total + len(data['s1_and_s2'])
+        s1_not_s2_total = s1_not_s2_total + len(data['s1_not_s2'])
+        s2_not_s1_total = s2_not_s1_total + len(data['s2_not_s1'])
+
+        # Current
+        print '## SAMPLE %d' % samples
+        print 'Instance 1 count: %d' % s1_count
+        print 'Instance 1 AND instance 2: %d' % s1_and_s2_count
+        print 'Instance 1 NOT instance 2: %d' % s1_not_s2_count
+        if args.verbose:
+            for item in data['s1_not_s2']:
+                print '    %s' % item
+        print 'Instance 2 NOT instance 1: %d' % s2_not_s1_count
+        if args.verbose:
+            for item in data['s2_not_s1']:
+                print '    %s' % item
+        discrepancy_1_2 = s1_not_s2_count / (s1_count * 1.0) * 100
+        print 'Discrepancy between 1 and 2: {0:.2f}%'.format(discrepancy_1_2)
+        discrepancy_2_1 = s2_not_s1_count / (s1_count * 1.0) * 100
+        print 'Discrepancy between 2 and 1: {0:.2f}%'.format(discrepancy_2_1)
+
+        # Averages
+        print '## AVERAGES (since start)'
+        print 'Instance 1 count: %d' % (s1_count_total / samples)
+        print 'Instance 1 AND instance 2: %d' % (s1_and_s2_total / samples)
+        print 'Instance 1 NOT instance 2: %d' % (s1_not_s2_total / samples)
+        print 'Instance 2 NOT instance 1: %d' % (s2_not_s1_total / samples)
+        discrepancy_1_2_avg = (s1_not_s2_total / samples) / (
+            s1_count_total / samples * 1.0) * 100
+        print 'Discrepancy between 1 and 2: {0:.2f}%'.format(
+            discrepancy_1_2_avg)
+        discrepancy_2_1_avg = (s2_not_s1_total / samples) / (
+            s1_count_total / samples * 1.0) * 100
+        print 'Discrepancy between 2 and 1: {0:.2f}%\n\n'.format(
+            discrepancy_2_1_avg)
+
+        # Sleep for 60s
+        time.sleep(10)
 
 
 if __name__ == '__main__':
