@@ -9,6 +9,8 @@ import sys
 import time
 import urllib2
 
+logging.basicConfig(level=logging.DEBUG)
+
 QUERY_STRING = 'policy=all'
 
 
@@ -38,6 +40,15 @@ def parse_options(args):
                         dest='tool_id',
                         default='ndt',
                         help='The tool_id to query e.g., ndt.')
+    parser.add_argument('--samples',
+                        dest='samples',
+                        default=60,
+                        help='Number of times to sample mlab-ns data.')
+    parser.add_argument('--interval',
+                        dest='interval',
+                        type=float,
+                        default=60,
+                        help='Seconds to wait between samples.')
     parser.add_argument(
         '--all_fields',
         dest='all_fields',
@@ -107,6 +118,7 @@ def filter_results(results, args):
         for pattern in args.ignore_patterns:
             if re.search(pattern, status['fqdn']):
                 matched = True
+                break
 
         if not matched:
             filtered_results.append(results[key])
@@ -130,16 +142,14 @@ def infer_queueing(results1, results2):
     for result1 in results1:
         r1_node, r1_site = re.search('(mlab[1-4])\.([a-z]{3}[0-9]{2})',
                                      result1['fqdn']).groups()
-        for result2 in results2:
-            r2_node, r2_site = re.search('(mlab[1-4])\.([a-z]{3}[0-9]{2})',
-                                         result2['fqdn']).groups()
-            if r1_site == r2_site:
-                if r1_node < r2_node:
-                    munged_results2.append(result1)
-                else:
-                    munged_results2.append(result2)
-            else:
-                munged_results2.append(result2)
+
+        result2 = [s for s in results2 if r1_site in s['fqdn']]
+        r2_node, r2_site = re.search('(mlab[1-4])\.([a-z]{3}[0-9]{2})',
+                                     result2[0]['fqdn']).groups()
+        if r1_site == r2_site and r1_node < r2_node:
+            munged_results2.append(result1)
+        else:
+            munged_results2.append(result2[0])
 
     return munged_results2
 
@@ -183,9 +193,9 @@ def compare_results(s1, s2):
         dict, data with comparison results for sets.
     """
     data = {}
-    data['s1_not_s2'] = s1.difference(s2)
-    data['s2_not_s1'] = s2.difference(s1)
-    data['s1_and_s2'] = s1.intersection(s2)
+    data['common'] = s1.intersection(s2)
+    data['missing'] = s1.difference(s2)
+    data['extra'] = s2.difference(s1)
 
     return data
 
@@ -194,12 +204,14 @@ def main():
     args = parse_options(sys.argv[1:])
 
     samples = 0
-    s1_count_total = 0
-    s1_and_s2_total = 0
-    s1_not_s2_total = 0
-    s2_not_s1_total = 0
+    common_total = 0
+    missing_total = 0
+    extra_total = 0
+    denominator_total = 0
 
-    while samples < 10:
+    print 'sample,common,missing,extra,pct_agree,pct_disagree,avg_common,avg_missing,avg_extra,avg_pct_agree,avg_pct_disagree'
+
+    while samples < args.samples:
         url_one = '%s/%s?%s' % (args.instance_one_url, args.tool_id,
                                 QUERY_STRING)
         results_one = get_mlabns_status(url_one)
@@ -221,50 +233,43 @@ def main():
 
         samples = samples + 1
 
-        # Calculate counts and totals
-        s1_count = len(set_one)
-        s1_and_s2_count = len(data['s1_and_s2'])
-        s1_not_s2_count = len(data['s1_not_s2'])
-        s2_not_s1_count = len(data['s2_not_s1'])
-        s1_count_total = s1_count_total + s1_count
-        s1_and_s2_total = s1_and_s2_total + len(data['s1_and_s2'])
-        s1_not_s2_total = s1_not_s2_total + len(data['s1_not_s2'])
-        s2_not_s1_total = s2_not_s1_total + len(data['s2_not_s1'])
+        # Calculate current counts and totals
+        common_count = len(data['common'])
+        missing_count = len(data['missing'])
+        extra_count = len(data['extra'])
+        denominator = common_count + missing_count + extra_count
 
-        # Current
-        print '## SAMPLE %d' % samples
-        print 'Instance 1 count: %d' % s1_count
-        print 'Instance 1 AND instance 2: %d' % s1_and_s2_count
-        print 'Instance 1 NOT instance 2: %d' % s1_not_s2_count
-        if args.verbose:
-            for item in data['s1_not_s2']:
-                print '    %s' % item
-        print 'Instance 2 NOT instance 1: %d' % s2_not_s1_count
-        if args.verbose:
-            for item in data['s2_not_s1']:
-                print '    %s' % item
-        discrepancy_1_2 = s1_not_s2_count / (s1_count * 1.0) * 100
-        print 'Discrepancy between 1 and 2: {0:.2f}%'.format(discrepancy_1_2)
-        discrepancy_2_1 = s2_not_s1_count / (s1_count * 1.0) * 100
-        print 'Discrepancy between 2 and 1: {0:.2f}%'.format(discrepancy_2_1)
+        # Calculate average counts and totals
+        common_total = common_total + len(data['common'])
+        missing_total = missing_total + len(data['missing'])
+        extra_total = extra_total + len(data['extra'])
+        denominator_total = denominator_total + denominator
 
-        # Averages
-        print '## AVERAGES (since start)'
-        print 'Instance 1 count: %d' % (s1_count_total / samples)
-        print 'Instance 1 AND instance 2: %d' % (s1_and_s2_total / samples)
-        print 'Instance 1 NOT instance 2: %d' % (s1_not_s2_total / samples)
-        print 'Instance 2 NOT instance 1: %d' % (s2_not_s1_total / samples)
-        discrepancy_1_2_avg = (s1_not_s2_total / samples) / (
-            s1_count_total / samples * 1.0) * 100
-        print 'Discrepancy between 1 and 2: {0:.2f}%'.format(
-            discrepancy_1_2_avg)
-        discrepancy_2_1_avg = (s2_not_s1_total / samples) / (
-            s1_count_total / samples * 1.0) * 100
-        print 'Discrepancy between 2 and 1: {0:.2f}%\n\n'.format(
-            discrepancy_2_1_avg)
+        print '{sample},{common},{missing},{extra},{pct_agree:.2f},{pct_disagree:.2f},{avg_common},{avg_missing},{avg_extra},{avg_pct_agree:.2f},{avg_pct_disagree:.2f}'.format(
+            sample=samples,
+            common=common_count,
+            missing=missing_count,
+            extra=extra_count,
+            pct_agree=(common_count / (denominator * 1.0) * 100),
+            pct_disagree=(
+                (missing_count + extra_count) / (denominator * 1.0) * 100),
+            avg_common=(common_total / samples),
+            avg_missing=(missing_total / samples),
+            avg_extra=(extra_total / samples),
+            avg_pct_agree=((common_total / samples) /
+                           (denominator_total / samples * 1.0) * 100),
+            avg_pct_disagree=(((missing_total + extra_total) / samples) /
+                              (denominator_total / samples * 1.0) * 100))
+
+        if args.verbose:
+            for item in data['missing']:
+                logging.debug('Missing: %s', item)
+        if args.verbose:
+            for item in data['extra']:
+                logging.debug('Extra: %s', item)
 
         # Sleep for 60s
-        time.sleep(60)
+        time.sleep(args.interval)
 
 
 if __name__ == '__main__':
