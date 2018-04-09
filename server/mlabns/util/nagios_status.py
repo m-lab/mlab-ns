@@ -2,7 +2,6 @@ import logging
 import re
 import urllib2
 
-from mlabns.db import model
 from mlabns.util import constants
 from mlabns.util import message
 
@@ -60,6 +59,9 @@ def authenticate_nagios(nagios):
 
     Args:
         nagios: object containing Nagios auth information
+
+    Returns:
+        A urllib2 OpenerDirector object.
     """
     password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
     password_manager.add_password(None, nagios.url, nagios.username,
@@ -67,7 +69,7 @@ def authenticate_nagios(nagios):
 
     authhandler = urllib2.HTTPDigestAuthHandler(password_manager)
     opener = urllib2.build_opener(authhandler)
-    urllib2.install_opener(opener)
+    return opener
 
 
 def parse_sliver_tool_status(status):
@@ -103,31 +105,28 @@ def parse_sliver_tool_status(status):
     return sliver_fqdn, state, tool_extra
 
 
-def get_slice_info(nagios_base_url):
-    """Builds a list of NagiosSliceInfo objects to query Nagios for all slices.
+def get_slice_info(nagios_base_url, tool_id, address_family):
+    """Builds a NagiosSliceInfo object to query Nagios for a slice.
 
     Args:
         nagios_base_url: Base URL to get Nagios slice information.
+        tool_id: str, the name of the sliver tool.
+        address_family: str, empty for IPv4 or '_ipv6' for IPv6.
 
     Returns:
-         List of NagiosSliceInfo objects.
+         NagiosSliceInfo object.
     """
-    slice_objects = []
-    for tool_id in model.get_all_tool_ids():
-        for address_family in ['', '_ipv6']:
-            slice_url = (nagios_base_url + '?show_state=1&service_name=' +
-                         tool_id + address_family + "&plugin_output=1")
-            slice_objects.append(NagiosSliceInfo(slice_url, tool_id,
-                                                 address_family))
-
-    return slice_objects
+    slice_url = (nagios_base_url + '?show_state=1&service_name=' + tool_id +
+                 address_family + "&plugin_output=1")
+    return NagiosSliceInfo(slice_url, tool_id, address_family)
 
 
-def get_slice_status(url):
+def get_slice_status(url, opener):
     """Read slice status from Nagios.
 
     Args:
         url: String representing the URL to Nagios for a single slice.
+        opener: urllib2.OpenerDirector, opener authenticated with Nagios.
 
     Returns:
         A dict mapping sliver fqdn to a dictionary representing the sliver's
@@ -144,7 +143,7 @@ def get_slice_status(url):
     """
     status = {}
     try:
-        lines = urllib2.urlopen(url).read().strip('\n').split('\n')
+        lines = opener.open(url).read().strip('\n').split('\n')
     except urllib2.HTTPError:
         # TODO(claudiu) Notify(email) when this happens.
         logging.error('Cannot open %s.', url)

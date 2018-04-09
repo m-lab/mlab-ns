@@ -95,6 +95,26 @@ transformers:
       external_name: url
 
 
+- kind: Prometheus
+  connector: csv
+  connector_options:
+      encoding: utf-8
+  property_map:
+    - property: __key__
+      external_name: index
+      import_transform: "lambda x: 'prometheus_default'"
+      export_transform: transform.key_id_or_name_as_string
+
+    - property: username
+      external_name: username
+
+    - property: password
+      external_name: password
+
+    - property: url
+      external_name: url
+
+
 - kind: Site
   connector: csv
   connector_options:
@@ -227,6 +247,9 @@ transformers:
 
     - property: http_port
       external_name: http_port
+
+    - property: status_source
+      external_name: status_source
 
     - property: show_tool_extra
       external_name: show_tool_extra

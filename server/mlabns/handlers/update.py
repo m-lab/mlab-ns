@@ -10,10 +10,12 @@ from google.appengine.ext import webapp
 
 from mlabns.db import model
 from mlabns.db import nagios_config_wrapper
+from mlabns.db import prometheus_config_wrapper
 from mlabns.db import sliver_tool_fetcher
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import nagios_status
+from mlabns.util import prometheus_status
 from mlabns.util import production_check
 from mlabns.util import util
 
@@ -346,28 +348,89 @@ class IPUpdateHandler(webapp.RequestHandler):
 
 
 class StatusUpdateHandler(webapp.RequestHandler):
-    """Updates SliverTools' status from Nagios."""
+    """Updates SliverTools' status."""
 
     def get(self):
         """Triggers the update handler.
 
-        Updates sliver status with information from Nagios. The Nagios URL
-        containing the information is stored in the Nagios db along with
-        the credentials necessary to access the data.
+        Updates sliver status with information from either Nagios or Prometheus.
+        The base URLs for accessing status information are stored in the
+        datastore along with the credentials necessary to access the data.
         """
-        nagios = nagios_config_wrapper.get_nagios_config()
-        if nagios is None:
-            logging.error('Datastore does not have the Nagios credentials.')
+        # Determine if there are any dependencies on Prometheus.
+        prometheus_deps = model.get_status_source_deps('prometheus')
+        # Get Prometheus configs, and authenticate.
+        prometheus_config = prometheus_config_wrapper.get_prometheus_config()
+        if prometheus_config is None:
+            logging.error('Datastore does not have the Prometheus configs.')
+        else:
+            prometheus_opener = prometheus_status.authenticate_prometheus(
+                prometheus_config)
+
+        # Determine if there are any dependencies on Nagios.
+        nagios_deps = model.get_status_source_deps('nagios')
+        # Get Nagios configs, and authenticate.
+        nagios_config = nagios_config_wrapper.get_nagios_config()
+        if nagios_config is None:
+            logging.error('Datastore does not have the Nagios configs.')
+        else:
+            nagios_opener = nagios_status.authenticate_nagios(nagios_config)
+
+        # If we have dependencies on both Prometheus and Nagios, and neither one
+        # of the configs is available, then abort, because we can't fetch status
+        # from either. However, if we have one or the other, then continue,
+        # because it may be preferable to update _some_ statuses than none.
+        if (prometheus_deps and not prometheus_config) and (nagios_deps and
+                                                            not nagios_config):
+            logging.error(
+                'Neither Nagios nor Prometheus configs are available.')
             return util.send_not_found(self)
 
-        nagios_status.authenticate_nagios(nagios)
+        for tool_id in model.get_all_tool_ids():
+            tool = model.get_tool_from_tool_id(tool_id)
+            for address_family in ['', '_ipv6']:
+                if tool.status_source == 'prometheus':
+                    logging.info('Status source for %s%s is: prometheus',
+                                 tool_id, address_family)
+                    # Only proceed if prometheus_config exists, and hence
+                    # prometheus_opener should also exist.
+                    if prometheus_config:
+                        slice_info = prometheus_status.get_slice_info(
+                            prometheus_config.url, tool_id, address_family)
+                        if not slice_info:
+                            continue
+                        slice_status = prometheus_status.get_slice_status(
+                            slice_info.slice_url, prometheus_opener)
+                    else:
+                        logging.error(
+                            'Prometheus config unavailable. Skipping %s%s',
+                            tool_id, address_family)
+                        continue
+                elif tool.status_source == 'nagios':
+                    logging.info('Status source for %s%s is: nagios', tool_id,
+                                 address_family)
+                    # Only proceed if nagios_config exists, and hence
+                    # nagios_opener should also exist.
+                    if nagios_config:
+                        slice_info = nagios_status.get_slice_info(
+                            nagios_config.url, tool_id, address_family)
+                        slice_status = nagios_status.get_slice_status(
+                            slice_info.slice_url, nagios_opener)
+                    else:
+                        logging.error(
+                            'Nagios config unavailable. Skipping %s%s', tool_id,
+                            address_family)
+                        continue
+                else:
+                    logging.error('Unknown tool status_source: %s.',
+                                  tool.status_source)
+                    continue
 
-        for slice_info in nagios_status.get_slice_info(nagios.url):
+                if slice_status:
+                    self.update_sliver_tools_status(slice_status,
+                                                    slice_info.tool_id,
+                                                    slice_info.address_family)
 
-            slice_status = nagios_status.get_slice_status(slice_info.slice_url)
-            if slice_status:
-                self.update_sliver_tools_status(
-                    slice_status, slice_info.tool_id, slice_info.address_family)
         return util.send_success(self)
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
@@ -387,7 +450,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         for sliver_tool in sliver_tools:
 
             if sliver_tool.fqdn not in slice_status:
-                logging.info('Nagios does not know sliver %s.',
+                logging.info('Monitoring does not know sliver %s.',
                              sliver_tool.fqdn)
                 continue
 
