@@ -187,7 +187,6 @@ class IPUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' IP addresses from Nagios."""
 
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
-    
 
     def get(self):
         """Triggers the update handler.
