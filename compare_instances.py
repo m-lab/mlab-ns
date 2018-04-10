@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Compares the results from two different mlab-ns instances."""
 
+from __future__ import division
+
 import argparse
 import json
 import logging
@@ -200,9 +202,12 @@ def compare_results(s1, s2):
     return data
 
 
-def main():
-    args = parse_options(sys.argv[1:])
+def get_metrics(args):
+    """Fetches metrics in a while loop, prints them to stdout in CSV format.
 
+    Arguments:
+        args: argparse.ArgumentParser, options passed to script.
+    """
     samples = 0
     common_total = 0
     missing_total = 0
@@ -250,16 +255,14 @@ def main():
             common=common_count,
             missing=missing_count,
             extra=extra_count,
-            pct_agree=(common_count / (denominator * 1.0) * 100),
-            pct_disagree=(
-                (missing_count + extra_count) / (denominator * 1.0) * 100),
+            pct_agree=(common_count / denominator * 100),
+            pct_disagree=((missing_count + extra_count) / denominator * 100),
             avg_common=(common_total / samples),
             avg_missing=(missing_total / samples),
             avg_extra=(extra_total / samples),
-            avg_pct_agree=((common_total / samples) /
-                           (denominator_total / samples * 1.0) * 100),
-            avg_pct_disagree=(((missing_total + extra_total) / samples) /
-                              (denominator_total / samples * 1.0) * 100))
+            avg_pct_agree=(common_total / denominator_total * 100),
+            avg_pct_disagree=(
+                (missing_total + extra_total) / denominator_total * 100))
 
         if args.verbose:
             for item in data['missing']:
@@ -270,6 +273,11 @@ def main():
 
         # Sleep for 60s
         time.sleep(args.interval)
+
+
+def main():
+    args = parse_options(sys.argv[1:])
+    get_metrics(args)
 
 
 if __name__ == '__main__':
