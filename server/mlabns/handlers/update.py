@@ -34,8 +34,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                        LAT_FIELD, LON_FIELD, ROUNDROBIN_FIELD]
-    SITE_LIST_URL = 'http://nagios.measurementlab.net/mlab-site-stats.json'
-    TESTING_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/sites/mlab-site-stats.json'
+    SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-site-stats.json'
+    TESTING_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/current/mlab-site-stats.json'
 
     @classmethod
     def _is_valid_site(cls, site):
@@ -186,7 +186,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 class IPUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' IP addresses from Nagios."""
 
-    IP_LIST_URL = 'http://nagios.measurementlab.net/mlab-host-ips.txt'
+    IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
+    
 
     def get(self):
         """Triggers the update handler.
