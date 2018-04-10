@@ -240,10 +240,10 @@ def main():
         denominator = common_count + missing_count + extra_count
 
         # Calculate average counts and totals
-        common_total = common_total + len(data['common'])
-        missing_total = missing_total + len(data['missing'])
-        extra_total = extra_total + len(data['extra'])
-        denominator_total = denominator_total + denominator
+        common_total += len(data['common'])
+        missing_total += len(data['missing'])
+        extra_total += len(data['extra'])
+        denominator_total += denominator
 
         print '{sample},{common},{missing},{extra},{pct_agree:.2f},{pct_disagree:.2f},{avg_common},{avg_missing},{avg_extra},{avg_pct_agree:.2f},{avg_pct_disagree:.2f}'.format(
             sample=samples,
