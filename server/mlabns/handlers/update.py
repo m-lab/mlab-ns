@@ -112,7 +112,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             # Register new site AND update an existing site anyway.
             if (site[self.SITE_FIELD] in new_site_ids) or (
                     site[self.SITE_FIELD] in unchanged_site_ids):
-                logging.info('Update site %s.', site[self.SITE_FIELD])
+                if site[self.SITE_FIELD] in new_site_ids:
+                    logging.info('Add new site %s.', site[self.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
                 if not self.update_site(site):
                     logging.error('Error updating site %s.',
