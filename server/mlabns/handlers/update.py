@@ -95,7 +95,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             if not self._is_valid_site(site):
                 continue
             valid_sites_json.append(site)
-            nagios_site_ids.add(site[self.SITE_FIELD])
+            site_ids.add(site[self.SITE_FIELD])
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
@@ -184,14 +184,14 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
 
 class IPUpdateHandler(webapp.RequestHandler):
-    """Updates SliverTools' IP addresses from Nagios."""
+    """Updates SliverTools' IP addresses."""
 
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
 
     def get(self):
         """Triggers the update handler.
 
-        Updates sliver tool IP addresses from Nagios.
+        Updates sliver tool IP addresses.
         """
         lines = []
         try:
