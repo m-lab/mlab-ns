@@ -123,7 +123,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         return util.send_success(self)
 
     def update_site(self, site):
-        """Update a site.
+        """Add a new site or update an existing site.
 
         Args:
             site: A json representing the site info.
