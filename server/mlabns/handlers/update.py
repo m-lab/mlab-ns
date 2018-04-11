@@ -104,7 +104,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
         unchanged_site_ids = site_ids.intersection(mlab_site_ids)
         new_site_ids = site_ids.difference(mlab_site_ids)
-        
+
         # Do not remove sites here for now.
 
         for site in valid_sites_json:
@@ -181,7 +181,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 class IPUpdateHandler(webapp.RequestHandler):
     """Updates SliverTools' IP addresses."""
 
-    # TODO: There should eventually be aTESTING_IP_LIST_URL for testing purpose. 
+    # TODO: There should eventually be a TESTING_IP_LIST_URL for testing purpose.
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
 
     def get(self):
