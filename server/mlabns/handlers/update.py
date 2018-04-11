@@ -68,7 +68,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         """
         try:
             project = app_identity.get_application_id()
-            if project is not None and project == 'mlab-nstesting':
+            if project == 'mlab-nstesting':
                 json_file = self.TESTING_SITE_LIST_URL
             else:
                 json_file = self.SITE_LIST_URL
@@ -77,7 +77,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             return util.send_not_found(self)
 
         try:
-            nagios_sites_json = json.loads(urllib2.urlopen(json_file).read())
+            sites_json = json.loads(urllib2.urlopen(json_file).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', self.SITE_LIST_URL)
@@ -87,24 +87,24 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                           e)
             return util.send_not_found(self)
 
-        nagios_site_ids = set()
+        site_ids = set()
 
-        # Validate the data from Nagios.
-        valid_nagios_sites_json = []
-        for nagios_site in nagios_sites_json:
-            if not self._is_valid_site(nagios_site):
+        # Validate the site data.
+        valid_sites_json = []
+        for site in sites_json:
+            if not self._is_valid_site(site):
                 continue
-            valid_nagios_sites_json.append(nagios_site)
-            nagios_site_ids.add(nagios_site[self.SITE_FIELD])
+            valid_sites_json.append(site)
+            nagios_site_ids.add(site[self.SITE_FIELD])
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
         for site in mlab_sites:
             mlab_site_ids.add(site.site_id)
 
-        unchanged_site_ids = nagios_site_ids.intersection(mlab_site_ids)
-        new_site_ids = nagios_site_ids.difference(mlab_site_ids)
-        removed_site_ids = mlab_site_ids.difference(nagios_site_ids)
+        unchanged_site_ids = site_ids.intersection(mlab_site_ids)
+        new_site_ids = site_ids.difference(mlab_site_ids)
+        removed_site_ids = mlab_site_ids.difference(site_ids)
 
         # Do not remove sites here for now.
         # TODO(claudiu) Implement the site removal as a separate handler.
@@ -112,45 +112,45 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.warning('Site %s removed from %s.', site_id,
                             self.SITE_LIST_URL)
 
-        for nagios_site in valid_nagios_sites_json:
+        for site in valid_sites_json:
             # Register new site AND update an existing site anyway.
-            if (nagios_site[self.SITE_FIELD] in new_site_ids) or (
-                    nagios_site[self.SITE_FIELD] in unchanged_site_ids):
-                logging.info('Update site %s.', nagios_site[self.SITE_FIELD])
+            if (site[self.SITE_FIELD] in new_site_ids) or (
+                    site[self.SITE_FIELD] in unchanged_site_ids):
+                logging.info('Update site %s.', site[self.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
-                if not self.update_site(nagios_site):
+                if not self.update_site(site):
                     logging.error('Error updating site %s.',
-                                  nagios_site[self.SITE_FIELD])
+                                  site[self.SITE_FIELD])
                     continue
 
         return util.send_success(self)
 
-    def update_site(self, nagios_site):
+    def update_site(self, site):
         """Update a site.
 
         Args:
-            nagios_site: A json representing the site info as provided by Nagios.
+            site: A json representing the site info.
 
         Returns:
             True if the registration succeeds, False otherwise.
         """
         try:
-            lat_long = float(nagios_site[self.LAT_FIELD])
-            lon_long = float(nagios_site[self.LON_FIELD])
+            lat_long = float(site[self.LAT_FIELD])
+            lon_long = float(site[self.LON_FIELD])
         except ValueError:
             logging.error('Geo coordinates are not float (%s, %s)',
-                          nagios_site[self.LAT_FIELD],
-                          nagios_site[self.LON_FIELD])
+                          site[self.LAT_FIELD],
+                          site[self.LON_FIELD])
             return False
-        site = model.Site(site_id=nagios_site[self.SITE_FIELD],
-                          city=nagios_site[self.CITY_FIELD],
-                          country=nagios_site[self.COUNTRY_FIELD],
+        site = model.Site(site_id=site[self.SITE_FIELD],
+                          city=site[self.CITY_FIELD],
+                          country=site[self.COUNTRY_FIELD],
                           latitude=lat_long,
                           longitude=lon_long,
-                          metro=nagios_site[self.METRO_FIELD],
+                          metro=site[self.METRO_FIELD],
                           registration_timestamp=long(time.time()),
-                          key_name=nagios_site[self.SITE_FIELD],
-                          roundrobin=nagios_site[self.ROUNDROBIN_FIELD])
+                          key_name=site[self.SITE_FIELD],
+                          roundrobin=site[self.ROUNDROBIN_FIELD])
 
         try:
             site.put()
