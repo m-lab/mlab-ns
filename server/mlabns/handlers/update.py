@@ -307,9 +307,17 @@ class IPUpdateHandler(webapp.RequestHandler):
             return updated
 
     def put_sliver_tool(self, sliver_tool):
-        # Update memcache only here while not updating datastore, since
-        # the out-of-date DataStore will be updated next minute by cron job
-        # check_status.
+        # Update memcache AND datastore here.
+        try:
+            sliver_tool.put()
+            logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
+                         sliver_tool.fqdn, sliver_tool.sliver_ipv4,
+                         sliver_tool.sliver_ipv6)
+        except db.TransactionFailedError:
+            logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
+                          sliver_tool.fqdn, sliver_tool.sliver_ipv4,
+                          sliver_tool.sliver_ipv6)
+
         if not memcache.set(sliver_tool.tool_id,
                             sliver_tool,
                             namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
