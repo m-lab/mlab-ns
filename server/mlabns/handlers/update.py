@@ -80,7 +80,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             sites_json = json.loads(urllib2.urlopen(json_file).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', self.SITE_LIST_URL)
+            logging.error('Cannot open %s.', json_file)
             return util.send_not_found(self)
         except (TypeError, ValueError) as e:
             logging.error('The json format of %s in not valid: %s', json_file,
