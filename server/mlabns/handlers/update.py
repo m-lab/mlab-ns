@@ -107,10 +107,6 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         removed_site_ids = mlab_site_ids.difference(site_ids)
 
         # Do not remove sites here for now.
-        # TODO(claudiu) Implement the site removal as a separate handler.
-        for site_id in removed_site_ids:
-            logging.warning('Site %s removed from %s.', site_id,
-                            self.SITE_LIST_URL)
 
         for site in valid_sites_json:
             # Register new site AND update an existing site anyway.
