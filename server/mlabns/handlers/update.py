@@ -139,8 +139,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             lon_long = float(site[self.LON_FIELD])
         except ValueError:
             logging.error('Geo coordinates are not float (%s, %s)',
-                          site[self.LAT_FIELD],
-                          site[self.LON_FIELD])
+                          site[self.LAT_FIELD], site[self.LON_FIELD])
             return False
         site = model.Site(site_id=site[self.SITE_FIELD],
                           city=site[self.CITY_FIELD],
