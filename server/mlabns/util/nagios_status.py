@@ -159,7 +159,8 @@ def get_slice_status(url, opener):
         try:
             sliver_fqdn, state, tool_extra = parse_sliver_tool_status(line)
         except NagiosStatusUnparseableError as e:
-            logging.error('Unable to parse Nagios sliver status. %s', e)
+            logging.error(
+                'Unable to parse Nagios sliver status. %s for tool %s', e, url)
             continue
 
         status[sliver_fqdn] = {'tool_extra': tool_extra}

@@ -3,6 +3,7 @@ import logging
 import time
 import urllib2
 
+from google.appengine.api import app_identity
 from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -29,10 +30,12 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     COUNTRY_FIELD = 'country'
     LAT_FIELD = 'latitude'
     LON_FIELD = 'longitude'
+    ROUNDROBIN_FIELD = 'roundrobin'
 
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
-                       LAT_FIELD, LON_FIELD]
-    SITE_LIST_URL = 'http://nagios.measurementlab.net/mlab-site-stats.json'
+                       LAT_FIELD, LON_FIELD, ROUNDROBIN_FIELD]
+    SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-site-stats.json'
+    TESTING_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/current/mlab-site-stats.json'
 
     @classmethod
     def _is_valid_site(cls, site):
@@ -64,83 +67,85 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         Checks if new sites were added to Nagios and registers them.
         """
         try:
-            nagios_sites_json = json.loads(urllib2.urlopen(
-                self.SITE_LIST_URL).read())
+            project = app_identity.get_application_id()
+            if project == 'mlab-nstesting':
+                json_file = self.TESTING_SITE_LIST_URL
+            else:
+                json_file = self.SITE_LIST_URL
+        except AttributeError:
+            logging.error('Cannot get project name.')
+            return util.send_not_found(self)
+
+        try:
+            sites_json = json.loads(urllib2.urlopen(json_file).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', self.SITE_LIST_URL)
+            logging.error('Cannot open %s.', json_file)
             return util.send_not_found(self)
         except (TypeError, ValueError) as e:
-            logging.error('The json format of %s in not valid: %s',
-                          self.SITE_LIST_URL, e)
+            logging.error('The json format of %s in not valid: %s', json_file,
+                          e)
             return util.send_not_found(self)
 
-        nagios_site_ids = set()
+        site_ids = set()
 
-        # Validate the data from Nagios.
-        valid_nagios_sites_json = []
-        for nagios_site in nagios_sites_json:
-            if not self._is_valid_site(nagios_site):
+        # Validate the site data.
+        valid_sites_json = []
+        for site in sites_json:
+            if not self._is_valid_site(site):
                 continue
-            valid_nagios_sites_json.append(nagios_site)
-            nagios_site_ids.add(nagios_site[self.SITE_FIELD])
+            valid_sites_json.append(site)
+            site_ids.add(site[self.SITE_FIELD])
 
         mlab_site_ids = set()
         mlab_sites = model.Site.all()
         for site in mlab_sites:
             mlab_site_ids.add(site.site_id)
 
-        unchanged_site_ids = nagios_site_ids.intersection(mlab_site_ids)
-        new_site_ids = nagios_site_ids.difference(mlab_site_ids)
-        removed_site_ids = mlab_site_ids.difference(nagios_site_ids)
+        unchanged_site_ids = site_ids.intersection(mlab_site_ids)
+        new_site_ids = site_ids.difference(mlab_site_ids)
 
         # Do not remove sites here for now.
-        # TODO(claudiu) Implement the site removal as a separate handler.
-        for site_id in removed_site_ids:
-            logging.warning('Site %s removed from %s.', site_id,
-                            self.SITE_LIST_URL)
 
-        for site_id in unchanged_site_ids:
-            logging.info('Site %s unchanged in %s.', site_id,
-                         self.SITE_LIST_URL)
-
-        for nagios_site in valid_nagios_sites_json:
-            if (nagios_site[self.SITE_FIELD] in new_site_ids):
-                logging.info('Registering site %s.',
-                             nagios_site[self.SITE_FIELD])
+        for site in valid_sites_json:
+            # Register new site AND update an existing site anyway.
+            if (site[self.SITE_FIELD] in new_site_ids) or (
+                    site[self.SITE_FIELD] in unchanged_site_ids):
+                if site[self.SITE_FIELD] in new_site_ids:
+                    logging.info('Add new site %s.', site[self.SITE_FIELD])
                 # TODO(claudiu) Notify(email) when this happens.
-                if not self.register_site(nagios_site):
-                    logging.error('Error registering site %s.',
-                                  nagios_site[self.SITE_FIELD])
+                if not self.update_site(site):
+                    logging.error('Error updating site %s.',
+                                  site[self.SITE_FIELD])
                     continue
 
         return util.send_success(self)
 
-    def register_site(self, nagios_site):
-        """Registers a new site.
+    def update_site(self, site):
+        """Add a new site or update an existing site.
 
         Args:
-            nagios_site: A json representing the site info as provided by Nagios.
+            site: A json representing the site info.
 
         Returns:
             True if the registration succeeds, False otherwise.
         """
         try:
-            lat_long = float(nagios_site[self.LAT_FIELD])
-            lon_long = float(nagios_site[self.LON_FIELD])
+            lat_long = float(site[self.LAT_FIELD])
+            lon_long = float(site[self.LON_FIELD])
         except ValueError:
             logging.error('Geo coordinates are not float (%s, %s)',
-                          nagios_site[self.LAT_FIELD],
-                          nagios_site[self.LON_FIELD])
+                          site[self.LAT_FIELD], site[self.LON_FIELD])
             return False
-        site = model.Site(site_id=nagios_site[self.SITE_FIELD],
-                          city=nagios_site[self.CITY_FIELD],
-                          country=nagios_site[self.COUNTRY_FIELD],
+        site = model.Site(site_id=site[self.SITE_FIELD],
+                          city=site[self.CITY_FIELD],
+                          country=site[self.COUNTRY_FIELD],
                           latitude=lat_long,
                           longitude=lon_long,
-                          metro=nagios_site[self.METRO_FIELD],
+                          metro=site[self.METRO_FIELD],
                           registration_timestamp=long(time.time()),
-                          key_name=nagios_site[self.SITE_FIELD])
+                          key_name=site[self.SITE_FIELD],
+                          roundrobin=site[self.ROUNDROBIN_FIELD])
 
         try:
             site.put()
@@ -174,14 +179,15 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
 
 class IPUpdateHandler(webapp.RequestHandler):
-    """Updates SliverTools' IP addresses from Nagios."""
+    """Updates SliverTools' IP addresses."""
 
-    IP_LIST_URL = 'http://nagios.measurementlab.net/mlab-host-ips.txt'
+    # TODO: There should eventually be a TESTING_IP_LIST_URL for testing purpose.
+    IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
 
     def get(self):
         """Triggers the update handler.
 
-        Updates sliver tool IP addresses from Nagios.
+        Updates sliver tool IP addresses.
         """
         lines = []
         try:
@@ -301,6 +307,7 @@ class IPUpdateHandler(webapp.RequestHandler):
             return updated
 
     def put_sliver_tool(self, sliver_tool):
+        # Update memcache AND datastore here.
         try:
             sliver_tool.put()
             logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
@@ -310,6 +317,11 @@ class IPUpdateHandler(webapp.RequestHandler):
             logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
                           sliver_tool.sliver_ipv6)
+
+        if not memcache.set(sliver_tool.tool_id,
+                            sliver_tool,
+                            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+            logging.error('Failed to update sliver IP addresses in memcache.')
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
         sliver_tool_id = model.get_sliver_tool_id(tool.tool_id, tool.slice_id,
@@ -332,6 +344,7 @@ class IPUpdateHandler(webapp.RequestHandler):
             tool_extra="",
             latitude=site.latitude,
             longitude=site.longitude,
+            roundrobin=site.roundrobin,
             city=site.city,
             country=site.country,
             update_request_timestamp=long(time.time()),
