@@ -456,7 +456,19 @@ class StatusUpdateHandler(webapp.RequestHandler):
             if sliver_tool.fqdn not in slice_status:
                 logging.info('Monitoring does not know sliver %s.',
                              sliver_tool.fqdn)
-                continue
+                if family == '_ipv6':
+                    # We don't want to entirely remove a sliver from memcache
+                    # just because IPv6 information is missing from monitoring.
+                    # If IPv6 monitoring information is missing, then just flag
+                    # IPv6 as offline, and continue as usual.
+                    slice_status[sliver_tool.fqdn] = {}
+                    slice_status[sliver_tool.fqdn][
+                        'status'] = message.STATUS_OFFLINE
+                    # Don't wipe out the IPv4 'tool_extra', just append to it.
+                    slice_status[sliver_tool.fqdn][
+                        'tool_extra'] = sliver_tool.tool_extra + '(Family "_ipv6" for sliver not known by monitoring).'
+                else:
+                    continue
 
             if family == '':
                 if sliver_tool.sliver_ipv4 == message.NO_IP_ADDRESS:
