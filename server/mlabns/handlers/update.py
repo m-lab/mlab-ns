@@ -263,11 +263,8 @@ class IPUpdateHandler(webapp.RequestHandler):
 
                 updated_sliver_tool = self.set_sliver_tool_ips(sliver_tool,
                                                                ipv4, ipv6)
-                # If the sliver_tool got updated IPs then write the change to
-                # the datastore, else save the performance hit of writing a
-                # record with identical data.
-                if updated_sliver_tool:
-                    self.put_sliver_tool(updated_sliver_tool)
+                # Update all sliver tool.
+                self.put_sliver_tool(updated_sliver_tool)
 
                 if tool.tool_id not in sliver_tool_list:
                     sliver_tool_list[tool.tool_id] = []
@@ -287,7 +284,6 @@ class IPUpdateHandler(webapp.RequestHandler):
         return util.send_success(self)
 
     def set_sliver_tool_ips(self, sliver_tool, ipv4, ipv6):
-        updated = False
         if not ipv4:
             ipv4 = message.NO_IP_ADDRESS
         if not ipv4:
@@ -295,16 +291,10 @@ class IPUpdateHandler(webapp.RequestHandler):
 
         if not sliver_tool.sliver_ipv4 == ipv4:
             sliver_tool.sliver_ipv4 = ipv4
-            updated = True
         if not sliver_tool.sliver_ipv6 == ipv6:
             sliver_tool.sliver_ipv6 = ipv6
-            updated = True
 
-        # If sliver_tool was updated, return it, else return False.
-        if updated:
-            return sliver_tool
-        else:
-            return updated
+        return sliver_tool
 
     def put_sliver_tool(self, sliver_tool):
         # Update memcache AND datastore here.
