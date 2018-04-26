@@ -207,7 +207,7 @@ class LookupQuery:
         if ip_address is not None:
             logging.debug('Getting maxmind info for ip %s in family %s',
                           ip_address, address_family)
-            geo_record = maxmind.get_ip_geolocation(ip_address, address_family)
+            geo_record = maxmind.get_ip_geolocation(ip_address)
         elif city is not None and country is not None:
             geo_record = maxmind.get_city_geolocation(city, country)
         elif country is not None:

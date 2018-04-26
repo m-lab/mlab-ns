@@ -9,8 +9,8 @@ from mlabns.util import maxmind
 from mlabns.util import message
 
 sys.path.insert(1, os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '../third_party/pygeoip')))
-import pygeoip
+    os.path.dirname(__file__), '../third_party/GeoIP2-python')))
+import geoip2.database
 
 
 class GeoRecordTestCase(unittest2.TestCase):
@@ -79,65 +79,29 @@ class MaxmindTestClass(unittest2.TestCase):
         self.assertIsNone(geo_record.latitude)
         self.assertIsNone(geo_record.longitude)
 
-    def setUp(self):
-        geoip_patch = mock.patch('pygeoip.GeoIP')
-        self.addCleanup(geoip_patch.stop)
-        geoip_patch.start()
-
-        mock_geoip = mock.Mock()
-        pygeoip.GeoIP.return_value = mock_geoip
-        self.mock_record_by_addr = mock_geoip.record_by_addr
-
     def testGetGeolocationNotValidAddress(self):
         ip_addr = 'abc'
-        address_family = None
-        self.mock_record_by_addr.side_effect = socket.error
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
-                                                            address_family))
-        self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(None, flags=pygeoip.const.STANDARD)
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
 
     def testGetGeolocationNoneAddress(self):
         ip_addr = None
         address_family = None
-        self.mock_record_by_addr.side_effect = TypeError
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
-                                                            address_family))
-        self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(None, flags=pygeoip.const.STANDARD)
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
 
     def testGetGeolocationNoRecordForIp(self):
-        ip_addr = '1.2.3.4'
-        address_family = message.ADDRESS_FAMILY_IPv4
-        self.mock_record_by_addr.return_value = None
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
-                                                            address_family))
-        self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4,
-            flags=pygeoip.const.STANDARD)
+        # ip_addr can be any invalid IP that looks like an IP.
+        ip_addr = '0.1.2.3'
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
 
     def testGetGeolocationValidLocation(self):
         ip_addr = '1.2.3.4'
-        address_family = message.ADDRESS_FAMILY_IPv4
-        mock_record = {
-            'city': 'Greenwich, London',
-            'country_code': 'UK',
-            'latitude': '51.4800',
-            'longitude': '0.0000'
-        }
-        expected_record = maxmind.GeoRecord(city=mock_record['city'],
-                                            country=mock_record['country_code'],
-                                            latitude=mock_record['latitude'],
-                                            longitude=mock_record['longitude'])
+        # NOTE: this information could change in the database over time.
+        expected_record = maxmind.GeoRecord(city='Mukilteo',
+                                            country='US',
+                                            latitude=47.913,
+                                            longitude=-122.3042)
 
-        self.mock_record_by_addr.return_value = mock_record
-        self.assertEqual(expected_record,
-                         maxmind.get_ip_geolocation(ip_addr, address_family))
-        self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4,
-            flags=pygeoip.const.STANDARD)
+        self.assertEqual(expected_record, maxmind.get_ip_geolocation(ip_addr))
 
     def testGetCountryGeolocationNoCountry(self):
         self.assertNoneGeoRecord(maxmind.get_country_geolocation(
