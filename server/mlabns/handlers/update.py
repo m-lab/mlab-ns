@@ -76,6 +76,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.error('Cannot get project name.')
             return util.send_not_found(self)
 
+        logging.error("This is eh json file used: " + json_file)
         try:
             sites_json = json.loads(urllib2.urlopen(json_file).read())
         except urllib2.HTTPError:
