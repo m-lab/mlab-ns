@@ -167,7 +167,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                 sliver_tool = IPUpdateHandler().initialize_sliver_tool(
                     tool, site, server_id, fqdn)
                 if not memcache.set(
-                        tool_id,
+                        tool.tool_id,
                         sliver_tool,
                         namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                     logging.error(
@@ -204,7 +204,6 @@ class IPUpdateHandler(webapp.RequestHandler):
             logging.error('Cannot open %s.', self.IP_LIST_URL)
             return util.send_not_found(self)
 
-        sliver_tool_list = {}
         for line in lines:
             # Expected format: "FQDN,IPv4,IPv6" (IPv6 can be an empty string).
             line_fields = line.split(',')
