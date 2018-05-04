@@ -304,8 +304,6 @@ class IPUpdateHandler(webapp.RequestHandler):
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
                           sliver_tool.sliver_ipv6)
 
-
-
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
         sliver_tool_id = model.get_sliver_tool_id(tool.tool_id, tool.slice_id,
                                                   server_id, site.site_id)
