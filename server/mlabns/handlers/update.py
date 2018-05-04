@@ -457,6 +457,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                         'due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
+                    if sliver_tool.site_id == 'dub01':
+                        logging.error('here is %s status %i', sliver_tool.fqdn, slice_status[sliver_tool.fqdn]['status'])
+                        logging.error('here is old status %i', sliver_tool.status_ipv4)
                     if (sliver_tool.status_ipv4 !=
                             slice_status[sliver_tool.fqdn]['status'] or
                             sliver_tool.tool_extra !=
@@ -486,16 +489,18 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
             sliver_tool.update_request_timestamp = long(time.time())
             updated_sliver_tools.append(sliver_tool)
+            if sliver_tool.site_id == 'dub01':
+                logging.error('will update dub01')
 
         if updated_sliver_tools:
+            if not memcache.set(tool_id,
+                                updated_sliver_tools,
+                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                logging.error('Failed to update sliver status in memcache.')
+
             try:
                 db.put(updated_sliver_tools)
             except db.TransactionFailedError as e:
                 logging.error(
                     'Error updating sliver statuses in datastore. Some' \
                     'statuses might be outdated. %s', e)
-
-            if not memcache.set(tool_id,
-                                updated_sliver_tools,
-                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                logging.error('Failed to update sliver status in memcache.')
