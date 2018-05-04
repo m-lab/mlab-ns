@@ -9,7 +9,7 @@ import inspect
 import maxminddb
 # pylint: disable=unused-import
 from maxminddb import (MODE_AUTO, MODE_MMAP, MODE_MMAP_EXT, MODE_FILE,
-                       MODE_MEMORY)
+                       MODE_MEMORY, MODE_FD)
 
 import geoip2
 import geoip2.models
@@ -40,10 +40,12 @@ class Reader(object):
 
 """
 
-    def __init__(self, filename, locales=None, mode=MODE_AUTO):
+    def __init__(self, fileish, locales=None, mode=MODE_AUTO):
         """Create GeoIP2 Reader.
 
-        :param filename: The path to the GeoIP2 database.
+        :param fileish: The string path to the GeoIP2 database, or an existing
+          file descriptor pointing to the database. Note that this latter usage
+          is only valid if mode=MODE_FD.
         :param locales: This is list of locale codes. This argument will be
           passed on to record classes to use when their name properties are
           called. The default value is ['en'].
@@ -73,13 +75,15 @@ class Reader(object):
           * MODE_MMAP - read from memory map. Pure Python.
           * MODE_FILE - read database as standard file. Pure Python.
           * MODE_MEMORY - load database into memory. Pure Python.
+          * MODE_FD - the param passed via fileish is a file descriptor, not a
+             path. This mode implies MODE_MEMORY.
           * MODE_AUTO - try MODE_MMAP_EXT, MODE_MMAP, MODE_FILE in that order.
              Default.
 
         """
         if locales is None:
             locales = ['en']
-        self._db_reader = maxminddb.open_database(filename, mode)
+        self._db_reader = maxminddb.open_database(fileish, mode)
         self._locales = locales
 
     def __enter__(self):
@@ -172,8 +176,7 @@ class Reader(object):
         :returns: :py:class:`geoip2.models.ISP` object
 
         """
-        return self._flat_model_for(geoip2.models.ISP, 'GeoIP2-ISP',
-                                    ip_address)
+        return self._flat_model_for(geoip2.models.ISP, 'GeoIP2-ISP', ip_address)
 
     def _get(self, database_type, ip_address):
         if database_type not in self.metadata().database_type:

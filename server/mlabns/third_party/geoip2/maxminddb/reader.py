@@ -16,7 +16,7 @@ except ImportError:
 import struct
 
 from maxminddb.compat import byte_from_int, compat_ip_address
-from maxminddb.const import MODE_AUTO, MODE_MMAP, MODE_FILE, MODE_MEMORY
+from maxminddb.const import MODE_AUTO, MODE_MMAP, MODE_FILE, MODE_MEMORY, MODE_FD
 from maxminddb.decoder import Decoder
 from maxminddb.errors import InvalidDatabaseError
 from maxminddb.file import FileBuffer
@@ -37,13 +37,15 @@ class Reader(object):
         """Reader for the MaxMind DB file format
 
         Arguments:
-        database -- A path to a valid MaxMind DB file such as a GeoIP2
-                    database file.
+        database -- A path to a valid MaxMind DB file such as a GeoIP2 database
+                    file, or a file descriptor in the case of MODE_FD.
         mode -- mode to open the database with. Valid mode are:
             * MODE_MMAP - read from memory map.
             * MODE_FILE - read database as standard file.
             * MODE_MEMORY - load database into memory.
             * MODE_AUTO - tries MODE_MMAP and then MODE_FILE. Default.
+            * MODE_FD - the param passed via database is a file descriptor, not
+                        a path. This mode implies MODE_MEMORY.
         """
         # pylint: disable=redefined-variable-type
         if (mode == MODE_AUTO and mmap) or mode == MODE_MMAP:
@@ -58,6 +60,9 @@ class Reader(object):
             with open(database, 'rb') as db_file:
                 self._buffer = db_file.read()
                 self._buffer_size = len(self._buffer)
+        elif mode == MODE_FD:
+            self._buffer = database.read()
+            self._buffer_size = len(self._buffer)
         else:
             raise ValueError(
                 'Unsupported open mode ({0}). Only MODE_AUTO, '

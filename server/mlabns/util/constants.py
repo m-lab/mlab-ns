@@ -20,7 +20,9 @@ GEOLOCATION_APP_ENGINE = 'app_engine'
 GEOLOCATION_MAXMIND = 'maxmind'
 GEOLOCATION_USER_DEFINED = 'user_defined'
 
-GEOLOCATION_MAXMIND_CITY_FILE = 'mlabns/third_party/maxmind/latest'
+GEOLOCATION_MAXMIND_GCS_BUCKET = 'mlab-nstesting.appspot.com'
+GEOLOCATION_MAXMIND_BUCKET_PATH = 'maxmind/current'
+GEOLOCATION_MAXMIND_CITY_FILE = 'GeoLite2-City.mmdb'
 
 # Maximum number of entities fetched from datastore in a single query.
 MAX_FETCHED_RESULTS = 500
