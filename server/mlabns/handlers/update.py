@@ -166,6 +166,12 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
                 sliver_tool = IPUpdateHandler().initialize_sliver_tool(
                     tool, site, server_id, fqdn)
+                if not memcache.set(
+                        tool_id,
+                        sliver_tool,
+                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                    logging.error(
+                        'Failed to update sliver IP addresses in memcache.')
                 try:
                     sliver_tool.put()
                     logging.info('Succeeded to write sliver %s to datastore.',
@@ -263,23 +269,9 @@ class IPUpdateHandler(webapp.RequestHandler):
 
                 updated_sliver_tool = self.set_sliver_tool_ips(sliver_tool,
                                                                ipv4, ipv6)
-                # Update all sliver tool.
+
+                # Update memcache AND datastore for all sliver tool.
                 self.put_sliver_tool(updated_sliver_tool)
-
-                if tool.tool_id not in sliver_tool_list:
-                    sliver_tool_list[tool.tool_id] = []
-                sliver_tool_list[tool.tool_id].append(sliver_tool)
-
-        # Update memcache.  Never set the memcache to an empty list since it's
-        # more likely that this is a Nagios failure.
-        if sliver_tool_list:
-            for tool_id in sliver_tool_list.keys():
-                if not memcache.set(
-                        tool_id,
-                        sliver_tool_list[tool_id],
-                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                    logging.error(
-                        'Failed to update sliver IP addresses in memcache.')
 
         return util.send_success(self)
 
@@ -297,7 +289,11 @@ class IPUpdateHandler(webapp.RequestHandler):
         return sliver_tool
 
     def put_sliver_tool(self, sliver_tool):
-        # Update memcache AND datastore here.
+        if not memcache.set(sliver_tool.tool_id,
+                            sliver_tool,
+                            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+            logging.error('Failed to update sliver IP addresses in memcache.')
+
         try:
             sliver_tool.put()
             logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
@@ -308,10 +304,7 @@ class IPUpdateHandler(webapp.RequestHandler):
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
                           sliver_tool.sliver_ipv6)
 
-        if not memcache.set(sliver_tool.tool_id,
-                            sliver_tool,
-                            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-            logging.error('Failed to update sliver IP addresses in memcache.')
+
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
         sliver_tool_id = model.get_sliver_tool_id(tool.tool_id, tool.slice_id,
