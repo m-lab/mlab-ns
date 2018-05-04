@@ -38,8 +38,12 @@ def get_database_file():
     bucket = '/' + constants.GEOLOCATION_MAXMIND_GCS_BUCKET
     bucket_path = bucket + '/' + constants.GEOLOCATION_MAXMIND_BUCKET_PATH
     filename = bucket_path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
-    logging.info('File path is %s', filename)
-    database_file = gcs.open(filename)
+    logging.info('MaxMind database GCS path is: %s', filename)
+    try:
+        database_file = gcs.open(filename)
+    except gcs.NotFoundError:
+        logging.error('MaxMind database file not found in GCS: %s', filename)
+        return GeoRecord()
 
     return database_file
 
@@ -53,12 +57,13 @@ def get_geo_reader(maxmind_db_file):
         geo_reader = geoip2.database.Reader(maxmind_db_file, None, 16)
     except maxminddb.errors.InvalidDatabaseError:
         logging.error('Invalid MaxMind database file: %s', maxmind_db_file)
-        raise()
+        return GeoRecord()
     except IOError, e:
         logging.error('Cannot read MaxMind database file: %s', maxmind_db_file)
-        raise()
+        return GeoRecord()
 
     return geo_reader
+
 
 def get_ip_geolocation(ip_address):
     """Returns the geolocation data associated with an IP address from MaxMind.
