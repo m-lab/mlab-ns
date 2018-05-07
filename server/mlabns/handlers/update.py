@@ -307,9 +307,10 @@ class IPUpdateHandler(webapp.RequestHandler):
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
                           sliver_tool.sliver_ipv6)
 
-        if not memcache.set(sliver_tool.tool_id,
-                            sliver_tool,
-                            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+        if not memcache.set(
+                sliver_tool.tool_id,
+                sliver_tool,
+                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
             logging.error('Failed to update sliver IP addresses in memcache.')
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
