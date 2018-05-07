@@ -457,7 +457,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                         'due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
-                   if (sliver_tool.status_ipv4 !=
+                    if (sliver_tool.status_ipv4 !=
                             slice_status[sliver_tool.fqdn]['status'] or
                             sliver_tool.tool_extra !=
                             slice_status[sliver_tool.fqdn]['tool_extra']):
