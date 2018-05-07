@@ -462,7 +462,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                 'status'] == message.STATUS_ONLINE:
                         logging.error('here is %s status online',
                                       sliver_tool.fqdn)
-                    if sliver_tool.site_id == 'dub01' and sliver_tool.status_ipv4 == message.STATUS_OFFLINE: 
+                    if sliver_tool.site_id == 'dub01' and sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
                         logging.error('here is %s old status offline',
                                       sliver_tool.fqdn)
                     if (sliver_tool.status_ipv4 !=
