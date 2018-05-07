@@ -458,8 +458,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
                     if sliver_tool.site_id == 'dub01':
-                        logging.error('here is %s status %d', sliver_tool.fqdn,
-                                      int(slice_status[sliver_tool.fqdn]['status']))
+                        logging.error(
+                            'here is %s status %d', sliver_tool.fqdn,
+                            int(slice_status[sliver_tool.fqdn]['status']))
                         logging.error('here is old status %d',
                                       int(sliver_tool.status_ipv4))
                     if (sliver_tool.status_ipv4 !=
