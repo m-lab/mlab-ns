@@ -509,3 +509,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 logging.error(
                     'Error updating sliver statuses in datastore. Some' \
                     'statuses might be outdated. %s', e)
+
+            if not memcache.set(tool_id,
+                                updated_sliver_tools,
+                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                logging.error('Failed to update sliver status in memcache.')
