@@ -40,11 +40,9 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     @classmethod
     def _is_valid_site(cls, site):
         """Determines whether a site represents a valid, production M-Lab site.
-
         Args:
             site: A dictionary representing info for a particular site as it
             appears on Nagios.
-
         Returns:
             True if the site is a valid, production M-Lab site.
         """
@@ -63,7 +61,6 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
     def get(self):
         """Triggers the registration handler.
-
         Checks if new sites were added to Nagios and registers them.
         """
         try:
@@ -123,10 +120,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
     def update_site(self, site):
         """Add a new site or update an existing site.
-
         Args:
             site: A json representing the site info.
-
         Returns:
             True if the registration succeeds, False otherwise.
         """
@@ -166,6 +161,12 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
                 sliver_tool = IPUpdateHandler().initialize_sliver_tool(
                     tool, site, server_id, fqdn)
+                if not memcache.set(
+                        tool.tool_id,
+                        sliver_tool,
+                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                    logging.error(
+                        'Failed to update sliver IP addresses in memcache.')
                 try:
                     sliver_tool.put()
                     logging.info('Succeeded to write sliver %s to datastore.',
@@ -186,7 +187,6 @@ class IPUpdateHandler(webapp.RequestHandler):
 
     def get(self):
         """Triggers the update handler.
-
         Updates sliver tool IP addresses.
         """
         lines = []
@@ -346,7 +346,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def get(self):
         """Triggers the update handler.
-
         Updates sliver status with information from either Nagios or Prometheus.
         The base URLs for accessing status information are stored in the
         datastore along with the credentials necessary to access the data.
@@ -429,7 +428,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
         """Updates status of sliver tools in input slice.
-
         Args:
             slice_status: A dict that contains the status of the
                 slivers in the slice {key=fqdn, status:online|offline}
