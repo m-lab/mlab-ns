@@ -257,4 +257,3 @@ class SliverToolFetcherDatastore(object):
 
         logging.info('%d sliver tools found in Datastore.', len(results))
         return results
-
