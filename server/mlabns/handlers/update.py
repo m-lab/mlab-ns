@@ -489,9 +489,11 @@ class StatusUpdateHandler(webapp.RequestHandler):
             if sliver_tool.site_id == 'dub01':
                 logging.error('will update dub01')
                 if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
-                    logging.error('here is %s new status offline', sliver_tool.fqdn)
+                    logging.error('here is %s new status offline',
+                                  sliver_tool.fqdn)
                 if sliver_tool.status_ipv4 == message.STATUS_ONLINE:
-                    logging.error('here is %s new status online', sliver_tool.fqdn)
+                    logging.error('here is %s new status online',
+                                  sliver_tool.fqdn)
 
         if updated_sliver_tools:
             try:
