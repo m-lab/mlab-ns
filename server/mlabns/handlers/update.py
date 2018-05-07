@@ -495,11 +495,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 logging.error('will update dub01')
 
         if updated_sliver_tools:
-            if not memcache.set(tool_id,
-                                updated_sliver_tools,
-                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                logging.error('Failed to update sliver status in memcache.')
-
             try:
                 db.put(updated_sliver_tools)
             except db.TransactionFailedError as e:
