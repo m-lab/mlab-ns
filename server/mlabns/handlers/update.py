@@ -32,21 +32,17 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     LON_FIELD = 'longitude'
     ROUNDROBIN_FIELD = 'roundrobin'
 
-    REQUIRED_FIELDS = [
-        SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD, LAT_FIELD,
-        LON_FIELD, ROUNDROBIN_FIELD
-    ]
+    REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
+                       LAT_FIELD, LON_FIELD, ROUNDROBIN_FIELD]
     SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-site-stats.json'
     TESTING_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/current/mlab-site-stats.json'
 
     @classmethod
     def _is_valid_site(cls, site):
         """Determines whether a site represents a valid, production M-Lab site.
-
         Args:
             site: A dictionary representing info for a particular site as it
             appears on Nagios.
-
         Returns:
             True if the site is a valid, production M-Lab site.
         """
@@ -65,7 +61,6 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
     def get(self):
         """Triggers the registration handler.
-
         Checks if new sites were added to Nagios and registers them.
         """
         try:
@@ -125,10 +120,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
     def update_site(self, site):
         """Add a new site or update an existing site.
-
         Args:
             site: A json representing the site info.
-
         Returns:
             True if the registration succeeds, False otherwise.
         """
@@ -139,23 +132,21 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.error('Geo coordinates are not float (%s, %s)',
                           site[self.LAT_FIELD], site[self.LON_FIELD])
             return False
-        site = model.Site(
-            site_id=site[self.SITE_FIELD],
-            city=site[self.CITY_FIELD],
-            country=site[self.COUNTRY_FIELD],
-            latitude=lat_long,
-            longitude=lon_long,
-            metro=site[self.METRO_FIELD],
-            registration_timestamp=long(time.time()),
-            key_name=site[self.SITE_FIELD],
-            roundrobin=site[self.ROUNDROBIN_FIELD])
+        site = model.Site(site_id=site[self.SITE_FIELD],
+                          city=site[self.CITY_FIELD],
+                          country=site[self.COUNTRY_FIELD],
+                          latitude=lat_long,
+                          longitude=lon_long,
+                          metro=site[self.METRO_FIELD],
+                          registration_timestamp=long(time.time()),
+                          key_name=site[self.SITE_FIELD],
+                          roundrobin=site[self.ROUNDROBIN_FIELD])
 
         try:
             site.put()
         except db.TransactionFailedError:
             # TODO(claudiu) Trigger an event/notification.
-            logging.error('Failed to write site %s to datastore.',
-                          site.site_id)
+            logging.error('Failed to write site %s to datastore.', site.site_id)
             return False
         logging.info('Succeeded to write site %s to db', site.site_id)
 
@@ -170,10 +161,9 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
                 sliver_tool = IPUpdateHandler().initialize_sliver_tool(
                     tool, site, server_id, fqdn)
-                if not memcache.set(
-                        tool.tool_id,
-                        sliver_tool,
-                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                if not memcache.set(tool.tool_id,
+                                    sliver_tool,
+                                    namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                     logging.error(
                         'Failed to update sliver IP addresses in memcache.')
                 try:
@@ -200,8 +190,8 @@ class IPUpdateHandler(webapp.RequestHandler):
         """
         lines = []
         try:
-            lines = urllib2.urlopen(
-                self.IP_LIST_URL).read().strip('\n').split('\n')
+            lines = urllib2.urlopen(self.IP_LIST_URL).read().strip('\n').split(
+                '\n')
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', self.IP_LIST_URL)
@@ -232,8 +222,8 @@ class IPUpdateHandler(webapp.RequestHandler):
                 continue
 
             # If mlab-ns does not support this site, then skip it.
-            site = model.Site.gql(
-                'WHERE site_id=:site_id', site_id=site_id).get()
+            site = model.Site.gql('WHERE site_id=:site_id',
+                                  site_id=site_id).get()
             if site == None:
                 logging.info('mlab-ns does not support site %s.', site_id)
                 continue
@@ -241,8 +231,8 @@ class IPUpdateHandler(webapp.RequestHandler):
             # If mlab-ns does not serve/support this slice, then skip it. Note:
             # a given slice_id might have multiple tools (e.g., iupui_ndt has
             # both 'ndt' and 'ndt_ssl' tools.
-            tools = model.Tool.gql(
-                'WHERE slice_id=:slice_id', slice_id=slice_id)
+            tools = model.Tool.gql('WHERE slice_id=:slice_id',
+                                   slice_id=slice_id)
             if tools.count() == 0:
                 continue
 
@@ -262,16 +252,16 @@ class IPUpdateHandler(webapp.RequestHandler):
                     logging.info(
                         'For tool %s, fqdn %s is not in datastore.  Adding it.',
                         tool.tool_id, fqdn)
-                    sliver_tool = self.initialize_sliver_tool(
-                        tool, site, server_id, fqdn)
+                    sliver_tool = self.initialize_sliver_tool(tool, site,
+                                                              server_id, fqdn)
                 else:
                     logging.error(
-                        'Error, or too many sliver_tools returned for {}:{}.'.
-                        format(tool.tool_id, fqdn))
+                        'Error, or too many sliver_tools returned for {}:{}.'.format(
+                            tool.tool_id, fqdn))
                     continue
 
-                updated_sliver_tool = self.set_sliver_tool_ips(
-                    sliver_tool, ipv4, ipv6)
+                updated_sliver_tool = self.set_sliver_tool_ips(sliver_tool,
+                                                               ipv4, ipv6)
                 # Update all sliver tool.
                 self.put_sliver_tool(updated_sliver_tool)
 
@@ -317,10 +307,9 @@ class IPUpdateHandler(webapp.RequestHandler):
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
                           sliver_tool.sliver_ipv6)
 
-        if not memcache.set(
-                sliver_tool.tool_id,
-                sliver_tool,
-                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+        if not memcache.set(sliver_tool.tool_id,
+                            sliver_tool,
+                            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
             logging.error('Failed to update sliver IP addresses in memcache.')
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
@@ -356,7 +345,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def get(self):
         """Triggers the update handler.
-
         Updates sliver status with information from either Nagios or Prometheus.
         The base URLs for accessing status information are stored in the
         datastore along with the credentials necessary to access the data.
@@ -422,8 +410,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
                             slice_info.slice_url, nagios_opener)
                     else:
                         logging.error(
-                            'Nagios config unavailable. Skipping %s%s',
-                            tool_id, address_family)
+                            'Nagios config unavailable. Skipping %s%s', tool_id,
+                            address_family)
                         continue
                 else:
                     logging.error('Unknown tool status_source: %s.',
@@ -439,7 +427,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
     def update_sliver_tools_status(self, slice_status, tool_id, family):
         """Updates status of sliver tools in input slice.
-
         Args:
             slice_status: A dict that contains the status of the
                 slivers in the slice {key=fqdn, status:online|offline}
@@ -448,8 +435,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
             family: Address family to update.
         """
         sliver_tools = sliver_tool_fetcher.SliverToolFetcher().fetch(
-            sliver_tool_fetcher.ToolProperties(
-                tool_id=tool_id, all_slivers=True))
+            sliver_tool_fetcher.ToolProperties(tool_id=tool_id,
+                                               all_slivers=True))
         updated_sliver_tools = []
         for sliver_tool in sliver_tools:
 
@@ -478,8 +465,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
                     if (sliver_tool.status_ipv4 !=
-                            slice_status[sliver_tool.fqdn]['status']
-                            or sliver_tool.tool_extra !=
+                            slice_status[sliver_tool.fqdn]['status'] or
+                            sliver_tool.tool_extra !=
                             slice_status[sliver_tool.fqdn]['tool_extra']):
                         sliver_tool.status_ipv4 = \
                           slice_status[sliver_tool.fqdn]['status']
@@ -493,8 +480,8 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         sliver_tool.status_ipv6 = message.STATUS_OFFLINE
                 else:
                     if (sliver_tool.status_ipv6 !=
-                            slice_status[sliver_tool.fqdn]['status']
-                            or sliver_tool.tool_extra !=
+                            slice_status[sliver_tool.fqdn]['status'] or
+                            sliver_tool.tool_extra !=
                             slice_status[sliver_tool.fqdn]['tool_extra']):
                         sliver_tool.status_ipv6 = \
                           slice_status[sliver_tool.fqdn]['status']
@@ -506,14 +493,6 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
             sliver_tool.update_request_timestamp = long(time.time())
             updated_sliver_tools.append(sliver_tool)
-            if sliver_tool.site_id == 'dub01':
-                logging.error('will update dub01')
-                if sliver_tool.status_ipv4 == message.STATUS_OFFLINE:
-                    logging.error('here is %s new status offline',
-                                  sliver_tool.fqdn)
-                if sliver_tool.status_ipv4 == message.STATUS_ONLINE:
-                    logging.error('here is %s new status online',
-                                  sliver_tool.fqdn)
 
         if updated_sliver_tools:
             try:
@@ -523,8 +502,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     'Error updating sliver statuses in datastore. Some' \
                     'statuses might be outdated. %s', e)
 
-            if not memcache.set(
-                    tool_id,
-                    updated_sliver_tools,
-                    namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+            if not memcache.set(tool_id,
+                                updated_sliver_tools,
+                                namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                 logging.error('Failed to update sliver status in memcache.')
