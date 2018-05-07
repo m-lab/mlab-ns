@@ -200,6 +200,8 @@ class SliverToolFetcherMemcache(object):
         sliver_tools = memcache.get(
             tool_properties.tool_id,
             namespace=constants.MEMCACHE_NAMESPACE_TOOLS)
+        if sliver_tools == []:
+            return []
         if sliver_tools:
             logging.info('{}: {} sliver tools found in memcache.'.format(
                 tool_properties.tool_id, len(sliver_tools)))
