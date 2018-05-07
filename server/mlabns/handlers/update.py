@@ -457,10 +457,13 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                         'due to missing IP.', sliver_tool.fqdn)
                         sliver_tool.status_ipv4 = message.STATUS_OFFLINE
                 else:
-                    if sliver_tool.site_id == 'dub01' and slice_status[sliver_tool.fqdn]['status'] == message.STATUS_ONLINE:
+                    if sliver_tool.site_id == 'dub01' and slice_status[
+                            sliver_tool.fqdn][
+                                'status'] == message.STATUS_ONLINE:
                         logging.error('here is %s status online', sliver_tool.fqdn)
                     if sliver_tool.site_id == 'dub01' and sliver_tool.status_ipv4 == message.STATUS_OFFLINE: 
-                        logging.error('here is %s old status offline', sliver_tool.fqdn)
+                        logging.error('here is %s old status offline',
+                                      sliver_tool.fqdn)
                     if (sliver_tool.status_ipv4 !=
                             slice_status[sliver_tool.fqdn]['status'] or
                             sliver_tool.tool_extra !=
