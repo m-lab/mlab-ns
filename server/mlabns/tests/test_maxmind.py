@@ -8,6 +8,8 @@ from mlabns.util import constants
 from mlabns.util import maxmind
 from mlabns.util import message
 
+from google.appengine.ext import testbed
+
 sys.path.insert(1, os.path.abspath(os.path.join(
     os.path.dirname(__file__), '../third_party/GeoIP2-python')))
 import geoip2.database
@@ -46,6 +48,14 @@ class GeoRecordTestCase(unittest2.TestCase):
 
 
 class MaxmindTestClass(unittest2.TestCase):
+
+    def setUp(self):
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_all_stubs()
+
+    def tearDown(self):
+        self.testbed.deactivate()
 
     class GqlMockup:
 
@@ -100,8 +110,9 @@ class MaxmindTestClass(unittest2.TestCase):
                                             country='US',
                                             latitude=47.913,
                                             longitude=-122.3042)
-
-        self.assertEqual(expected_record, maxmind.get_ip_geolocation(ip_addr))
+        self.assertEqual(
+                expected_record.city,
+                maxmind.get_ip_geolocation(ip_addr).city)
 
     def testGetCountryGeolocationNoCountry(self):
         self.assertNoneGeoRecord(maxmind.get_country_geolocation(
