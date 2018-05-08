@@ -1,18 +1,11 @@
 import os
 import sys
 import unittest2
-import mock
-import socket
 
 from mlabns.util import constants
 from mlabns.util import maxmind
-from mlabns.util import message
 
 from google.appengine.ext import testbed
-
-sys.path.insert(1, os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '../third_party/geoip2')))
-import geoip2.database
 
 
 class GeoRecordTestCase(unittest2.TestCase):
@@ -99,7 +92,6 @@ class MaxmindTestClass(unittest2.TestCase):
 
     def testGetGeolocationNoneAddress(self):
         ip_addr = None
-        address_family = None
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
 
     def testGetGeolocationNoRecordForIp(self):
