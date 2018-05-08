@@ -3,6 +3,7 @@ from mlabns.util import constants
 from mlabns.util import message
 
 import cloudstorage as gcs
+import datetime
 import geoip2.database
 import geoip2.errors
 import logging
@@ -10,7 +11,6 @@ import maxminddb
 import os
 import socket
 import sys
-
 
 _maxmind_database_file = None
 _maxmind_geo_reader = None
@@ -42,7 +42,11 @@ def get_database_file():
     filename = bucket_path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
     logging.info('MaxMind database GCS path is: %s', filename)
     try:
+        file_stat = gcs.stat(filename)
         database_file = gcs.open(filename)
+        logging.info('MaxMind database file creation time is: %s',
+                     datetime.datetime.fromtimestamp(
+                         file_stat.st_ctime).strftime('%Y-%m-%d %H:%M:%S'))
     except gcs.NotFoundError:
         logging.error('MaxMind database file not found in GCS: %s', filename)
         return GeoRecord()
