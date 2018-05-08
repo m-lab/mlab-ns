@@ -69,7 +69,7 @@ def get_geo_reader():
             return GeoRecord()
 
         _maxmind_geo_reader = geo_reader
-    
+
     return _maxmind_geo_reader
 
 
