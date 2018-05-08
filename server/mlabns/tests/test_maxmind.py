@@ -11,7 +11,7 @@ from mlabns.util import message
 from google.appengine.ext import testbed
 
 sys.path.insert(1, os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '../third_party/GeoIP2-python')))
+    os.path.dirname(__file__), '../third_party/geoip2')))
 import geoip2.database
 
 
