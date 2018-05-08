@@ -1,7 +1,9 @@
-GoogleAppEngineCloudStorageClient
 coverage
+geoip2
+GoogleAppEngineCloudStorageClient
 jinja2
 mock==2.0.0
+PIL
 pyflakes==1.2.3
 pylint==1.5.6
 pyyaml
