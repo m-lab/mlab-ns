@@ -14,6 +14,7 @@ app = webapp.WSGIApplication(
     (r'/cron/check_status', update.StatusUpdateHandler),
     (r'/cron/check_ip', update.IPUpdateHandler),
     (r'/cron/check_site', update.SiteRegistrationHandler),
+    (r'/reload_maxminddb', update.ReloadMaxmindDb),
     (r'/privacy', privacy.PrivacyHandler),
     (r'/docs', docs.DocsHandler),
     # (r'/cron/process_logs', log2bq.Log2BigQueryHandler),
