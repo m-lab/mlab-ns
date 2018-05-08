@@ -30,6 +30,10 @@ handlers:
   script: main.app
   login: admin
 
+- url: /reload_maxminddb
+  script: main.app
+  login: admin
+
 - url: /.*
   script: main.app
 
