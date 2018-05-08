@@ -1,7 +1,7 @@
 runtime: python27
 api_version: 1
 threadsafe: false
-instance_class: F4
+instance_class: F4_1G
 
 handlers:
 
