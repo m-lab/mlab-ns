@@ -1,6 +1,5 @@
 from mlabns.db import model
 from mlabns.util import constants
-from mlabns.util import message
 
 import cloudstorage as gcs
 import datetime
@@ -8,9 +7,6 @@ import geoip2.database
 import geoip2.errors
 import logging
 import maxminddb
-import os
-import socket
-import sys
 
 _maxmind_geo_reader = None
 
@@ -64,7 +60,7 @@ def get_geo_reader():
         except maxminddb.errors.InvalidDatabaseError:
             logging.error('Invalid MaxMind database file.')
             return GeoRecord()
-        except IOError, e:
+        except IOError:
             logging.error('Cannot read MaxMind database file.')
             return GeoRecord()
 
