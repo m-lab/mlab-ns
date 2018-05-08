@@ -35,6 +35,8 @@ class GeoRecord:
 
 
 def get_database_file():
+    global _maxmind_database_file
+
     bucket = '/' + constants.GEOLOCATION_MAXMIND_GCS_BUCKET
     bucket_path = bucket + '/' + constants.GEOLOCATION_MAXMIND_BUCKET_PATH
     filename = bucket_path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
@@ -45,24 +47,25 @@ def get_database_file():
         logging.error('MaxMind database file not found in GCS: %s', filename)
         return GeoRecord()
 
-    return database_file
+    _maxmind_database_file = database_file
 
 
-def get_geo_reader(maxmind_db_file):
+def get_geo_reader():
+    global _maxmind_geo_reader
     try:
         # The third parameter is for the "mode", which corresponds to
         # various integer constants in the MaxMind code. 16 corresponds to
         # MODE_FD, which means that we will be passing a file descriptor,
         # not a path to the MM database.
-        geo_reader = geoip2.database.Reader(maxmind_db_file, None, 16)
+        geo_reader = geoip2.database.Reader(_maxmind_database_file, None, 16)
     except maxminddb.errors.InvalidDatabaseError:
-        logging.error('Invalid MaxMind database file: %s', maxmind_db_file)
+        logging.error('Invalid MaxMind database file.')
         return GeoRecord()
     except IOError, e:
-        logging.error('Cannot read MaxMind database file: %s', maxmind_db_file)
+        logging.error('Cannot read MaxMind database file.')
         return GeoRecord()
 
-    return geo_reader
+    _maxmind_geo_reader = geo_reader
 
 
 def get_ip_geolocation(ip_address):
@@ -150,5 +153,5 @@ def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
     return geo_record
 
 
-_maxmind_database_file = get_database_file()
-_maxmind_geo_reader = get_geo_reader(_maxmind_database_file)
+get_database_file()
+get_geo_reader(_maxmind_database_file)
