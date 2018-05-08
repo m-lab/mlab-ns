@@ -1,5 +1,3 @@
-import os
-import sys
 import unittest2
 
 from mlabns.util import constants
