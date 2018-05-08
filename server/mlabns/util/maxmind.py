@@ -154,4 +154,4 @@ def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
 
 
 get_database_file()
-get_geo_reader(_maxmind_database_file)
+get_geo_reader()
