@@ -505,4 +505,4 @@ class ReloadMaxmindDb(webapp.RequestHandler):
         maxmind.get_database_file()
 
         # Generates the new Reader object.
-        maxmind.get_geo_reader(maxmind._maxmind_database_file)
+        maxmind.get_geo_reader()
