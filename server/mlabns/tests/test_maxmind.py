@@ -65,6 +65,10 @@ class MaxmindTestClass(unittest2.TestCase):
         def get(self):
             return self.result
 
+    # NOTE: Below, we are intentionally not testing for a valid entry in the
+    # MaxMind database. The database is (currently) around 55MB, takes too long
+    # to download, changes frequently, and a local copy cannot be added to this
+    # codebase because it exceeds the maximum size for a static file in GAE.
     class ModelMockup:
 
         def __init__(self, gql_obj=None, location=None):
@@ -102,17 +106,6 @@ class MaxmindTestClass(unittest2.TestCase):
         # ip_addr can be any invalid IP that looks like an IP.
         ip_addr = '0.1.2.3'
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
-
-    def testGetGeolocationValidLocation(self):
-        ip_addr = '1.2.3.4'
-        # NOTE: this information could change in the database over time.
-        expected_record = maxmind.GeoRecord(city='Mukilteo',
-                                            country='US',
-                                            latitude=47.913,
-                                            longitude=-122.3042)
-        self.assertEqual(
-                expected_record.city,
-                maxmind.get_ip_geolocation(ip_addr).city)
 
     def testGetCountryGeolocationNoCountry(self):
         self.assertNoneGeoRecord(maxmind.get_country_geolocation(
