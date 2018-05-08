@@ -12,7 +12,6 @@ import os
 import socket
 import sys
 
-_maxmind_database_file = None
 _maxmind_geo_reader = None
 
 
@@ -35,8 +34,6 @@ class GeoRecord:
 
 
 def get_database_file():
-    global _maxmind_database_file
-
     bucket = '/' + constants.GEOLOCATION_MAXMIND_GCS_BUCKET
     bucket_path = bucket + '/' + constants.GEOLOCATION_MAXMIND_BUCKET_PATH
     filename = bucket_path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
@@ -51,25 +48,29 @@ def get_database_file():
         logging.error('MaxMind database file not found in GCS: %s', filename)
         return GeoRecord()
 
-    _maxmind_database_file = database_file
+    return database_file
 
 
 def get_geo_reader():
     global _maxmind_geo_reader
-    try:
-        # The third parameter is for the "mode", which corresponds to
-        # various integer constants in the MaxMind code. 16 corresponds to
-        # MODE_FD, which means that we will be passing a file descriptor,
-        # not a path to the MM database.
-        geo_reader = geoip2.database.Reader(_maxmind_database_file, None, 16)
-    except maxminddb.errors.InvalidDatabaseError:
-        logging.error('Invalid MaxMind database file.')
-        return GeoRecord()
-    except IOError, e:
-        logging.error('Cannot read MaxMind database file.')
-        return GeoRecord()
+    if _maxmind_geo_reader is None:
+        try:
+            # The third parameter is for the "mode", which corresponds to
+            # various integer constants in the MaxMind code. 16 corresponds to
+            # MODE_FD, which means that we will be passing a file descriptor,
+            # not a path to the MM database.
+            maxmind_database_file = get_database_file()
+            geo_reader = geoip2.database.Reader(maxmind_database_file, None, 16)
+        except maxminddb.errors.InvalidDatabaseError:
+            logging.error('Invalid MaxMind database file.')
+            return GeoRecord()
+        except IOError, e:
+            logging.error('Cannot read MaxMind database file.')
+            return GeoRecord()
 
-    _maxmind_geo_reader = geo_reader
+        _maxmind_geo_reader = geo_reader
+    
+    return _maxmind_geo_reader
 
 
 def get_ip_geolocation(ip_address):
@@ -83,7 +84,7 @@ def get_ip_geolocation(ip_address):
         IP address. Otherwise, an empty GeoRecord.
     """
     try:
-        geo_response = _maxmind_geo_reader.city(ip_address)
+        geo_response = get_geo_reader().city(ip_address)
     except ValueError, e:
         logging.error('Malformed IP address %s for MaxMind lookup: %s',
                       ip_address, e)
@@ -155,7 +156,3 @@ def get_city_geolocation(city, country, city_table=model.MaxmindCityLocation):
     geo_record.latitude = location.latitude
     geo_record.longitude = location.longitude
     return geo_record
-
-
-get_database_file()
-get_geo_reader()
