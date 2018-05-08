@@ -166,6 +166,12 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
                 sliver_tool = IPUpdateHandler().initialize_sliver_tool(
                     tool, site, server_id, fqdn)
+                if not memcache.set(
+                        tool.tool_id,
+                        sliver_tool,
+                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                    logging.error(
+                        'Failed to update sliver IP addresses in memcache.')
                 try:
                     sliver_tool.put()
                     logging.info('Succeeded to write sliver %s to datastore.',
