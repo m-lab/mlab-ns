@@ -167,6 +167,10 @@ class IPUpdateHandler(webapp.RequestHandler):
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
 
     def get(self):
+        update(self)
+        return util.send_success(self)
+
+    def update(self):
         """Triggers the update handler.
 
         Updates sliver tool IP addresses.
@@ -252,7 +256,7 @@ class IPUpdateHandler(webapp.RequestHandler):
                     sliver_tool_list[tool.tool_id] = []
                 sliver_tool_list[tool.tool_id].append(sliver_tool)
 
-        return util.send_success(self)
+        return
 
     def set_sliver_tool_ips(self, sliver_tool, ipv4, ipv6):
         if not ipv4:
