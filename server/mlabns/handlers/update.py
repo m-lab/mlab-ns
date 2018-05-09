@@ -156,33 +156,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.error('Failed to write site %s to datastore.', site.site_id)
             return False
         logging.info('Succeeded to write site %s to db', site.site_id)
-
-        tools = model.Tool.all()
-        for tool in tools:
-            for server_id in ['mlab1', 'mlab2', 'mlab3']:
-                fqdn = model.get_fqdn(tool.slice_id, server_id, site.site_id)
-                if fqdn is None:
-                    logging.error('Cannot compute fqdn for slice %s.',
-                                  tool.slice_id)
-                    continue
-
-                sliver_tool = IPUpdateHandler().initialize_sliver_tool(
-                    tool, site, server_id, fqdn)
-                if not memcache.set(
-                        tool.tool_id,
-                        sliver_tool,
-                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                    logging.error(
-                        'Failed to update sliver IP addresses in memcache.')
-                try:
-                    sliver_tool.put()
-                    logging.info('Succeeded to write sliver %s to datastore.',
-                                 fqdn)
-                except db.TransactionFailedError:
-                    logging.error('Failed to write sliver %s to datastore.',
-                                  fqdn)
-                    continue
-
+        
         return True
 
 
