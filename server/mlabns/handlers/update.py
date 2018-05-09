@@ -119,7 +119,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                                   site[self.SITE_FIELD])
                     continue
         # call check_ip job at the end of check_site job
-        IPUpdateHandler().get()
+        IPUpdateHandler().update()
 
         return util.send_success(self)
 
