@@ -156,7 +156,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             logging.error('Failed to write site %s to datastore.', site.site_id)
             return False
         logging.info('Succeeded to write site %s to db', site.site_id)
-        
+
         return True
 
 
