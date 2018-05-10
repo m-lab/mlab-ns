@@ -248,10 +248,10 @@ class IPUpdateHandler(webapp.RequestHandler):
                     continue
                 if tool.tool_id not in sliver_tool_list:
                     sliver_tool_list[tool.tool_id] = []
-                updated_sliver_tool = self.set_sliver_tool(sliver_tool,
-                                                           ipv4, ipv6, site.roundrobin)
+                updated_sliver_tool = self.set_sliver_tool(
+                    sliver_tool, ipv4, ipv6, site.roundrobin)
                 # Update datastore if the SliverTool got updated.
-                if updated_sliver_tool:	
+                if updated_sliver_tool:
                     self.put_sliver_tool(updated_sliver_tool)
                     sliver_tool_list[tool.tool_id].append(updated_sliver_tool)
                 else:
@@ -286,10 +286,9 @@ class IPUpdateHandler(webapp.RequestHandler):
             sliver_tool.roundrobin = rr
             updated = True
 
-        if updated:	
-            return sliver_tool	
-        else:	
-            return updated
+        if updated:
+            return sliver_tool
+        return updated
 
     def put_sliver_tool(self, sliver_tool):
         # Update datastore
