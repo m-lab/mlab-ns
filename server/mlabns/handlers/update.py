@@ -250,7 +250,7 @@ class IPUpdateHandler(webapp.RequestHandler):
                 updated_sliver_tool = self.set_sliver_tool_ips(sliver_tool,
                                                                ipv4, ipv6)
                 # Update all sliver tool.
-                self.put_sliver_tool(updated_sliver_tool)
+                #self.put_sliver_tool(updated_sliver_tool)
 
                 if tool.tool_id not in sliver_tool_list:
                     sliver_tool_list[tool.tool_id] = []
@@ -266,6 +266,8 @@ class IPUpdateHandler(webapp.RequestHandler):
                         namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                     logging.error(
                         'Failed to update sliver IP addresses in memcache.')
+                for one_tool in sliver_tool_list[tool_id]:
+                    self.put_sliver_tool(one_tool)
         return
 
     def set_sliver_tool_ips(self, sliver_tool, ipv4, ipv6):
@@ -285,9 +287,6 @@ class IPUpdateHandler(webapp.RequestHandler):
         # Update datastore
         try:
             sliver_tool.put()
-            logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
-                         sliver_tool.fqdn, sliver_tool.sliver_ipv4,
-                         sliver_tool.sliver_ipv6)
         except db.TransactionFailedError:
             logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
