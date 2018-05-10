@@ -246,15 +246,16 @@ class IPUpdateHandler(webapp.RequestHandler):
                         'Error, or too many sliver_tools returned for {}:{}.'.format(
                             tool.tool_id, fqdn))
                     continue
-
-                updated_sliver_tool = self.set_sliver_tool(sliver_tool,
-                                                           ipv4, ipv6, site.roundrobin)
-                if updated_sliver_tool:	
-                    self.put_sliver_tool(updated_sliver_tool)
-
                 if tool.tool_id not in sliver_tool_list:
                     sliver_tool_list[tool.tool_id] = []
-                sliver_tool_list[tool.tool_id].append(updated_sliver_tool)
+                updated_sliver_tool = self.set_sliver_tool(sliver_tool,
+                                                           ipv4, ipv6, site.roundrobin)
+                # Update datastore if the SliverTool got updated.
+                if updated_sliver_tool:	
+                    self.put_sliver_tool(updated_sliver_tool)
+                    sliver_tool_list[tool.tool_id].append(updated_sliver_tool)
+                else:
+                    sliver_tool_list[tool.tool_id].append(sliver_tool)
 
         # Update memcache.  Never set the memcache to an empty list since it's
         # more likely that this is a Nagios failure.
@@ -285,7 +286,6 @@ class IPUpdateHandler(webapp.RequestHandler):
             sliver_tool.roundrobin = rr
             updated = True
 
-        # If sliver_tool was updated, return it, else return False.	+        return sliver_tool
         if updated:	
             return sliver_tool	
         else:	
