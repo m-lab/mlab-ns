@@ -160,15 +160,11 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         return True
 
 
-class IPUpdateHandler(webapp.RequestHandler):
+class IPUpdateHandler():
     """Updates SliverTools' IP addresses."""
 
     # TODO: There should eventually be a TESTING_IP_LIST_URL for testing purpose.
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
-
-    def get(self):
-        self.update()
-        return util.send_success(self)
 
     def update(self):
         """Triggers the update handler.
