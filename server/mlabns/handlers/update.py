@@ -282,7 +282,7 @@ class IPUpdateHandler(webapp.RequestHandler):
         if not sliver_tool.sliver_ipv6 == ipv6:
             sliver_tool.sliver_ipv6 = ipv6
             updated = True
-        if not slivertool.roundrobin == rr:
+        if not sliver_tool.roundrobin == rr:
             sliver_tool.roundrobin = rr
             updated = True
 
