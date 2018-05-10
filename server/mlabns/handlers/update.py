@@ -247,10 +247,10 @@ class IPUpdateHandler(webapp.RequestHandler):
                             tool.tool_id, fqdn))
                     continue
 
-                updated_sliver_tool = self.set_sliver_tool_ips(sliver_tool,
-                                                               ipv4, ipv6)
-                # Update all sliver tool.
-                #self.put_sliver_tool(updated_sliver_tool)
+                updated_sliver_tool = self.set_sliver_tool(sliver_tool,
+                                                           ipv4, ipv6, site.roundrobin)
+                if updated_sliver_tool:	
+                    self.put_sliver_tool(updated_sliver_tool)
 
                 if tool.tool_id not in sliver_tool_list:
                     sliver_tool_list[tool.tool_id] = []
@@ -266,11 +266,10 @@ class IPUpdateHandler(webapp.RequestHandler):
                         namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                     logging.error(
                         'Failed to update sliver IP addresses in memcache.')
-                for one_tool in sliver_tool_list[tool_id]:
-                    self.put_sliver_tool(one_tool)
         return
 
-    def set_sliver_tool_ips(self, sliver_tool, ipv4, ipv6):
+    def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr):
+        updated = False
         if not ipv4:
             ipv4 = message.NO_IP_ADDRESS
         if not ipv4:
@@ -278,10 +277,19 @@ class IPUpdateHandler(webapp.RequestHandler):
 
         if not sliver_tool.sliver_ipv4 == ipv4:
             sliver_tool.sliver_ipv4 = ipv4
+            updated = True
         if not sliver_tool.sliver_ipv6 == ipv6:
             sliver_tool.sliver_ipv6 = ipv6
+            updated = True
+        if not slivertool.roundrobin == rr:
+            sliver_tool.roundrobin = rr
+            updated = True
 
-        return sliver_tool
+        # If sliver_tool was updated, return it, else return False.	+        return sliver_tool
+        if updated:	
+            return sliver_tool	
+        else:	
+            return updated
 
     def put_sliver_tool(self, sliver_tool):
         # Update datastore
