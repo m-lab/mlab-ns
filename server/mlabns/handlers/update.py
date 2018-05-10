@@ -256,6 +256,16 @@ class IPUpdateHandler(webapp.RequestHandler):
                     sliver_tool_list[tool.tool_id] = []
                 sliver_tool_list[tool.tool_id].append(sliver_tool)
 
+        # Update memcache.  Never set the memcache to an empty list since it's
+        # more likely that this is a Nagios failure.
+        if sliver_tool_list:
+            for tool_id in sliver_tool_list.keys():
+                if not memcache.set(
+                        tool_id,
+                        sliver_tool_list[tool_id],
+                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
+                    logging.error(
+                        'Failed to update sliver IP addresses in memcache.')
         return
 
     def set_sliver_tool_ips(self, sliver_tool, ipv4, ipv6):
@@ -272,12 +282,7 @@ class IPUpdateHandler(webapp.RequestHandler):
         return sliver_tool
 
     def put_sliver_tool(self, sliver_tool):
-        # Update memcache AND datastore here.
-        if not memcache.set(sliver_tool.tool_id,
-                            sliver_tool,
-                            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-            logging.error('Failed to update sliver IP addresses in memcache.')
-
+        # Update datastore
         try:
             sliver_tool.put()
             logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
