@@ -167,7 +167,7 @@ class IPUpdateHandler(webapp.RequestHandler):
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
 
     def get(self):
-        update(self)
+        self.update()
         return util.send_success(self)
 
     def update(self):
