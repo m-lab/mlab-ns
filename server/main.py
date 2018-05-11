@@ -12,7 +12,6 @@ app = webapp.WSGIApplication(
     [(r'/', admin.AdminHandler),
     (r'/admin.*', admin.AdminHandler),
     (r'/cron/check_status', update.StatusUpdateHandler),
-    (r'/cron/check_ip', update.IPUpdateHandler),
     (r'/cron/check_site', update.SiteRegistrationHandler),
     (r'/privacy', privacy.PrivacyHandler),
     (r'/docs', docs.DocsHandler),

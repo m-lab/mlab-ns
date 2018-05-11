@@ -7,14 +7,8 @@ cron:
   url: /cron/check_status
   schedule: every 1 minutes
 
-# Check for new sites every 24 hours, starting at 00:00
-- description: Check sites
+# check for new sites, and for new and/or updated IP addresses, roundrobin information.
+# run every 24 hours, starting at 06:00
+- description: Check sites, update IP and roundrobin
   url: /cron/check_site
-  schedule: every day 00:00
-
-# Check for new/modified IP addresses every 24 hours, starting at 01:00
-# (this will update also IP addresses for new sites, if added)
-- description: Check IP addresses
-  url: /cron/check_ip
-  schedule: every day 01:00
-
+  schedule: every day 06:00

@@ -91,7 +91,6 @@ After the Datastore is populated with seed information, manually kick off the cr
 Run the following jobs from GCP under Compute > App Engine > Task queues > Cron Jobs.
 
 1. `/cron/check_site`
-1. `/cron/check_ip`
 1. `/cron/check_status`
 
 If bootstrapping was successful, you should see a populated map at the root mlab-ns URL (e.g. mlab-nstesting.appspot.com) with M-Lab's sites properly located.

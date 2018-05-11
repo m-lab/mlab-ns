@@ -118,6 +118,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
                     logging.error('Error updating site %s.',
                                   site[self.SITE_FIELD])
                     continue
+        # call check_ip job at the end of check_site job
+        IPUpdateHandler().update()
 
         return util.send_success(self)
 
@@ -155,36 +157,16 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             return False
         logging.info('Succeeded to write site %s to db', site.site_id)
 
-        tools = model.Tool.all()
-        for tool in tools:
-            for server_id in ['mlab1', 'mlab2', 'mlab3']:
-                fqdn = model.get_fqdn(tool.slice_id, server_id, site.site_id)
-                if fqdn is None:
-                    logging.error('Cannot compute fqdn for slice %s.',
-                                  tool.slice_id)
-                    continue
-
-                sliver_tool = IPUpdateHandler().initialize_sliver_tool(
-                    tool, site, server_id, fqdn)
-                try:
-                    sliver_tool.put()
-                    logging.info('Succeeded to write sliver %s to datastore.',
-                                 fqdn)
-                except db.TransactionFailedError:
-                    logging.error('Failed to write sliver %s to datastore.',
-                                  fqdn)
-                    continue
-
         return True
 
 
-class IPUpdateHandler(webapp.RequestHandler):
+class IPUpdateHandler():
     """Updates SliverTools' IP addresses."""
 
     # TODO: There should eventually be a TESTING_IP_LIST_URL for testing purpose.
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
 
-    def get(self):
+    def update(self):
         """Triggers the update handler.
 
         Updates sliver tool IP addresses.
@@ -260,18 +242,20 @@ class IPUpdateHandler(webapp.RequestHandler):
                         'Error, or too many sliver_tools returned for {}:{}.'.format(
                             tool.tool_id, fqdn))
                     continue
-
-                updated_sliver_tool = self.set_sliver_tool_ips(sliver_tool,
-                                                               ipv4, ipv6)
-                # Update all sliver tool.
-                self.put_sliver_tool(updated_sliver_tool)
-
                 if tool.tool_id not in sliver_tool_list:
                     sliver_tool_list[tool.tool_id] = []
-                sliver_tool_list[tool.tool_id].append(sliver_tool)
+                updated_sliver_tool = self.set_sliver_tool(
+                    sliver_tool, ipv4, ipv6, site.roundrobin)
+
+                # Update datastore if the SliverTool got updated.
+                if updated_sliver_tool:
+                    self.put_sliver_tool(updated_sliver_tool)
+                    sliver_tool_list[tool.tool_id].append(updated_sliver_tool)
+                else:
+                    sliver_tool_list[tool.tool_id].append(sliver_tool)
 
         # Update memcache.  Never set the memcache to an empty list since it's
-        # more likely that this is a Nagios failure.
+        # more likely that this is a Prometheus failure.
         if sliver_tool_list:
             for tool_id in sliver_tool_list.keys():
                 if not memcache.set(
@@ -279,11 +263,12 @@ class IPUpdateHandler(webapp.RequestHandler):
                         sliver_tool_list[tool_id],
                         namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                     logging.error(
-                        'Failed to update sliver IP addresses in memcache.')
+                        'IPUpdateHandler: Failed to update tool %s in memcache.',
+                        tool_id)
+        return
 
-        return util.send_success(self)
-
-    def set_sliver_tool_ips(self, sliver_tool, ipv4, ipv6):
+    def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr):
+        updated = False
         if not ipv4:
             ipv4 = message.NO_IP_ADDRESS
         if not ipv4:
@@ -291,27 +276,26 @@ class IPUpdateHandler(webapp.RequestHandler):
 
         if not sliver_tool.sliver_ipv4 == ipv4:
             sliver_tool.sliver_ipv4 = ipv4
+            updated = True
         if not sliver_tool.sliver_ipv6 == ipv6:
             sliver_tool.sliver_ipv6 = ipv6
+            updated = True
+        if not sliver_tool.roundrobin == rr:
+            sliver_tool.roundrobin = rr
+            updated = True
 
-        return sliver_tool
+        if updated:
+            return sliver_tool
+        return updated
 
     def put_sliver_tool(self, sliver_tool):
-        # Update memcache AND datastore here.
+        # Update datastore
         try:
             sliver_tool.put()
-            logging.info('Succeeded to write IPs of %s (%s, %s) in datastore.',
-                         sliver_tool.fqdn, sliver_tool.sliver_ipv4,
-                         sliver_tool.sliver_ipv6)
         except db.TransactionFailedError:
             logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
                           sliver_tool.fqdn, sliver_tool.sliver_ipv4,
                           sliver_tool.sliver_ipv6)
-
-        if not memcache.set(sliver_tool.tool_id,
-                            sliver_tool,
-                            namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-            logging.error('Failed to update sliver IP addresses in memcache.')
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
         sliver_tool_id = model.get_sliver_tool_id(tool.tool_id, tool.slice_id,
