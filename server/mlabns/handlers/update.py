@@ -246,6 +246,7 @@ class IPUpdateHandler():
                     sliver_tool_list[tool.tool_id] = []
                 updated_sliver_tool = self.set_sliver_tool(
                     sliver_tool, ipv4, ipv6, site.roundrobin)
+
                 # Update datastore if the SliverTool got updated.
                 if updated_sliver_tool:
                     self.put_sliver_tool(updated_sliver_tool)
@@ -254,7 +255,7 @@ class IPUpdateHandler():
                     sliver_tool_list[tool.tool_id].append(sliver_tool)
 
         # Update memcache.  Never set the memcache to an empty list since it's
-        # more likely that this is a Nagios failure.
+        # more likely that this is a Prometheus failure.
         if sliver_tool_list:
             for tool_id in sliver_tool_list.keys():
                 if not memcache.set(
@@ -262,7 +263,7 @@ class IPUpdateHandler():
                         sliver_tool_list[tool_id],
                         namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                     logging.error(
-                        'Failed to update sliver IP addresses in memcache.')
+                        'IPUpdateHandler: Failed to update tool %s in memcache.', tool_id)
         return
 
     def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr):
