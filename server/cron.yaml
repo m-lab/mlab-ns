@@ -10,4 +10,4 @@ cron:
 # Check for new sites every 24 hours, starting at 00:00
 - description: Check sites
   url: /cron/check_site
-  schedule: every day 00:00
+  schedule: every day 06:00
