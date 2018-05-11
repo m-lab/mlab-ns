@@ -263,7 +263,8 @@ class IPUpdateHandler():
                         sliver_tool_list[tool_id],
                         namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                     logging.error(
-                        'IPUpdateHandler: Failed to update tool %s in memcache.', tool_id)
+                        'IPUpdateHandler: Failed to update tool %s in memcache.',
+                        tool_id)
         return
 
     def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr):
