@@ -13,6 +13,7 @@ from mlabns.db import nagios_config_wrapper
 from mlabns.db import prometheus_config_wrapper
 from mlabns.db import sliver_tool_fetcher
 from mlabns.util import constants
+from mlabns.util import maxmind
 from mlabns.util import message
 from mlabns.util import nagios_status
 from mlabns.util import prometheus_status
@@ -493,3 +494,15 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                 updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                 logging.error('Failed to update sliver status in memcache.')
+
+
+class ReloadMaxmindDb(webapp.RequestHandler):
+    """Reloads the MaxMind database file from GCS, perhaps updating it."""
+
+    # See util/maxmind.py for details.
+    def get(self):
+        # Reads the database file from GCS.
+        maxmind.get_database_file()
+
+        # Generates the new Reader object.
+        maxmind.get_geo_reader()

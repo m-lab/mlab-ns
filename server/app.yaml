@@ -1,7 +1,9 @@
 runtime: python27
 api_version: 1
 threadsafe: false
-instance_class: F4_1G
+instance_class: F4
+
+service: geoip2
 
 handlers:
 
@@ -27,6 +29,10 @@ handlers:
   script: oauth2client/appengine.py
 
 - url: /cron
+  script: main.app
+  login: admin
+
+- url: /reload_maxminddb
   script: main.app
   login: admin
 

@@ -10,12 +10,18 @@ from mlabns.util import message
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
+from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
 
 class SliverToolFetcherTestCase(unittest.TestCase):
 
     def setUp(self):
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_all_stubs()
+        ndb.get_context().clear_cache()
+
         sliver_tool_fetcher_datastore_patch = mock.patch.object(
             sliver_tool_fetcher,
             'SliverToolFetcherDatastore',
@@ -31,6 +37,9 @@ class SliverToolFetcherTestCase(unittest.TestCase):
         sliver_tool_fetcher_memcache_patch.start()
 
         self.fetcher = sliver_tool_fetcher.SliverToolFetcher()
+
+    def tearDown(self):
+        self.testbed.deactivate()
 
     def testFetchDoesNotHitDatastoreIfMemcacheHasRequiredData(self):
         # The mock response is just ints here for simplicity, though the real
