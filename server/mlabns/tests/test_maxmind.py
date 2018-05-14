@@ -60,6 +60,10 @@ class MaxmindTestClass(unittest2.TestCase):
     # MaxMind database. The database is (currently) around 55MB, takes too long
     # to download, changes frequently, and a local copy cannot be added to this
     # codebase because it exceeds the maximum size for a static file in GAE.
+    # TODO: MaxMind maintains a Github repo which, among other things, contains 
+    # sample databases that they use for unit testing. We should pull in one of
+    # those databases for testing:
+    # https://github.com/maxmind/MaxMind-DB/tree/master/test-data
     class ModelMockup:
 
         def __init__(self, gql_obj=None, location=None):
