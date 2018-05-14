@@ -1,9 +1,7 @@
 runtime: python27
 api_version: 1
 threadsafe: false
-instance_class: F4
-
-service: geoip2
+instance_class: F4_1G
 
 handlers:
 
