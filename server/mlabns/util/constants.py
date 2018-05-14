@@ -20,6 +20,8 @@ GEOLOCATION_APP_ENGINE = 'app_engine'
 GEOLOCATION_MAXMIND = 'maxmind'
 GEOLOCATION_USER_DEFINED = 'user_defined'
 
+# To find out which GCP project owns the bucket, you can run:
+# $ gsutil iam get gs://<bucket name>
 GEOLOCATION_MAXMIND_GCS_BUCKET = 'mlab-ns.appspot.com'
 GEOLOCATION_MAXMIND_BUCKET_PATH = 'maxmind/current'
 GEOLOCATION_MAXMIND_CITY_FILE = 'GeoLite2-City.mmdb'
