@@ -9,39 +9,105 @@ from mlabns.util import message
 
 # This global dict maps tool_ids to the corresponding Prometheus query that will
 # return the status for that tool.
+#
+# NOTE: The NDT queries are rather unintuitive and bear some explanation. A
+# previous iteration of the NDT queries was using the `OR` operator to join
+# vectors, similar to the current queries for neubot and mobiperf. However, the
+# `OR` operator has a behavior which makes it unsuitable for use with the NDT
+# queries. The `OR` operator will exclude timeseries, except the first, with
+# matching label sets. Because the last two vectors (vdlimit_* and
+# lame_duck_experiment) are both node_exporter metrics, they have matching
+# label sets. This meant that the lame_duck_experiment vector was getting
+# excluded, making it impossible to remove a node from mlab-ns rotation via the
+# lame-duck mechanism.
+#
+# The current format adds the value of the vectors. If the count is equal to the
+# number of vectors, then they all have a value of 1, meaning everything is up,
+# else something is down and the node should be taken out of mlab-ns rotation.
+# The `== bool 4` ensures that the resulting value will be 0 if the count is
+# less than 4.
+#
+# The final use of `OR` in the NDT queries takes into account where, for some
+# reason, node_exporter may not be running on a node, hence the vdlimit_* and
+# lame_duck_experiment metrics will be missing, causing metrics for those nodes
+# to be missing from the overall result set. To add these nodes back to the
+# result set we query a metric we expect should represent all possible nodes
+# for the experiment, then subtract all nodes where
+# up{service="nodeexporter"}==1, leaving us nodes where node_exporter is 0
+# (down).
+#
+# The use of `min by` in the NDT queries serves no practical purpose other than
+# to make any timeseries added by the final `OR` have the exact same label set
+# as the others. It is prettier this way, and more consistent.
+#
+# The neubot and mobiperf queries do not require this backbending because they
+# do not reply on node_exporter in any way, and all vectors will have unique
+# label sets, making the use of the `OR` operator suitable.
 QUERIES = {
     'ndt': textwrap.dedent("""\
         min by (experiment, machine) (
-          probe_success{service="ndt_raw"} OR
-          script_success{service="ndt_e2e"} OR
-          (vdlimit_used{experiment="ndt.iupui"} /
-              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-          lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-          """),
+          (
+            (
+              (probe_success{service="ndt_raw"}) +
+              ON (experiment, machine) (script_success{service="ndt_e2e"}) +
+              ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
+                vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
+              ON (experiment, machine)
+                (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+            ) == bool 4
+          ) OR
+          ON(experiment, machine) probe_success{service="ndt_raw"}
+            UNLESS ON(machine) up{service="nodeexporter"} == 1
+        )
+        """),
     'ndt_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
-          probe_success{service="ndt_raw_ipv6"} OR
-          script_success{service="ndt_e2e"} OR
-          (vdlimit_used{experiment="ndt.iupui"} /
-              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-          lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-          """),
+          (
+            (
+              (probe_success{service="ndt_raw_ipv6"}) +
+              ON (experiment, machine) (script_success{service="ndt_e2e"}) +
+              ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
+                vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
+              ON (experiment, machine)
+                (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+            ) == bool 4
+          ) OR
+          ON(experiment, machine) probe_success{service="ndt_raw"}
+            UNLESS ON(machine) up{service="nodeexporter"} == 1
+        )
+        """),
     'ndt_ssl': textwrap.dedent("""\
         min by (experiment, machine) (
-          probe_success{service="ndt_ssl"} OR
-          script_success{service="ndt_e2e"} OR
-          (vdlimit_used{experiment="ndt.iupui"} /
-              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-          lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-          """),
+          (
+            (
+              (probe_success{service="ndt_ssl"}) +
+              ON (experiment, machine) (script_success{service="ndt_e2e"}) +
+              ON (experiment, machine)((vdlimit_used{experiment="ndt.iupui"} /
+                vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
+              ON (experiment, machine)
+                (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+            ) == bool 4
+          ) OR
+          ON(experiment, machine) probe_success{service="ndt_ssl"}
+            UNLESS ON(machine) up{service="nodeexporter"} == 1
+        )
+        """),
     'ndt_ssl_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
-          probe_success{service="ndt_ssl_ipv6"} OR
-          script_success{service="ndt_e2e"} OR
-          (vdlimit_used{experiment="ndt.iupui"} /
-              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95 OR
-          lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-          """),
+          (
+            (
+              (probe_success{service="ndt_ssl_ipv6"}) +
+              ON (experiment, machine) (script_success{service="ndt_e2e"}) +
+              ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
+                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
+              ON (experiment, machine)
+                (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+            ) == bool 4
+          ) OR
+          ON(experiment, machine) probe_success{service="ndt_ssl"}
+            UNLESS ON(machine) up{service="nodeexporter"} == 1
+        )
+        """),
     'neubot': textwrap.dedent("""\
         min by (experiment, machine) (
           probe_success{service="neubot"} OR
