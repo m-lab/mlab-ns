@@ -66,7 +66,7 @@ QUERIES = {
                 (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
             ) == bool 4
           ) OR
-          ON(experiment, machine) probe_success{service="ndt_raw"}
+          ON(experiment, machine) probe_success{service="ndt_raw_ipv6"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
@@ -98,7 +98,7 @@ QUERIES = {
                 (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
             ) == bool 4
           ) OR
-          ON(experiment, machine) probe_success{service="ndt_ssl"}
+          ON(experiment, machine) probe_success{service="ndt_ssl_ipv6"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
@@ -124,7 +124,7 @@ QUERIES = {
                 (lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
             ) == bool 2
           ) OR
-          ON(experiment, machine) probe_success{service="neubot"}
+          ON(experiment, machine) probe_success{service="neubot_ipv6"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
@@ -158,7 +158,7 @@ QUERIES = {
                 (lame_duck_experiment{experiment="1.michigan"} != bool 1)
             ) == bool 4
           ) OR
-          ON(experiment, machine) probe_success{service="mobiperf"}
+          ON(experiment, machine) probe_success{service="mobiperf_ipv6"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
