@@ -50,16 +50,17 @@ class MaxmindTestClass(unittest2.TestCase):
     def tearDown(self):
         self.testbed.deactivate()
 
-# The GAE app uses the GoogleAppEngineCloudStorageClient python module to fetch
-# the MaxMind database file from GCS. However, that module doesn't, apparently,
-# work in a non-GAE environment, like Travis-CI. So this functions is used to
-# mock fetching the database file, but using the public GCS link instead.
-def get_database_file(self):
-    base_url = 'https://storage.googleapis.com'
-    bucket = base_url + '/' + constants.GEOLOCATION_MAXMIND_GCS_BUCKET
-    bucket_path = bucket + '/' + constants.GEOLOCATION_MAXMIND_BUCKET_PATH
-    database_url = bucket_path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
-    return urllib2.urlopen(database_url)
+    # The GAE app uses the GoogleAppEngineCloudStorageClient python module to
+    # fetch the MaxMind database file from GCS. However, that module doesn't,
+    # apparently, work in a non-GAE environment, like Travis-CI. So this
+    # functions is used to mock fetching the database file, but using the
+    # public GCS link instead.
+    def get_database_file(self):
+        base_url = 'https://storage.googleapis.com'
+        bucket = base_url + '/' + constants.GEOLOCATION_MAXMIND_GCS_BUCKET
+        path = bucket + '/' + constants.GEOLOCATION_MAXMIND_BUCKET_PATH
+        database_url = path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
+        return urllib2.urlopen(database_url)
 
     class GqlMockup:
 
