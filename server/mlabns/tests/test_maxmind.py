@@ -60,7 +60,9 @@ class MaxmindTestClass(unittest2.TestCase):
         bucket = base_url + '/' + constants.GEOLOCATION_MAXMIND_GCS_BUCKET
         path = bucket + '/' + constants.GEOLOCATION_MAXMIND_BUCKET_PATH
         database_url = path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
-        return urllib2.urlopen(database_url)
+        db_file = urllib2.urlopen(database_url)
+        db_file.name = constants.GEOLOCATION_MAXMIND_CITY_FILE
+        return db_file
 
     class GqlMockup:
 
