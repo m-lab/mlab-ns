@@ -111,12 +111,6 @@ class MaxmindTestClass(unittest2.TestCase):
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
 
     @mock.patch.object(maxmind, 'get_database_file')
-    def testGetGeolocationNoneAddress(self, mock_database_file):
-        mock_database_file.side_effect = self.get_database_file
-        ip_addr = None
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
-
-    @mock.patch.object(maxmind, 'get_database_file')
     def testGetGeolocationNoRecordForIp(self, mock_database_file):
         mock_database_file.side_effect = self.get_database_file
         # ip_addr can be any invalid IP that looks like an IP.
