@@ -1,4 +1,6 @@
+import mock
 import unittest2
+import urllib2
 
 from mlabns.util import constants
 from mlabns.util import maxmind
@@ -48,6 +50,20 @@ class MaxmindTestClass(unittest2.TestCase):
     def tearDown(self):
         self.testbed.deactivate()
 
+    # The GAE app uses the GoogleAppEngineCloudStorageClient python module to
+    # fetch the MaxMind database file from GCS. However, that module doesn't,
+    # apparently, work in a non-GAE environment, like Travis-CI. So this
+    # functions is used to mock fetching the database file, but using the
+    # public GCS link instead.
+    def get_database_file(self):
+        base_url = 'https://storage.googleapis.com'
+        bucket = base_url + '/' + constants.GEOLOCATION_MAXMIND_GCS_BUCKET
+        path = bucket + '/' + constants.GEOLOCATION_MAXMIND_BUCKET_PATH
+        database_url = path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
+        db_file = urllib2.urlopen(database_url)
+        db_file.name = constants.GEOLOCATION_MAXMIND_CITY_FILE
+        return db_file
+
     class GqlMockup:
 
         def __init__(self, result=None):
@@ -88,15 +104,15 @@ class MaxmindTestClass(unittest2.TestCase):
         self.assertIsNone(geo_record.latitude)
         self.assertIsNone(geo_record.longitude)
 
-    def testGetGeolocationNotValidAddress(self):
+    @mock.patch.object(maxmind, 'get_database_file')
+    def testGetGeolocationNotValidAddress(self, mock_database_file):
+        mock_database_file.side_effect = self.get_database_file
         ip_addr = 'abc'
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
 
-    def testGetGeolocationNoneAddress(self):
-        ip_addr = None
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
-
-    def testGetGeolocationNoRecordForIp(self):
+    @mock.patch.object(maxmind, 'get_database_file')
+    def testGetGeolocationNoRecordForIp(self, mock_database_file):
+        mock_database_file.side_effect = self.get_database_file
         # ip_addr can be any invalid IP that looks like an IP.
         ip_addr = '0.1.2.3'
         self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))

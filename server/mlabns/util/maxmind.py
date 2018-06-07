@@ -42,7 +42,7 @@ def get_database_file():
                          file_stat.st_ctime).strftime('%Y-%m-%d %H:%M:%S'))
     except gcs.NotFoundError:
         logging.error('MaxMind database file not found in GCS: %s', filename)
-        return GeoRecord()
+        raise
 
     return database_file
 
