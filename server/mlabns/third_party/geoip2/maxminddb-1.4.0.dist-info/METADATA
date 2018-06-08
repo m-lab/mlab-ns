@@ -1,3 +1,29 @@
+Metadata-Version: 2.0
+Name: maxminddb
+Version: 1.4.0
+Summary: Reader for the MaxMind DB format
+Home-page: http://www.maxmind.com/
+Author: Gregory Oschwald
+Author-email: goschwald@maxmind.com
+License: Apache License, Version 2.0
+Description-Content-Type: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python
+Classifier: Topic :: Internet :: Proxy Servers
+Classifier: Topic :: Internet
+Requires-Dist: ipaddress
+
 ========================
 MaxMind DB Python Module
 ========================
@@ -40,16 +66,21 @@ provide `free GeoLite2 databases
 <http://dev.maxmind.com/geoip/geoip2/geolite2>`_. These files must be
 decompressed with ``gunzip``.
 
-After you have obtained a database and importing the module, call
-``open_database`` with a path to the database as the first argument.
-Optionally, you may pass a mode as the second arguments. The modes are
-exported from ``maxminddb``. Valid modes are:
+After you have obtained a database and imported the module, call
+``open_database`` with a path, or file descriptor (in the case of MODE_FD),
+to the database as the first argument. Optionally, you may pass a mode as the
+second argument. The modes are exported from ``maxminddb``. Valid modes are:
 
 * MODE_MMAP_EXT - use the C extension with memory map.
 * MODE_MMAP - read from memory map. Pure Python.
 * MODE_FILE - read database as standard file. Pure Python.
 * MODE_MEMORY - load database into memory. Pure Python.
+* MODE_FD - load database into memory from a file descriptor. Pure Python.
 * MODE_AUTO - try MODE_MMAP_EXT, MODE_MMAP, MODE_FILE in that order. Default.
+
+**NOTE**: When using ``MODE_FD``, it is the *caller's* responsibility to be
+sure that the file descriptor gets closed properly. The caller may close the
+file descriptor immediately after the ``Reader`` object is created.
 
 The ``open_database`` function returns a ``Reader`` object. To look up an IP
 address, use the ``get`` method on this object. The method will return the

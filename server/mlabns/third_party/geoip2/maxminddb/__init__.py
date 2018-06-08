@@ -29,11 +29,13 @@ def open_database(database, mode=MODE_AUTO):
             * MODE_AUTO - tries MODE_MMAP_EXT, MODE_MMAP, MODE_FILE in that
                           order. Default mode.
     """
-    has_extension = maxminddb.extension and hasattr(maxminddb.extension, 'Reader')
+    has_extension = maxminddb.extension and hasattr(maxminddb.extension,
+                                                    'Reader')
     if (mode == MODE_AUTO and has_extension) or mode == MODE_MMAP_EXT:
         if not has_extension:
             raise ValueError(
-                "MODE_MMAP_EXT requires the maxminddb.extension module to be available")
+                "MODE_MMAP_EXT requires the maxminddb.extension module to be available"
+            )
         return maxminddb.extension.Reader(database)
     elif mode in (MODE_AUTO, MODE_MMAP, MODE_FILE, MODE_MEMORY, MODE_FD):
         return maxminddb.reader.Reader(database, mode)
@@ -46,7 +48,7 @@ def Reader(database):  # pylint: disable=invalid-name
 
 
 __title__ = 'maxminddb'
-__version__ = '1.3.0'
+__version__ = '1.4.0'
 __author__ = 'Gregory Oschwald'
 __license__ = 'Apache License, Version 2.0'
-__copyright__ = 'Copyright 2014 Maxmind, Inc.'
+__copyright__ = 'Copyright 2013-2018 Maxmind, Inc.'

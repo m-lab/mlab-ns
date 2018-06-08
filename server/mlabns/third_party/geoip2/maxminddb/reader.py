@@ -15,7 +15,8 @@ except ImportError:
 
 import struct
 
-from maxminddb.compat import byte_from_int, compat_ip_address
+from maxminddb.compat import (byte_from_int, compat_ip_address, string_type,
+                              string_type_name)
 from maxminddb.const import MODE_AUTO, MODE_MMAP, MODE_FILE, MODE_MEMORY, MODE_FD
 from maxminddb.decoder import Decoder
 from maxminddb.errors import InvalidDatabaseError
@@ -47,26 +48,29 @@ class Reader(object):
             * MODE_FD - the param passed via database is a file descriptor, not
                         a path. This mode implies MODE_MEMORY.
         """
-        # pylint: disable=redefined-variable-type
         if (mode == MODE_AUTO and mmap) or mode == MODE_MMAP:
             with open(database, 'rb') as db_file:
                 self._buffer = mmap.mmap(
                     db_file.fileno(), 0, access=mmap.ACCESS_READ)
                 self._buffer_size = self._buffer.size()
+            filename = database
         elif mode in (MODE_AUTO, MODE_FILE):
             self._buffer = FileBuffer(database)
             self._buffer_size = self._buffer.size()
+            filename = database
         elif mode == MODE_MEMORY:
             with open(database, 'rb') as db_file:
                 self._buffer = db_file.read()
                 self._buffer_size = len(self._buffer)
+            filename = database
         elif mode == MODE_FD:
             self._buffer = database.read()
             self._buffer_size = len(self._buffer)
+            filename = database.name
         else:
             raise ValueError(
-                'Unsupported open mode ({0}). Only MODE_AUTO, '
-                ' MODE_FILE, and MODE_MEMORY are support by the pure Python '
+                'Unsupported open mode ({0}). Only MODE_AUTO, MODE_FILE, '
+                'MODE_MEMORY and MODE_FD are supported by the pure Python '
                 'Reader'.format(mode))
 
         metadata_start = self._buffer.rfind(
@@ -77,7 +81,7 @@ class Reader(object):
             self.close()
             raise InvalidDatabaseError('Error opening database file ({0}). '
                                        'Is this a valid MaxMind DB file?'
-                                       ''.format(database))
+                                       ''.format(filename))
 
         metadata_start += len(self._METADATA_START_MARKER)
         metadata_decoder = Decoder(self._buffer, metadata_start)
@@ -99,6 +103,9 @@ class Reader(object):
         Arguments:
         ip_address -- an IP address in the standard string notation
         """
+        if not isinstance(ip_address, string_type):
+            raise TypeError('argument 1 must be %s, not %s' %
+                            (string_type_name, type(ip_address).__name__))
 
         address = compat_ip_address(ip_address)
 
@@ -161,14 +168,13 @@ class Reader(object):
             else:
                 middle = (0xF0 & middle) >> 4
             offset = base_offset + index * 4
-            node_bytes = byte_from_int(middle) + self._buffer[offset:offset +
-                                                              3]
+            node_bytes = byte_from_int(middle) + self._buffer[offset:offset + 3]
         elif record_size == 32:
             offset = base_offset + index * 4
             node_bytes = self._buffer[offset:offset + 4]
         else:
-            raise InvalidDatabaseError('Unknown record size: {0}'.format(
-                record_size))
+            raise InvalidDatabaseError(
+                'Unknown record size: {0}'.format(record_size))
         return struct.unpack(b'!I', node_bytes)[0]
 
     def _resolve_data_pointer(self, pointer):
@@ -199,7 +205,68 @@ class Reader(object):
 
 
 class Metadata(object):
-    """Metadata for the MaxMind DB reader"""
+    """Metadata for the MaxMind DB reader
+
+
+    .. attribute:: binary_format_major_version
+
+      The major version number of the binary format used when creating the
+      database.
+
+      :type: int
+
+    .. attribute:: binary_format_minor_version
+
+      The minor version number of the binary format used when creating the
+      database.
+
+      :type: int
+
+    .. attribute:: build_epoch
+
+      The Unix epoch for the build time of the database.
+
+      :type: int
+
+    .. attribute:: database_type
+
+      A string identifying the database type, e.g., "GeoIP2-City".
+
+      :type: str
+
+    .. attribute:: description
+
+      A map from locales to text descriptions of the database.
+
+      :type: dict(str, str)
+
+    .. attribute:: ip_version
+
+      The IP version of the data in a database. A value of "4" means the
+      database only supports IPv4. A database with a value of "6" may support
+      both IPv4 and IPv6 lookups.
+
+      :type: int
+
+    .. attribute:: languages
+
+      A list of locale codes supported by the databse.
+
+      :type: list(str)
+
+    .. attribute:: node_count
+
+      The number of nodes in the database.
+
+      :type: int
+
+    .. attribute:: record_size
+
+      The bit size of a record in the search tree.
+
+      :type: int
+
+    """
 
     # pylint: disable=too-many-instance-attributes
     def __init__(self, **kwargs):
@@ -220,12 +287,18 @@ class Metadata(object):
 
     @property
     def node_byte_size(self):
-        """The size of a node in bytes"""
+        """The size of a node in bytes
+
+        :type: int
+        """
         return self.record_size // 4
 
     @property
     def search_tree_size(self):
-        """The size of the search tree"""
+        """The size of the search tree
+
+        :type: int
+        """
         return self.node_count * self.node_byte_size
 
     def __repr__(self):
