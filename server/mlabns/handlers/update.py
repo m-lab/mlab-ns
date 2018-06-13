@@ -443,6 +443,10 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     slice_status[sliver_tool.fqdn][
                         'tool_extra'] = sliver_tool.tool_extra + '(Family "_ipv6" for sliver not known by monitoring).'
                 else:
+                    # If monitoring data doesn't exist for this tool, append
+                    # the sliver_tool unmodified to the list that gets written
+                    # back to memcache.
+                    updated_sliver_tools.append(sliver_tool)
                     continue
 
             if family == '':
