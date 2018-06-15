@@ -41,124 +41,120 @@ QUERIES = {
     'ndt': textwrap.dedent("""\
         min by (experiment, machine) (
           (
-            (
-              (probe_success{service="ndt_raw"}) +
-              ON (experiment, machine) (script_success{service="ndt_e2e"}) +
-              ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
-                vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
-              ON (experiment, machine)
-                (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-            ) == bool 4
-          ) OR
-          ON(experiment, machine) probe_success{service="ndt_raw"}
+            (probe_success{service="ndt_raw"}) +
+            ON (experiment, machine) (script_success{service="ndt_e2e"}) +
+            ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
+              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
+            ON (experiment, machine)
+              (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+          ) == bool 4
+          OR ON(experiment, machine) up{service="ndt_raw"} == 0
+          OR ON(experiment, machine) up{service="ndt_e2e"} == 0
+          OR ON(experiment, machine) up{service="ndt_raw"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
     'ndt_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
           (
-            (
-              (probe_success{service="ndt_raw_ipv6"}) +
-              ON (experiment, machine) (script_success{service="ndt_e2e"}) +
-              ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
-                vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
-              ON (experiment, machine)
-                (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-            ) == bool 4
-          ) OR
-          ON(experiment, machine) probe_success{service="ndt_raw_ipv6"}
+            (probe_success{service="ndt_raw_ipv6"}) +
+            ON (experiment, machine) (script_success{service="ndt_e2e"}) +
+            ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
+              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
+            ON (experiment, machine)
+              (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+          ) == bool 4
+          OR ON(experiment, machine) up{service="ndt_raw_ipv6"} == 0
+          OR ON(experiment, machine) up{service="ndt_e2e"} == 0
+          OR ON(experiment, machine) up{service="ndt_raw_ipv6"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
     'ndt_ssl': textwrap.dedent("""\
         min by (experiment, machine) (
           (
-            (
-              (probe_success{service="ndt_ssl"}) +
-              ON (experiment, machine) (script_success{service="ndt_e2e"}) +
-              ON (experiment, machine)((vdlimit_used{experiment="ndt.iupui"} /
-                vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
-              ON (experiment, machine)
-                (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-            ) == bool 4
-          ) OR
-          ON(experiment, machine) probe_success{service="ndt_ssl"}
+            (probe_success{service="ndt_ssl"}) +
+            ON (experiment, machine) (script_success{service="ndt_e2e"}) +
+            ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
+              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
+            ON (experiment, machine)
+              (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+          ) == bool 4
+          OR ON(experiment, machine) up{service="ndt_ssl"} == 0
+          OR ON(experiment, machine) up{service="ndt_e2e"} == 0
+          OR ON(experiment, machine) up{service="ndt_ssl"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
     'ndt_ssl_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
           (
-            (
-              (probe_success{service="ndt_ssl_ipv6"}) +
-              ON (experiment, machine) (script_success{service="ndt_e2e"}) +
-              ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
-                  vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
-              ON (experiment, machine)
-                (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
-            ) == bool 4
-          ) OR
-          ON(experiment, machine) probe_success{service="ndt_ssl_ipv6"}
+            (probe_success{service="ndt_ssl_ipv6"}) +
+            ON (experiment, machine) (script_success{service="ndt_e2e"}) +
+            ON (experiment, machine) ((vdlimit_used{experiment="ndt.iupui"} /
+              vdlimit_total{experiment="ndt.iupui"}) < bool 0.95) +
+            ON (experiment, machine)
+              (lame_duck_experiment{experiment="ndt.iupui"} != bool 1)
+          ) == bool 4
+          OR ON(experiment, machine) up{service="ndt_ssl_ipv6"} == 0
+          OR ON(experiment, machine) up{service="ndt_e2e"} == 0
+          OR ON(experiment, machine) up{service="ndt_ssl_ipv6"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
     'neubot': textwrap.dedent("""\
         min by (experiment, machine) (
           (
-            (
-              (probe_success{service="neubot"}) +
-              ON (experiment, machine)
-                (lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
-            ) == bool 2
-          ) OR
-          ON(experiment, machine) probe_success{service="neubot"}
+            (probe_success{service="neubot"}) +
+            ON (experiment, machine)
+              (lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
+          ) == bool 2
+          OR ON(experiment, machine) up{service="neubot"} == 0
+          OR ON(experiment, machine) up{service="neubot"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
     'neubot_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
           (
-            (
-              (probe_success{service="neubot_ipv6"}) +
-              ON (experiment, machine)
-                (lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
-            ) == bool 2
-          ) OR
-          ON(experiment, machine) probe_success{service="neubot_ipv6"}
+            (probe_success{service="neubot_ipv6"}) +
+            ON (experiment, machine)
+              (lame_duck_experiment{experiment="neubot.mlab"} != bool 1)
+          ) == bool 2
+          OR ON(experiment, machine) up{service="neubot_ipv6"} == 0
+          OR ON(experiment, machine) up{service="neubot_ipv6"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
     'mobiperf': textwrap.dedent("""\
         min by (experiment, machine) (
           (
-            (
-              (probe_success{service="mobiperf", instance=~".*:6001"}) +
-              ON (experiment, machine)
-                (probe_success{service="mobiperf", instance=~".*:6002"}) +
-              ON (experiment, machine)
-                (probe_success{service="mobiperf", instance=~".*:6003"}) +
-              ON (experiment, machine)
-                (lame_duck_experiment{experiment="1.michigan"} != bool 1)
-            ) == bool 4
-          ) OR
-          ON(experiment, machine) probe_success{service="mobiperf"}
+            (probe_success{service="mobiperf", instance=~".*:6001"}) +
+            ON (experiment, machine)
+              (probe_success{service="mobiperf", instance=~".*:6002"}) +
+            ON (experiment, machine)
+              (probe_success{service="mobiperf", instance=~".*:6003"}) +
+            ON (experiment, machine)
+              (lame_duck_experiment{experiment="1.michigan"} != bool 1)
+          ) == bool 4
+          OR ON(experiment, machine) up{service="mobiperf"} == 0
+          OR ON(experiment, machine) up{service="mobiperf"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
     'mobiperf_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
           (
-            (
-              (probe_success{service="mobiperf_ipv6", instance=~".*:6001"}) +
-              ON (experiment, machine)
-                (probe_success{service="mobiperf_ipv6", instance=~".*:6002"}) +
-              ON (experiment, machine)
-                (probe_success{service="mobiperf_ipv6", instance=~".*:6003"}) +
-              ON (experiment, machine)
-                (lame_duck_experiment{experiment="1.michigan"} != bool 1)
-            ) == bool 4
-          ) OR
-          ON(experiment, machine) probe_success{service="mobiperf_ipv6"}
+            (probe_success{service="mobiperf_ipv6", instance=~".*:6001"}) +
+            ON (experiment, machine)
+              (probe_success{service="mobiperf_ipv6", instance=~".*:6002"}) +
+            ON (experiment, machine)
+              (probe_success{service="mobiperf_ipv6", instance=~".*:6003"}) +
+            ON (experiment, machine)
+              (lame_duck_experiment{experiment="1.michigan"} != bool 1)
+          ) == bool 4
+          OR ON(experiment, machine) up{service="mobiperf_ipv6"} == 0
+          OR ON(experiment, machine) up{service="mobiperf_ipv6"}
             UNLESS ON(machine) up{service="nodeexporter"} == 1
         )
         """),
