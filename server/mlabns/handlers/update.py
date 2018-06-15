@@ -422,7 +422,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 to an IP address.
             family: Address family to update.
         """
-        sliver_tools = sliver_tool_fetcher.SliverToolFetcher().fetch(
+        sliver_tools = sliver_tool_fetcher.SliverToolFetcherDatastore.fetch(
             sliver_tool_fetcher.ToolProperties(tool_id=tool_id,
                                                all_slivers=True))
         updated_sliver_tools = []
@@ -444,8 +444,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         'tool_extra'] = sliver_tool.tool_extra + '(Family "_ipv6" for sliver not known by monitoring).'
                 else:
                     # If monitoring data doesn't exist for this tool, append
-                    # the sliver_tool unmodified to the list that gets written
-                    # back to memcache.
+                    # the sliver_tool unmodified to the list, since in the
+                    # absence of status data we are better off having stale
+                    # data than marking the sliver as down.
                     updated_sliver_tools.append(sliver_tool)
                     continue
 
