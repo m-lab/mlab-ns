@@ -182,9 +182,9 @@ class IPUpdateHandler():
             return util.send_not_found(self)
 
         # Fetch all data that we are going to need from the datastore up front.
-        sites = list(model.Site.all().fetch())
-        tools = list(model.Tool.all().fetch())
-        slivertools = list(model.SliverTool.all().fetch())
+        sites = list(model.Site.all().fetch(limit=None))
+        tools = list(model.Tool.all().fetch(limit=None))
+        slivertools = list(model.SliverTool.all().fetch(limit=None))
 
         for line in lines:
             # Expected format: "FQDN,IPv4,IPv6" (IPv6 can be an empty string).
@@ -210,7 +210,7 @@ class IPUpdateHandler():
                 continue
 
             # If mlab-ns does not support this site, then skip it.
-            site = list(filter(lambda s: s['site_id'] == site_id, sites))
+            site = list(filter(lambda s: s.site_id == site_id, sites))
             if len(site) == 0:
                 logging.info('mlab-ns does not support site %s.', site_id)
                 continue
@@ -220,15 +220,15 @@ class IPUpdateHandler():
             # If mlab-ns does not serve/support this slice, then skip it. Note:
             # a given slice_id might have multiple tools (e.g., iupui_ndt has
             # both 'ndt' and 'ndt_ssl' tools.
-            tools = list(filter(lambda t: t['slice_id'] == slice_id, tools))
+            slice_tools = list(filter(lambda t: t.slice_id == slice_id, tools))
 
-            if len(tools) == 0:
+            if len(slice_tools) == 0:
                 continue
 
-            for tool in tools:
+            for slice_tool in slice_tools:
                 # See if this sliver_tool already exists in the datastore.
                 slivertool = list(filter(
-                    lambda st: st['fqdn'] == fqdn and st['tool_id'] == tool['tool_id'],
+                    lambda st: st.fqdn == fqdn and st.tool_id == slice_tool.tool_id,
                     slivertools))
 
                 # Check to see if the sliver_tool already exists in the
@@ -238,20 +238,21 @@ class IPUpdateHandler():
                 elif len(slivertool) == 0:
                     logging.info(
                         'For tool %s, fqdn %s is not in datastore.  Adding it.',
-                        tool['tool_id'], fqdn)
-                    sliver_tool = self.initialize_sliver_tool(tool, site,
+                        slice_tool.tool_id, fqdn)
+                    sliver_tool = self.initialize_sliver_tool(slice_tool, site,
                                                               server_id, fqdn)
                 else:
                     logging.error(
                         'Error, or too many sliver_tools returned for {}:{}.'.format(
-                            tool['tool_id'], fqdn))
+                            slice_tool.tool_id, fqdn))
                     continue
 
                 updated_sliver_tool = self.set_sliver_tool(
-                    sliver_tool, ipv4, ipv6, site['roundrobin'])
+                    sliver_tool, ipv4, ipv6, site.roundrobin)
 
                 # Update datastore if the SliverTool got updated.
                 if updated_sliver_tool:
+                    logging.info('Updating IP info for fqdn: %s', fqdn)
                     self.put_sliver_tool(updated_sliver_tool)
 
         return
@@ -263,14 +264,14 @@ class IPUpdateHandler():
         if not ipv4:
             ipv6 = message.NO_IP_ADDRESS
 
-        if not sliver_tool['sliver_ipv4'] == ipv4:
-            sliver_tool['sliver_ipv4'] = ipv4
+        if not sliver_tool.sliver_ipv4 == ipv4:
+            sliver_tool.sliver_ipv4 = ipv4
             updated = True
-        if not sliver_tool['sliver_ipv6'] == ipv6:
-            sliver_tool['sliver_ipv6'] = ipv6
+        if not sliver_tool.sliver_ipv6 == ipv6:
+            sliver_tool.sliver_ipv6 = ipv6
             updated = True
-        if not sliver_tool['roundrobin'] == rr:
-            sliver_tool['roundrobin'] = rr
+        if not sliver_tool.roundrobin == rr:
+            sliver_tool.roundrobin = rr
             updated = True
 
         if updated:
@@ -283,21 +284,21 @@ class IPUpdateHandler():
             sliver_tool.put()
         except db.TransactionFailedError:
             logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
-                          sliver_tool['fqdn'], sliver_tool['sliver_ipv4'],
-                          sliver_tool['sliver_ipv6'])
+                          sliver_tool.fqdn, sliver_tool.sliver_ipv4,
+                          sliver_tool.sliver_ipv6)
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
-        sliver_tool_id = model.get_sliver_tool_id(
-            tool['tool_id'], tool['slice_id'], server_id, site['site_id'])
+        sliver_tool_id = model.get_sliver_tool_id(tool.tool_id, tool.slice_id,
+                                                  server_id, site.site_id)
 
         return model.SliverTool(
-            tool_id=tool['tool_id'],
-            slice_id=tool['slice_id'],
-            site_id=site['site_id'],
+            tool_id=tool.tool_id,
+            slice_id=tool.slice_id,
+            site_id=site.site_id,
             server_id=server_id,
             fqdn=fqdn,
-            server_port=tool['server_port'],
-            http_port=tool['http_port'],
+            server_port=tool.server_port,
+            http_port=tool.http_port,
             # IP addresses will be updated by the IPUpdateHandler.
             sliver_ipv4=message.NO_IP_ADDRESS,
             sliver_ipv6=message.NO_IP_ADDRESS,
@@ -305,11 +306,11 @@ class IPUpdateHandler():
             status_ipv4=message.STATUS_OFFLINE,
             status_ipv6=message.STATUS_OFFLINE,
             tool_extra="",
-            latitude=site['latitude'],
-            longitude=site['longitude'],
-            roundrobin=site['roundrobin'],
-            city=site['city'],
-            country=site['country'],
+            latitude=site.latitude,
+            longitude=site.longitude,
+            roundrobin=site.roundrobin,
+            city=site.city,
+            country=site.country,
             update_request_timestamp=long(time.time()),
             key_name=sliver_tool_id)
 
