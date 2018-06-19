@@ -255,5 +255,6 @@ class SliverToolFetcherDatastore(object):
         if not tool_properties.all_slivers:
             results = _filter_choose_one_host_per_site(results)
 
-        logging.info('%d sliver tools found in Datastore.', len(results))
+        logging.info('{}: {} sliver tools found in datastore.'.format(
+            tool_properties.tool_id, len(results)))
         return results

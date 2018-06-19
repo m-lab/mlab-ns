@@ -181,7 +181,11 @@ class IPUpdateHandler():
             logging.error('Cannot open %s.', self.IP_LIST_URL)
             return util.send_not_found(self)
 
-        sliver_tool_list = {}
+        # Fetch all data that we are going to need from the datastore up front.
+        sites = list(model.Site.all().fetch())
+        tools = list(model.Tool.all().fetch())
+        slivertools = list(model.SliverTool.all().fetch())
+
         for line in lines:
             # Expected format: "FQDN,IPv4,IPv6" (IPv6 can be an empty string).
             line_fields = line.split(',')
@@ -206,66 +210,50 @@ class IPUpdateHandler():
                 continue
 
             # If mlab-ns does not support this site, then skip it.
-            site = model.Site.gql('WHERE site_id=:site_id',
-                                  site_id=site_id).get()
-            if site == None:
+            site = list(filter(lambda s: s['site_id'] == site_id, sites))
+            if len(site) == 0:
                 logging.info('mlab-ns does not support site %s.', site_id)
                 continue
+            else:
+                site = site[0]
 
             # If mlab-ns does not serve/support this slice, then skip it. Note:
             # a given slice_id might have multiple tools (e.g., iupui_ndt has
             # both 'ndt' and 'ndt_ssl' tools.
-            tools = model.Tool.gql('WHERE slice_id=:slice_id',
-                                   slice_id=slice_id)
-            if tools.count() == 0:
+            tools = list(filter(lambda t: t['slice_id'] == slice_id, tools))
+
+            if len(tools) == 0:
                 continue
 
-            for tool in tools.run():
-                # Query the datastore to see if this sliver_tool exists there.
-                sliver_tool_gql = model.SliverTool.gql(
-                    'WHERE fqdn=:fqdn AND tool_id=:tool_id',
-                    fqdn=fqdn,
-                    tool_id=tool.tool_id)
+            for tool in tools:
+                # See if this sliver_tool already exists in the datastore.
+                slivertool = list(filter(
+                    lambda st: st['fqdn'] == fqdn and st['tool_id'] == tool['tool_id'],
+                    slivertools))
 
                 # Check to see if the sliver_tool already exists in the
                 # datastore. If not, add it to the datastore.
-                if sliver_tool_gql.count() == 1:
-                    sliver_tool = sliver_tool_gql.get(
-                        batch_size=constants.GQL_BATCH_SIZE)
-                elif sliver_tool_gql.count() == 0:
+                if len(slivertool) == 1:
+                    sliver_tool = slivertool[0]
+                elif len(slivertool) == 0:
                     logging.info(
                         'For tool %s, fqdn %s is not in datastore.  Adding it.',
-                        tool.tool_id, fqdn)
+                        tool['tool_id'], fqdn)
                     sliver_tool = self.initialize_sliver_tool(tool, site,
                                                               server_id, fqdn)
                 else:
                     logging.error(
                         'Error, or too many sliver_tools returned for {}:{}.'.format(
-                            tool.tool_id, fqdn))
+                            tool['tool_id'], fqdn))
                     continue
-                if tool.tool_id not in sliver_tool_list:
-                    sliver_tool_list[tool.tool_id] = []
+
                 updated_sliver_tool = self.set_sliver_tool(
-                    sliver_tool, ipv4, ipv6, site.roundrobin)
+                    sliver_tool, ipv4, ipv6, site['roundrobin'])
 
                 # Update datastore if the SliverTool got updated.
                 if updated_sliver_tool:
                     self.put_sliver_tool(updated_sliver_tool)
-                    sliver_tool_list[tool.tool_id].append(updated_sliver_tool)
-                else:
-                    sliver_tool_list[tool.tool_id].append(sliver_tool)
 
-        # Update memcache.  Never set the memcache to an empty list since it's
-        # more likely that this is a Prometheus failure.
-        if sliver_tool_list:
-            for tool_id in sliver_tool_list.keys():
-                if not memcache.set(
-                        tool_id,
-                        sliver_tool_list[tool_id],
-                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                    logging.error(
-                        'IPUpdateHandler: Failed to update tool %s in memcache.',
-                        tool_id)
         return
 
     def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr):
@@ -275,14 +263,14 @@ class IPUpdateHandler():
         if not ipv4:
             ipv6 = message.NO_IP_ADDRESS
 
-        if not sliver_tool.sliver_ipv4 == ipv4:
-            sliver_tool.sliver_ipv4 = ipv4
+        if not sliver_tool['sliver_ipv4'] == ipv4:
+            sliver_tool['sliver_ipv4'] = ipv4
             updated = True
-        if not sliver_tool.sliver_ipv6 == ipv6:
-            sliver_tool.sliver_ipv6 = ipv6
+        if not sliver_tool['sliver_ipv6'] == ipv6:
+            sliver_tool['sliver_ipv6'] = ipv6
             updated = True
-        if not sliver_tool.roundrobin == rr:
-            sliver_tool.roundrobin = rr
+        if not sliver_tool['roundrobin'] == rr:
+            sliver_tool['roundrobin'] = rr
             updated = True
 
         if updated:
@@ -295,21 +283,21 @@ class IPUpdateHandler():
             sliver_tool.put()
         except db.TransactionFailedError:
             logging.error('Failed to write IPs of %s (%s, %s) in datastore.',
-                          sliver_tool.fqdn, sliver_tool.sliver_ipv4,
-                          sliver_tool.sliver_ipv6)
+                          sliver_tool['fqdn'], sliver_tool['sliver_ipv4'],
+                          sliver_tool['sliver_ipv6'])
 
     def initialize_sliver_tool(self, tool, site, server_id, fqdn):
-        sliver_tool_id = model.get_sliver_tool_id(tool.tool_id, tool.slice_id,
-                                                  server_id, site.site_id)
+        sliver_tool_id = model.get_sliver_tool_id(
+            tool['tool_id'], tool['slice_id'], server_id, site['site_id'])
 
         return model.SliverTool(
-            tool_id=tool.tool_id,
-            slice_id=tool.slice_id,
-            site_id=site.site_id,
+            tool_id=tool['tool_id'],
+            slice_id=tool['slice_id'],
+            site_id=site['site_id'],
             server_id=server_id,
             fqdn=fqdn,
-            server_port=tool.server_port,
-            http_port=tool.http_port,
+            server_port=tool['server_port'],
+            http_port=tool['http_port'],
             # IP addresses will be updated by the IPUpdateHandler.
             sliver_ipv4=message.NO_IP_ADDRESS,
             sliver_ipv6=message.NO_IP_ADDRESS,
@@ -317,11 +305,11 @@ class IPUpdateHandler():
             status_ipv4=message.STATUS_OFFLINE,
             status_ipv6=message.STATUS_OFFLINE,
             tool_extra="",
-            latitude=site.latitude,
-            longitude=site.longitude,
-            roundrobin=site.roundrobin,
-            city=site.city,
-            country=site.country,
+            latitude=site['latitude'],
+            longitude=site['longitude'],
+            roundrobin=site['roundrobin'],
+            city=site['city'],
+            country=site['country'],
             update_request_timestamp=long(time.time()),
             key_name=sliver_tool_id)
 
@@ -422,7 +410,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 to an IP address.
             family: Address family to update.
         """
-        sliver_tools = sliver_tool_fetcher.SliverToolFetcherDatastore.fetch(
+        sliver_tools = sliver_tool_fetcher.SliverToolFetcherDatastore().fetch(
             sliver_tool_fetcher.ToolProperties(tool_id=tool_id,
                                                all_slivers=True))
         updated_sliver_tools = []
