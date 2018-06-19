@@ -429,7 +429,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         'status'] = message.STATUS_OFFLINE
                     # Don't wipe out the IPv4 'tool_extra', just append to it.
                     slice_status[sliver_tool.fqdn][
-                        'tool_extra'] = sliver_tool.tool_extra + '(Family "_ipv6" for sliver not known by monitoring).'
+                        'tool_extra'] = constants.PROMETHEUS_TOOL_EXTRA + '(Family "_ipv6" for sliver not known by monitoring).'
                 else:
                     # If monitoring data doesn't exist for this tool, append
                     # the sliver_tool unmodified to the list, since in the
