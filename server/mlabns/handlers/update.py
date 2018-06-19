@@ -164,8 +164,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 class IPUpdateHandler():
     """Updates SliverTools' IP addresses."""
 
-    # TODO: There should eventually be a TESTING_IP_LIST_URL for testing purpose.
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
+    TESTING_IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/current/mlab-host-ips.txt'
 
     def update(self):
         """Triggers the update handler.
@@ -174,11 +174,21 @@ class IPUpdateHandler():
         """
         lines = []
         try:
-            lines = urllib2.urlopen(self.IP_LIST_URL).read().strip('\n').split(
-                '\n')
+            project = app_identity.get_application_id()
+            if project == 'mlab-nstesting':
+                host_ips_url = self.TESTING_IP_LIST_URL
+            else:
+                host_ips_url = self.IP_LIST_URL
+        except AttributeError:
+            logging.error('Cannot get project name.')
+            return util.send_not_found(self)
+
+        try:
+            lines = urllib2.urlopen(host_ips_url).read().strip('\n').split('\n')
+            logging.info('Fetched mlab-host-ips.txt from: %s', host_ips_url)
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', self.IP_LIST_URL)
+            logging.error('Cannot open %s.', host_ips_url)
             return util.send_not_found(self)
 
         # Fetch all data that we are going to need from the datastore up front.
