@@ -99,7 +99,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             site_ids.add(site[self.SITE_FIELD])
 
         mlab_site_ids = set()
-        mlab_sites = model.Site.all()
+        mlab_sites = list(model.Site.all().fetch(limit=None))
         for site in mlab_sites:
             mlab_site_ids.add(site.site_id)
 

@@ -4,6 +4,7 @@ import unittest2
 import urllib2
 
 from google.appengine.api import app_identity
+from google.appengine.ext import db
 from mlabns.db import model
 from mlabns.handlers import update
 from mlabns.util import util
@@ -30,6 +31,10 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.addCleanup(site_model_patch.stop)
         site_model_patch.start()
 
+        query_db_patch = mock.patch.object(db, 'Query', autospec=True)
+        self.addCleanup(query_db_patch.stop)
+        query_db_patch.start()
+
         tool_model_patch = mock.patch.object(model, 'Tool', autospec=True)
         self.addCleanup(tool_model_patch.stop)
         tool_model_patch.start()
@@ -53,7 +58,7 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
 }
 ]""")
         app_identity.get_application_id.return_value = 'mlab-nstesting'
-        model.Site.all.return_value = [mock.Mock(site_id='xyz01')]
+        db.Query.fetch.return_value = [mock.Mock(site_id='xyz01')]
         handler = update.SiteRegistrationHandler()
         handler.get()
 
@@ -77,7 +82,7 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
 }
 ]""")
         app_identity.get_application_id.return_value = 'mlab-nstesting'
-        model.Site.all.return_value = [mock.Mock(site_id='xyz01')]
+        db.Query.fetch.return_value = [mock.Mock(site_id='xyz01')]
         handler = update.SiteRegistrationHandler()
         handler.get()
 
