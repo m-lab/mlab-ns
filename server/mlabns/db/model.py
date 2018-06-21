@@ -67,7 +67,7 @@ class Site(db.Model):
 
     # List of sites and metros, e.g., [ath, ath01].
     # It allows to select a server from a specific subset of sites.
-    # For instance, a request for http://mlabns.appspot.com/npad?metro=ath
+    # For instance, a request for http://mlabns.appspot.com/ndt?metro=ath
     # will only consider sliver tools from the 'ath' sites
     # (currently ath01 and ath02).
     metro = db.StringListProperty(default=None)
