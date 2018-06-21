@@ -99,7 +99,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
             site_ids.add(site[self.SITE_FIELD])
 
         mlab_site_ids = set()
-        mlab_sites = model.Site.all()
+        mlab_sites = list(model.Site.all().fetch(limit=None))
         for site in mlab_sites:
             mlab_site_ids.add(site.site_id)
 
@@ -164,8 +164,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 class IPUpdateHandler():
     """Updates SliverTools' IP addresses."""
 
-    # TODO: There should eventually be a TESTING_IP_LIST_URL for testing purpose.
     IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
+    TESTING_IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/current/mlab-host-ips.txt'
 
     def update(self):
         """Triggers the update handler.
@@ -174,14 +174,28 @@ class IPUpdateHandler():
         """
         lines = []
         try:
-            lines = urllib2.urlopen(self.IP_LIST_URL).read().strip('\n').split(
-                '\n')
-        except urllib2.HTTPError:
-            # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', self.IP_LIST_URL)
+            project = app_identity.get_application_id()
+            if project == 'mlab-nstesting':
+                host_ips_url = self.TESTING_IP_LIST_URL
+            else:
+                host_ips_url = self.IP_LIST_URL
+        except AttributeError:
+            logging.error('Cannot get project name.')
             return util.send_not_found(self)
 
-        sliver_tool_list = {}
+        try:
+            lines = urllib2.urlopen(host_ips_url).read().strip('\n').split('\n')
+            logging.info('Fetched mlab-host-ips.txt from: %s', host_ips_url)
+        except urllib2.HTTPError:
+            # TODO(claudiu) Notify(email) when this happens.
+            logging.error('Cannot open %s.', host_ips_url)
+            return util.send_not_found(self)
+
+        # Fetch all data that we are going to need from the datastore up front.
+        sites = list(model.Site.all().fetch(limit=None))
+        tools = list(model.Tool.all().fetch(limit=None))
+        slivertools = list(model.SliverTool.all().fetch(limit=None))
+
         for line in lines:
             # Expected format: "FQDN,IPv4,IPv6" (IPv6 can be an empty string).
             line_fields = line.split(',')
@@ -206,66 +220,51 @@ class IPUpdateHandler():
                 continue
 
             # If mlab-ns does not support this site, then skip it.
-            site = model.Site.gql('WHERE site_id=:site_id',
-                                  site_id=site_id).get()
-            if site == None:
+            site = list(filter(lambda s: s.site_id == site_id, sites))
+            if len(site) == 0:
                 logging.info('mlab-ns does not support site %s.', site_id)
                 continue
+            else:
+                site = site[0]
 
             # If mlab-ns does not serve/support this slice, then skip it. Note:
             # a given slice_id might have multiple tools (e.g., iupui_ndt has
             # both 'ndt' and 'ndt_ssl' tools.
-            tools = model.Tool.gql('WHERE slice_id=:slice_id',
-                                   slice_id=slice_id)
-            if tools.count() == 0:
+            slice_tools = list(filter(lambda t: t.slice_id == slice_id, tools))
+
+            if len(slice_tools) == 0:
                 continue
 
-            for tool in tools.run():
-                # Query the datastore to see if this sliver_tool exists there.
-                sliver_tool_gql = model.SliverTool.gql(
-                    'WHERE fqdn=:fqdn AND tool_id=:tool_id',
-                    fqdn=fqdn,
-                    tool_id=tool.tool_id)
+            for slice_tool in slice_tools:
+                # See if this sliver_tool already exists in the datastore.
+                slivertool = list(filter(
+                    lambda st: st.fqdn == fqdn and st.tool_id == slice_tool.tool_id,
+                    slivertools))
 
                 # Check to see if the sliver_tool already exists in the
                 # datastore. If not, add it to the datastore.
-                if sliver_tool_gql.count() == 1:
-                    sliver_tool = sliver_tool_gql.get(
-                        batch_size=constants.GQL_BATCH_SIZE)
-                elif sliver_tool_gql.count() == 0:
+                if len(slivertool) == 1:
+                    sliver_tool = slivertool[0]
+                elif len(slivertool) == 0:
                     logging.info(
                         'For tool %s, fqdn %s is not in datastore.  Adding it.',
-                        tool.tool_id, fqdn)
-                    sliver_tool = self.initialize_sliver_tool(tool, site,
+                        slice_tool.tool_id, fqdn)
+                    sliver_tool = self.initialize_sliver_tool(slice_tool, site,
                                                               server_id, fqdn)
                 else:
                     logging.error(
                         'Error, or too many sliver_tools returned for {}:{}.'.format(
-                            tool.tool_id, fqdn))
+                            slice_tool.tool_id, fqdn))
                     continue
-                if tool.tool_id not in sliver_tool_list:
-                    sliver_tool_list[tool.tool_id] = []
+
                 updated_sliver_tool = self.set_sliver_tool(
                     sliver_tool, ipv4, ipv6, site.roundrobin)
 
                 # Update datastore if the SliverTool got updated.
                 if updated_sliver_tool:
+                    logging.info('Updating IP info for fqdn: %s', fqdn)
                     self.put_sliver_tool(updated_sliver_tool)
-                    sliver_tool_list[tool.tool_id].append(updated_sliver_tool)
-                else:
-                    sliver_tool_list[tool.tool_id].append(sliver_tool)
 
-        # Update memcache.  Never set the memcache to an empty list since it's
-        # more likely that this is a Prometheus failure.
-        if sliver_tool_list:
-            for tool_id in sliver_tool_list.keys():
-                if not memcache.set(
-                        tool_id,
-                        sliver_tool_list[tool_id],
-                        namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
-                    logging.error(
-                        'IPUpdateHandler: Failed to update tool %s in memcache.',
-                        tool_id)
         return
 
     def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr):
@@ -422,7 +421,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                 to an IP address.
             family: Address family to update.
         """
-        sliver_tools = sliver_tool_fetcher.SliverToolFetcher().fetch(
+        sliver_tools = sliver_tool_fetcher.SliverToolFetcherDatastore().fetch(
             sliver_tool_fetcher.ToolProperties(tool_id=tool_id,
                                                all_slivers=True))
         updated_sliver_tools = []
@@ -442,10 +441,12 @@ class StatusUpdateHandler(webapp.RequestHandler):
                     # Update tool_extra to signal that _ipv6 is not known.
                     slice_status[sliver_tool.fqdn][
                         'tool_extra'] = constants.PROMETHEUS_TOOL_EXTRA + ' (Family "_ipv6" for sliver not known by monitoring).'
+
                 else:
                     # If monitoring data doesn't exist for this tool, append
-                    # the sliver_tool unmodified to the list that gets written
-                    # back to memcache.
+                    # the sliver_tool unmodified to the list, since in the
+                    # absence of status data we are better off having stale
+                    # data than marking the sliver as down.
                     updated_sliver_tools.append(sliver_tool)
                     continue
 

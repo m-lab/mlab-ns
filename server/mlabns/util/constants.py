@@ -27,7 +27,11 @@ GEOLOCATION_MAXMIND_BUCKET_PATH = 'maxmind/current'
 GEOLOCATION_MAXMIND_CITY_FILE = 'GeoLite2-City.mmdb'
 
 # Maximum number of entities fetched from datastore in a single query.
-MAX_FETCHED_RESULTS = 500
+#
+# https://cloud.google.com/appengine/docs/standard/python/datastore/gqlqueryclass:
+# "Maximum number of results to return. If set to None, all available results
+# will be retrieved."
+MAX_FETCHED_RESULTS = None
 
 # Memcache namespace for map: tool_id -> list of sliver_tools.
 MEMCACHE_NAMESPACE_TOOLS = 'memcache_tools'
