@@ -50,19 +50,6 @@ class FqdnRewriteTest(unittest.TestCase):
             fqdn_original, message.ADDRESS_FAMILY_IPv6, 'ndt_ssl')
         self.assertEqual(fqdn_expected, fqdn_actual)
 
-    def testIPv6NpadFqdn(self):
-        """Add a v6 annotation for v6-specific requests for NPAD.
-
-        Note that all tools should behave identically except for ndt_ssl, so we
-        add this so we have confidence that we are treating ndt (NDT plaintext)
-        the same as other non-NDT tools.
-        """
-        fqdn_original = 'npad.iupui.mlab1.lga04.measurement-lab.org'
-        fqdn_expected = 'npad.iupui.mlab1v6.lga04.measurement-lab.org'
-        fqdn_actual = fqdn_rewrite.rewrite(fqdn_original,
-                                           message.ADDRESS_FAMILY_IPv6, 'npad')
-        self.assertEqual(fqdn_expected, fqdn_actual)
-
 
 if __name__ == '__main__':
     unittest.main()

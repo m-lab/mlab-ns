@@ -67,7 +67,8 @@ class LookupHandler(webapp.RequestHandler):
         else:
             # TODO (claudiu) Discuss what should be the default behaviour.
             # I think json it's OK since is valid for all tools, while
-            # redirect only applies to web-based tools (e.g., npad)
+            # redirect only applies to web-based tools.
+
             self.send_json_response(sliver_tools, query)
 
         # TODO (claudiu) Add a FORMAT_TYPE column in the BigQuery schema.
@@ -200,10 +201,6 @@ class LookupHandler(webapp.RequestHandler):
             return
 
         sliver_tool = sliver_tools[0]
-
-        # npad uses a constant port of 8000
-        if sliver_tool.tool_id == 'npad' and not sliver_tool.http_port:
-            sliver_tool.http_port = '8000'
 
         if sliver_tool.http_port:
             fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,

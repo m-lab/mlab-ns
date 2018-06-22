@@ -29,14 +29,12 @@ class AdminHandler(webapp.RequestHandler):
             lambda: self.map_view('mobiperf', 'ipv4'),
             '/admin/map/ipv4/neubot': lambda: self.map_view('neubot', 'ipv4'),
             '/admin/map/ipv4/ndt': lambda: self.map_view('ndt', 'ipv4'),
-            '/admin/map/ipv4/npad': lambda: self.map_view('npad', 'ipv4'),
             '/admin/map/ipv6': lambda: self.map_view('all', 'ipv6'),
             '/admin/map/ipv6/all': lambda: self.map_view('all', 'ipv6'),
             '/admin/map/ipv6/mobiperf':
             lambda: self.map_view('mobiperf', 'ipv6'),
             '/admin/map/ipv6/neubot': lambda: self.map_view('neubot', 'ipv6'),
             '/admin/map/ipv6/ndt': lambda: self.map_view('ndt', 'ipv6'),
-            '/admin/map/ipv6/npad': lambda: self.map_view('npad', 'ipv6')
         }
 
         path = self.request.path.rstrip('/')
@@ -101,7 +99,7 @@ class AdminHandler(webapp.RequestHandler):
         """Displays a per tool map with the status of the slivers.
 
         Args:
-            tool_id: A string representing the tool id (e.g., npad, ndt).
+            tool_id: A string representing the tool id (e.g., neubot, ndt).
             address_family: A string specifying the address family (ipv4,ipv6).
         """
         sliver_tools = None

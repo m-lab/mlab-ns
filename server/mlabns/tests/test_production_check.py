@@ -29,16 +29,13 @@ class CheckProductionTestCase(unittest.TestCase):
         self.assertTrue(pc.is_production_slice(
             '1.michigan.mlab1.hnd01.measurement-lab.org'))
         self.assertTrue(pc.is_production_slice(
-            'npad.iupui.mlab1.dfw05.measurement-lab.org'))
-        self.assertTrue(pc.is_production_slice(
-            'ooni.mlab.mlab1.ams02.measurement-lab.org'))
+            'neubot.mlab.mlab1.dfw05.measurement-lab.org'))
 
         self.assertFalse(
             pc.is_production_slice('ndt.iupui.mlab4.prg01.measurement-lab.org'),
             'mlab4 servers are not production slices')
         self.assertFalse(
-            pc.is_production_slice(
-                'ooni.mlab.mlab1.ams02t.measurement-lab.org'),
+            pc.is_production_slice('ndt.mlab.mlab1.ams02t.measurement-lab.org'),
             'sites with t suffix do not have production slices')
         self.assertFalse(pc.is_production_slice('www.measurementlab.net'))
         self.assertFalse(pc.is_production_slice('www.measurement-lab.org'))

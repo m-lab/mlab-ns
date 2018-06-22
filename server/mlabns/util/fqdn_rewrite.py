@@ -32,9 +32,9 @@ def _apply_af_awareness(fqdn, address_family):
     """Adds the v4/v6 only annotation to the fqdn.
 
     Example:
-        fqdn:       'npad.iupui.mlab3.ath01.measurement-lab.org'
-        ipv4 only:  'npad.iupui.mlab3v4.ath01.measurement-lab.org'
-        ipv6 only:  'npad.iupui.mlab3v6.ath01.measurement-lab.org'
+        fqdn:       'ndt.iupui.mlab3.ath01.measurement-lab.org'
+        ipv4 only:  'ndt.iupui.mlab3v4.ath01.measurement-lab.org'
+        ipv6 only:  'ndt.iupui.mlab3v6.ath01.measurement-lab.org'
 
     Args:
         fqdn: A tool FQDN with no address family specific annotation.
