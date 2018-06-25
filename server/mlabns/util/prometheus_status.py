@@ -9,6 +9,19 @@ from mlabns.util import message
 
 # This global dict maps tool_ids to the corresponding Prometheus query that
 # will return the status for that tool.
+#
+# IMPORTANT NOTE: When querying multiple metrics from the same exporter (e.g.,
+# node_exporter), be sure that the label set for each metric is unique. The `OR`
+# operator in Prometheus will exclude all metrics but one in the case where they
+# have the same label set. For example, in the queries below the vdlimit_* and
+# lame_duck_experiment metrics both come from node_exporter. By default, these
+# metrics on the same machine will have identical label sets. In this particular
+# case, to get around this, we have added unique labels to each metric via the
+# scripts that generate the node_exporter metrics files on each node. So, if,
+# for example, another blackbox_exporter metric is added (i.e., another
+# probe_success), something will need to be done to make sure that the label
+# sets are unique for each metric, even if it means using label_replace() in
+# these queries.
 QUERIES = {
     'ndt': textwrap.dedent("""\
         min by (experiment, machine) (
