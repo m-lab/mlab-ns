@@ -81,7 +81,12 @@ class GeoResolver(ResolverBase):
 
         site_distances = {}
         tool_distances = []
+        firing_sites = {'ord', 'lax', 'atl'}
         for candidate in candidates:
+            # filter out the firing sites
+            site_name = candidate.site_id[0:3]
+            if site_name in firing_sites:
+                continue
             if candidate.site_id not in site_distances:
                 site_distances[candidate.site_id] = distance.distance(
                     query.latitude, query.longitude, candidate.latitude,
