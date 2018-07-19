@@ -92,10 +92,10 @@ class GeoResolver(ResolverBase):
                     site_distances[candidate.site_id] = distance.distance(
                         query.latitude, query.longitude, candidate.latitude,
                         candidate.longitude)
-                tool_distances.append({
-                    'distance': site_distances[candidate.site_id],
-                    'tool': candidate
-                })
+                    tool_distances.append({
+                        'distance': site_distances[candidate.site_id],
+                        'tool': candidate
+                    })
         else:
             # only return non 'xxx0c' sites for normal clients
             for candidate in candidates:
@@ -103,10 +103,10 @@ class GeoResolver(ResolverBase):
                     site_distances[candidate.site_id] = distance.distance(
                         query.latitude, query.longitude, candidate.latitude,
                         candidate.longitude)
-                tool_distances.append({
-                    'distance': site_distances[candidate.site_id],
-                    'tool': candidate
-                })
+                    tool_distances.append({
+                        'distance': site_distances[candidate.site_id],
+                        'tool': candidate
+                    })
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])
