@@ -19,6 +19,7 @@ before_install:
   # Coverage tools for GO
 - go get github.com/mattn/goveralls
 - go get github.com/wadey/gocovmerge
+- go get cloud.google.com/go/datastore
 
 - echo Branch is ${TRAVIS_BRANCH} and Tag is $TRAVIS_TAG
 
