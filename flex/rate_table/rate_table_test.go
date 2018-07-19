@@ -26,7 +26,7 @@ type EndpointStats struct {
 	TargetIP       string  `datastore:"target_ip"`
 }
 
-func TestDSEntity(t *testing.T) {
+func xTestDSEntity(t *testing.T) {
 	ctx := context.Background()
 
 	// Set your Google Cloud Platform project ID.
