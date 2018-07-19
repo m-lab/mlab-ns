@@ -10,7 +10,7 @@ def is_production_site(site_name):
     Returns:
         True if the site name matches the schema of a production site.
     """
-    return re.match('^[a-z]{3}\d{2}$', site_name, re.IGNORECASE) != None
+    return re.match('^[a-z]{3}(\d{2}|\dc)$', site_name, re.IGNORECASE) != None
 
 
 def is_production_slice(slice_fqdn):
