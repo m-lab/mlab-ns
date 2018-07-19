@@ -125,6 +125,9 @@ class GeoResolver(ResolverBase):
             namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
         if not requests_info:
            return 0
+        if len(requests_info) != 1:
+           # TODO: something is wrong! 
+           return 0
         return requests_info[0].probability
 
     def answer_query(self, query):
