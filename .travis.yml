@@ -30,7 +30,7 @@ install:
   - pip install coveralls
 script:
   - ./build
-  - go test -v ./... --tags=integration
+  - go test -v ./... -tags=integration -bench=.
 
 after_success:
     coveralls
@@ -54,7 +54,7 @@ deploy:
   script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
   skip_cleanup: true
   on:
-    repo: m-lab/mlab-ns
+    repo: m-lab/mlab-nsgo
     all_branches: true
     condition: $TRAVIS_BRANCH == master && $TRAVIS_EVENT_TYPE == push
 
