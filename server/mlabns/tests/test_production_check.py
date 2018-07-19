@@ -9,6 +9,7 @@ class CheckProductionTestCase(unittest.TestCase):
         self.assertTrue(pc.is_production_site('nuq01'))
         self.assertTrue(pc.is_production_site('nuq99'))
         self.assertTrue(pc.is_production_site('tun05'))
+        self.assertTrue(pc.is_production_site('lax0c'))
         self.assertTrue(
             pc.is_production_site('TUN05'),
             ('production style site names are considered production even when '
