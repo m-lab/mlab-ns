@@ -31,8 +31,9 @@ def _tool_properties_from_query(query):
 class ResolverBase(object):
     """Resolver base class."""
 
-    def __init__(self):
+    def __init__(self, client_signature):
         self.sliver_tool_fetcher = sliver_tool_fetcher.SliverToolFetcher()
+        self.client_signature = client_signature
 
     def _get_matching_candidates(self, query):
         tool_properties = _tool_properties_from_query(query)
@@ -81,20 +82,31 @@ class GeoResolver(ResolverBase):
 
         site_distances = {}
         tool_distances = []
-        firing_sites = {'ord', 'lax', 'atl'}
-        for candidate in candidates:
-            # filter out the firing sites
-            site_name = candidate.site_id[0:3]
-            if site_name in firing_sites:
-                continue
-            if candidate.site_id not in site_distances:
-                site_distances[candidate.site_id] = distance.distance(
-                    query.latitude, query.longitude, candidate.latitude,
-                    candidate.longitude)
-            tool_distances.append({
-                'distance': site_distances[candidate.site_id],
-                'tool': candidate
-            })
+        
+        # load client blacklist from memcache, and apply difference lgoic
+        # for client in the list or not.
+        prob = self.prob_of_blacklisted(query) 
+        if prob > 0 and random.uniform(0, 1) < prob:
+            # Return 'xxx0c' sites for blacklisted clients with probability
+            if candidate.site_id not in site_distances and candidate.site_id.find('0t') > 0:
+                    site_distances[candidate.site_id] = distance.distance(
+                        query.latitude, query.longitude, candidate.latitude,
+                        candidate.longitude)
+                tool_distances.append({
+                    'distance': site_distances[candidate.site_id],
+                    'tool': candidate
+                })
+        else:
+            # only return non 'xxx0c' sites for normal clients
+            for candidate in candidates:
+                if candidate.site_id not in site_distances and candidate.site_id.find('0t') < 0:
+                    site_distances[candidate.site_id] = distance.distance(
+                        query.latitude, query.longitude, candidate.latitude,
+                        candidate.longitude)
+                tool_distances.append({
+                    'distance': site_distances[candidate.site_id],
+                    'tool': candidate
+                })
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])
@@ -102,6 +114,18 @@ class GeoResolver(ResolverBase):
         # Create a new list of just the sorted SliverTool objects.
         sorted_tools = [t['tool'] for t in tool_distances]
         return sorted_tools[:max_results]
+
+    def prob_of_blacklisted(self, query):
+        """Load blacklist siganiture from memcache. Return 0 if the calculated siganiture
+            not in the blacklist. Return the 
+        """
+        # Fetch requests from memcache
+        requests_info = memcache.get(
+            query.calculate_client_signature(),
+            namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
+        if not requests_info:
+           return 0
+        return requests_info[0].probability
 
     def answer_query(self, query):
         """Selects the geographically closest SliverTool.
@@ -215,18 +239,18 @@ class CountryResolver(ResolverBase):
         return [random.choice(candidates)]
 
 
-def new_resolver(policy):
+def new_resolver(policy, client_signature):
     if policy == message.POLICY_GEO:
-        return GeoResolver()
+        return GeoResolver(client_signature)
     elif policy == message.POLICY_METRO:
-        return MetroResolver()
+        return MetroResolver(client_signature)
     elif policy == message.POLICY_RANDOM:
-        return RandomResolver()
+        return RandomResolver(client_signature)
     elif policy == message.POLICY_COUNTRY:
-        return CountryResolver()
+        return CountryResolver(client_signature)
     elif policy == message.POLICY_GEO_OPTIONS:
         return GeoResolverWithOptions()
     elif policy == message.POLICY_ALL:
-        return AllResolver()
+        return AllResolver(client_signature)
     else:
-        return RandomResolver()
+        return RandomResolver(client_signature)

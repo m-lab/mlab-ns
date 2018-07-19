@@ -8,6 +8,15 @@ from mlabns.util import constants
 # the design doc at http://goo.gl/48S22.
 
 
+class Requests(db.model):
+    name = db.StringProperty()
+    af = db.StringProperty()
+    agent = db.StringProperty()
+    format = db.StringProperty()
+    lat = db.FloatProperty()
+    lon = db.FloatProperty()
+    
+
 class SliverTool(db.Model):
     tool_id = db.StringProperty()
     slice_id = db.StringProperty()

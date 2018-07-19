@@ -47,7 +47,13 @@ class LookupHandler(webapp.RequestHandler):
         query.initialize_from_http_request(self.request)
 
         logging.info('Policy is %s', query.policy)
-        lookup_resolver = resolver.new_resolver(query.policy)
+
+        user_agent = ''
+        if 'User-Agent' in self.request.headers:
+            user_agent = self.request.headers['User-Agent']
+
+        client_signature = query.calculate_client_signature()
+        lookup_resolver = resolver.new_resolver(query.policy, client_signature)
         sliver_tools = lookup_resolver.answer_query(query)
 
         if sliver_tools is None:
