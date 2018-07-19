@@ -10,6 +10,11 @@ def is_production_site(site_name):
     Returns:
         True if the site name matches the schema of a production site.
     """
+    # Regular platform site names match the pattern [a-z]{3}\d{2}, but we now
+    # have some cloud VMs that we use for special purposes on the platform, and
+    # these sites end with the letter "c" (for "cloud"), not unlike testing
+    # sites end in the letter "t". The following regex should match both regular
+    # platform nodes as well as cloud VMs.
     return re.match('^[a-z]{3}(\d{2}|\dc)$', site_name, re.IGNORECASE) != None
 
 
