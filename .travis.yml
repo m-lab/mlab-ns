@@ -6,9 +6,7 @@ env:
 cache:
   directories:
     - "$HOME/google-cloud-sdk/"
-before_install:
-  - travis/decrypt.sh "$encrypted_a33ffc2cc437_key" "$encrypted_a33ffc2cc437_iv"
-    keys/service-accounts.tar.enc /tmp/service-accounts.tar /tmp
+
 install:
   - $TRAVIS_BUILD_DIR/travis/install_gcloud.sh app-engine-python
   - $HOME/google-cloud-sdk/install.sh
@@ -22,7 +20,7 @@ after_success:
 deploy:
 # Testing: deploy to ns-sandbox for testing purpose.
 - provider: script
-  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
+  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting SERVICE_ACCOUNT_mlab_nstesting . server/app.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
@@ -31,7 +29,7 @@ deploy:
 
 # Testing: deploy to mlab-nstesting
 - provider: script
-  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
+  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting SERVICE_ACCOUNT_mlab_nstesting . server/app.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
@@ -40,7 +38,7 @@ deploy:
 
 # Production: deploy to mlab-ns
 - provider: script
-  script: python environment_bootstrap.py live && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns /tmp/mlab-ns.json . server/app.yaml
+  script: python environment_bootstrap.py live && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns SERVICE_ACCOUNT_mlab_ns . server/app.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
