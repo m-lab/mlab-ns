@@ -15,6 +15,7 @@ class Requests(db.model):
     format = db.StringProperty()
     lat = db.FloatProperty()
     lon = db.FloatProperty()
+    probability = db.FloatProperty()
     
 
 class SliverTool(db.Model):
