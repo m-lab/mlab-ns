@@ -107,7 +107,7 @@ class LookupQuery:
             self._ip_is_explicit = False
 
     def _set_user_agent(self, request):
-        user_agent = request.get(message.USER_AGENT, default_value=None)
+        user_agent = request.get(message.USER_AGENT, default_value='')
 
     def _set_tool_address_family(self, request):
         tool_address_family = request.get(message.ADDRESS_FAMILY,
