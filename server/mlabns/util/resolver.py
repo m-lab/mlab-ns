@@ -243,7 +243,7 @@ class CountryResolver(ResolverBase):
         return [random.choice(candidates)]
 
 
-def new_resolver(policy, client_signature):
+def new_resolver(policy, client_signature=''):
     if policy == message.POLICY_GEO:
         return GeoResolver(client_signature)
     elif policy == message.POLICY_METRO:
