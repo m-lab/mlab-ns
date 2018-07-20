@@ -8,7 +8,7 @@ from mlabns.util import constants
 # the design doc at http://goo.gl/48S22.
 
 
-class Requests(db.model):
+class Requests(db.Model):
     name = db.StringProperty()
     af = db.StringProperty()
     agent = db.StringProperty()
