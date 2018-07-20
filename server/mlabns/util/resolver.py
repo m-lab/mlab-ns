@@ -122,7 +122,7 @@ class GeoResolver(ResolverBase):
            0c sites.
         """
         # TODO: Fetch requests from memcache
-        return 0.5
+        return 0.0
         """requests_info = memcache.get(
             query.calculate_client_signature(),
             namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
