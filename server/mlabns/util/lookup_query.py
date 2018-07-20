@@ -245,7 +245,7 @@ class LookupQuery:
                 logging.error('GAE provided bad lat/long %s.', lat_long)
 
     def _set_policy(self, request):
-        self.policy = request.get(message.POLICY, default_value=None)
+        self.policy = request.get(message.POLICY, default_value='')
         if ((self._user_defined_latitude and self._user_defined_longitude) or
                 self._ip_is_explicit):
             if self.policy != message.POLICY_GEO and \
@@ -303,4 +303,6 @@ class LookupQuery:
 
     def calculate_client_signature(self):
         #use ip_address, user_agent, tool_id, policy to create a signature.
-        return self.ip_address + '#' + self.user_agent + '#' + self.tool_id + '#' + self.policy
+        if self.ip_address and self.user_agent and self.tool_id and self.policy
+            return self.ip_address + '#' + self.user_agent + '#' + self.tool_id + '#' + self.policy
+        return ''
