@@ -107,7 +107,7 @@ class LookupQuery:
             self._ip_is_explicit = False
 
     def _set_user_agent(self, request):
-        self.user_agent = request.get(message.USER_AGENT, default_value='')
+        self.user_agent = request.get(message.USER_AGENT, default_value=None)
 
     def _set_tool_address_family(self, request):
         tool_address_family = request.get(message.ADDRESS_FAMILY,
@@ -245,7 +245,7 @@ class LookupQuery:
                 logging.error('GAE provided bad lat/long %s.', lat_long)
 
     def _set_policy(self, request):
-        self.policy = request.get(message.POLICY, default_value='')
+        self.policy = request.get(message.POLICY, default_value=None)
         if ((self._user_defined_latitude and self._user_defined_longitude) or
                 self._ip_is_explicit):
             if self.policy != message.POLICY_GEO and \
