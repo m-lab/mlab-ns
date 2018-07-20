@@ -1,10 +1,7 @@
 import logging
 import random
 
-from google.appengine.api import memcache
-
 from mlabns.db import sliver_tool_fetcher
-from mlabns.util import constants
 from mlabns.util import distance
 from mlabns.util import message
 
@@ -123,8 +120,9 @@ class GeoResolver(ResolverBase):
            not in the blacklist. Return the probability of this request should be sent to
            0c sites.
         """
-        # Fetch requests from memcache
-        requests_info = memcache.get(
+        # TODO: Fetch requests from memcache
+        return 0.5
+        """requests_info = memcache.get(
             query.calculate_client_signature(),
             namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
         if not requests_info:
@@ -132,7 +130,7 @@ class GeoResolver(ResolverBase):
         if len(requests_info) != 1:
             # TODO: something is wrong! 
             return 0
-        return requests_info[0].probability
+        return requests_info[0].probability"""
 
     def answer_query(self, query):
         """Selects the geographically closest SliverTool.
