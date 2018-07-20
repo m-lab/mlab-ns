@@ -31,7 +31,7 @@ def _tool_properties_from_query(query):
 class ResolverBase(object):
     """Resolver base class."""
 
-    def __init__(self, client_signature):
+    def __init__(self, client_signature=''):
         self.sliver_tool_fetcher = sliver_tool_fetcher.SliverToolFetcher()
         self.client_signature = client_signature
 
