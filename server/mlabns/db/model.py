@@ -17,6 +17,7 @@ class Requests(db.Model):
     lon = db.FloatProperty()
     probability = db.FloatProperty()
 
+
 class SliverTool(db.Model):
     tool_id = db.StringProperty()
     slice_id = db.StringProperty()
