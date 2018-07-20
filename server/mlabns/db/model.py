@@ -14,7 +14,7 @@ class Requests(db.Model):
     name = db.StringProperty()
 
     probability = db.FloatProperty()
-    requests_per_day = db.IntProperty()
+    requests_per_day = db.IntegerProperty()
     af = db.StringProperty()
     format = db.StringProperty()
     latitude = db.FloatProperty()
