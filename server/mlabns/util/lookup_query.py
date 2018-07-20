@@ -303,4 +303,4 @@ class LookupQuery:
 
     def calculate_client_signature(self):
         #use ip_address, user_agent, tool_id, policy to create a signature.
-        return ip_address + '#' + user_agent + '#' + tool_id + '#' + policy
+        return self.ip_address + '#' + self.user_agent + '#' + self.tool_id + '#' + self.policy
