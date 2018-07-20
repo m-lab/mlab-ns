@@ -1,6 +1,8 @@
 import logging
 import random
 
+from google.appengine.api import memcache
+
 from mlabns.db import sliver_tool_fetcher
 from mlabns.util import distance
 from mlabns.util import message
