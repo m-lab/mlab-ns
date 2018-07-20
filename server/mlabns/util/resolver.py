@@ -83,12 +83,13 @@ class GeoResolver(ResolverBase):
         site_distances = {}
         tool_distances = []
         
-        # load client blacklist from memcache, and apply difference lgoic
+        # load client blacklist from memcache, and apply difference logics
         # for client in the list or not.
-        prob = self.prob_of_blacklisted(query) 
+        prob = self.prob_of_blacklisted(query)
         if prob > 0 and random.uniform(0, 1) < prob:
-            # Return 'xxx0c' sites for blacklisted clients with probability
-            if candidate.site_id not in site_distances and candidate.site_id.find('0t') > 0:
+            for candidate in candidates:
+                # Return 'xxx0c' sites for blacklisted clients with probability
+                if candidate.site_id not in site_distances and candidate.site_id.find('0t') > 0:
                     site_distances[candidate.site_id] = distance.distance(
                         query.latitude, query.longitude, candidate.latitude,
                         candidate.longitude)
