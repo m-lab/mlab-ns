@@ -119,9 +119,11 @@ class GeoResolver(ResolverBase):
         return sorted_tools[:max_results]
 
     def prob_of_blacklisted(self, query):
-        """Load blacklist siganiture from memcache. Return 0 if the calculated siganiture
-           not in the blacklist. Return the probability of this request should be sent to
-           0c sites.
+        """Load blacklist siganiture from memcache.
+        
+        Returns:
+            0 if the calculated siganiturenot in the blacklist. Return the probability of this 
+            request should be sent to 0c sites.
         """
         # TODO: Fetch requests from memcache
         return 0.0
