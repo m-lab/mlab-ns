@@ -56,7 +56,7 @@ class AllResolver(ResolverBase):
 class GeoResolver(ResolverBase):
     """Chooses the server geographically closest to the client."""
 
-    def _add_candidate(self, candidate, site_distances, tool_distances):
+    def _add_candidate(self, query, candidate, site_distances, tool_distances):
         if candidate.site_id not in site_distances:
             site_distances[candidate.site_id] = distance.distance(
                 query.latitude, query.longitude, candidate.latitude,
@@ -108,11 +108,11 @@ class GeoResolver(ResolverBase):
         if prob > 0 and random.uniform(0, 1) < prob:
             for candidate in vm_candi:
                 # Return 'xxx0c' sites for blacklisted clients with probability
-                self._add_candidate(candidate, site_distances, tool_distances)
+                self._add_candidate(query, candidate, site_distances, tool_distances)
         else:
             # only return non 'xxx0c' sites for normal clients
             for candidate in regular_candi:
-                self._add_candidate(candidate, site_distances, tool_distances)
+                self._add_candidate(query, candidate, site_distances, tool_distances)
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])
