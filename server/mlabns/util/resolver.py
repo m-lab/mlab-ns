@@ -93,8 +93,7 @@ class GeoResolver(ResolverBase):
         site_distances = {}
         tool_distances = []
 
-        regular_candidates = []
-        vm_candidates = []
+        filtered_candidates = []
 
         # load client blacklist from memcache. If the request signature matches the
         # blacklist, return a 0c site with assigned probability. If not, return
@@ -102,22 +101,13 @@ class GeoResolver(ResolverBase):
         prob = self.prob_of_blacklisted(query)
         if prob > 0 and random.uniform(0, 1) < prob:
             # Filter the candidates sites, only keep the 0c sites
-            for candidate in candidates:
-                if candidate.site_id[-1] == 'c':
-                    vm_candidates.append(candidate)
-            # Return 'xxx0c' sites for blacklisted clients with probability
-            for candidate in vm_candidates:
-                self._add_candidate(query, candidate, site_distances,
-                                    tool_distances)
+            filtered_candidates = filter(lambda c: c.site_id[-1] == 'c', candidates)
         else:
             # Filter the candidates sites, only keep the regular sites
-            for candidate in candidates:
-                if candidate.site_id[-1] != 'c':
-                    regular_candidates.append(candidate)
+            filtered_candidates = filter(lambda c: c.site_id[-1] != 'c', candidates)
             # only return regular sites for normal clients
-            for candidate in regular_candidates:
-                self._add_candidate(query, candidate, site_distances,
-                                    tool_distances)
+        for candidate in filtered_candidates:
+            self._add_candidate(query, candidate, site_distances, tool_distances)
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])
