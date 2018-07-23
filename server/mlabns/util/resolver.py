@@ -56,7 +56,7 @@ class AllResolver(ResolverBase):
 class GeoResolver(ResolverBase):
     """Chooses the server geographically closest to the client."""
 
-    def _add_candidate(candidate, site_distances, tool_distances):
+    def _add_candidate(self, candidate, site_distances, tool_distances):
         if candidate.site_id not in site_distances:
             site_distances[candidate.site_id] = distance.distance(
                 query.latitude, query.longitude, candidate.latitude,
