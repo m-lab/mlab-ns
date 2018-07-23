@@ -302,7 +302,12 @@ class LookupQuery:
         return message.POLICY_RANDOM
 
     def calculate_client_signature(self):
-        #use ip_address, user_agent, tool_id, policy to create a signature.
+        """use ip_address, user_agent, tool_id, policy to create a signature.
+
+        Returns:
+            Return the client signature if the request has ip_address, user_agent, tool_id
+            and policy. Otherwise, return an empty string.
+        """
         if self.ip_address and self.user_agent and self.tool_id and self.policy:
             return self.ip_address + '#' + self.user_agent + '#' + self.tool_id + '#' + self.policy
         return ''

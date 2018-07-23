@@ -56,6 +56,16 @@ class AllResolver(ResolverBase):
 class GeoResolver(ResolverBase):
     """Chooses the server geographically closest to the client."""
 
+    def _add_candidate(candidate, site_distance, tool_distance):
+        if candidate.site_id not in site_distances:
+            site_distances[candidate.site_id] = distance.distance(
+                query.latitude, query.longitude, candidate.latitude,
+                candidate.longitude)
+            tool_distances.append({
+                'distance': site_distances[candidate.site_id],
+                'tool': candidate
+            })
+
     def _get_closest_n_candidates(self, query, max_results):
         """Selects the top N geographically closest SliverTools to the client.
 
@@ -83,33 +93,26 @@ class GeoResolver(ResolverBase):
         site_distances = {}
         tool_distances = []
 
-        # load client blacklist from memcache, and apply difference logics
-        # for client in the list or not.
+        # Split the candidates into regular sites and 0c sites.
+        regular_candi = []
+        vm_cadi = []
+        for candidate in candidates:
+            if candidate.site_id[-1] == 'c':
+                vm_cadi.append(candidate)
+            else:
+                regular_candi.append(candidate)
+        # load client blacklist from memcache. If the request signature matches the
+        # blacklist, return a 0c site with assigned probability. If not, return
+        # regular mlab1/2/3/4 sites.
         prob = self.prob_of_blacklisted(query)
         if prob > 0 and random.uniform(0, 1) < prob:
-            for candidate in candidates:
+            for candidate in vm_candi:
                 # Return 'xxx0c' sites for blacklisted clients with probability
-                if candidate.site_id not in site_distances and candidate.site_id.find(
-                        '0t') > 0:
-                    site_distances[candidate.site_id] = distance.distance(
-                        query.latitude, query.longitude, candidate.latitude,
-                        candidate.longitude)
-                    tool_distances.append({
-                        'distance': site_distances[candidate.site_id],
-                        'tool': candidate
-                    })
+                self._add_candidate(candidate, site_distance, tool_distance)
         else:
             # only return non 'xxx0c' sites for normal clients
-            for candidate in candidates:
-                if candidate.site_id not in site_distances and candidate.site_id.find(
-                        '0t') < 0:
-                    site_distances[candidate.site_id] = distance.distance(
-                        query.latitude, query.longitude, candidate.latitude,
-                        candidate.longitude)
-                    tool_distances.append({
-                        'distance': site_distances[candidate.site_id],
-                        'tool': candidate
-                    })
+            for candidate in regular_candi:
+                self._add_candidate(candidate, site_distance, tool_distance)
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])
@@ -119,7 +122,7 @@ class GeoResolver(ResolverBase):
         return sorted_tools[:max_results]
 
     def prob_of_blacklisted(self, query):
-        """Load blacklist siganiture from memcache.
+        """Load blacklist signaiture from memcache.
 
         Returns:
             0 if the calculated siganiturenot in the blacklist. Return the probability of this
