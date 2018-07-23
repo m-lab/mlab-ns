@@ -101,13 +101,16 @@ class GeoResolver(ResolverBase):
         prob = self.prob_of_blacklisted(query)
         if prob > 0 and random.uniform(0, 1) < prob:
             # Filter the candidates sites, only keep the 0c sites
-            filtered_candidates = filter(lambda c: c.site_id[-1] == 'c', candidates)
+            filtered_candidates = filter(lambda c: c.site_id[-1] == 'c',
+                                         candidates)
         else:
             # Filter the candidates sites, only keep the regular sites
-            filtered_candidates = filter(lambda c: c.site_id[-1] != 'c', candidates)
+            filtered_candidates = filter(lambda c: c.site_id[-1] != 'c',
+                                         candidates)
             # only return regular sites for normal clients
         for candidate in filtered_candidates:
-            self._add_candidate(query, candidate, site_distances, tool_distances)
+            self._add_candidate(query, candidate, site_distances,
+                                tool_distances)
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])
