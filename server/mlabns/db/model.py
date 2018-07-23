@@ -9,10 +9,8 @@ from mlabns.util import constants
 
 
 # Data format of this class is defined in
-# https://github.com/m-lab/mlab-ns-rate-limit/blob/sandbox-standard/endpoint/endpoint.go
+# https://github.com/m-lab/mlab-ns-rate-limit/blob/master/endpoint/endpoint.go
 class Requests(db.Model):
-    name = db.StringProperty()
-
     probability = db.FloatProperty()
     requests_per_day = db.IntegerProperty()
     af = db.StringProperty()
