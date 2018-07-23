@@ -106,13 +106,15 @@ class GeoResolver(ResolverBase):
         # regular mlab1/2/3/4 sites.
         prob = self.prob_of_blacklisted(query)
         if prob > 0 and random.uniform(0, 1) < prob:
+            # Return 'xxx0c' sites for blacklisted clients with probability
             for candidate in vm_candi:
-                # Return 'xxx0c' sites for blacklisted clients with probability
-                self._add_candidate(query, candidate, site_distances, tool_distances)
+                self._add_candidate(query, candidate, site_distances,
+                                    tool_distances)
         else:
             # only return non 'xxx0c' sites for normal clients
             for candidate in regular_candi:
-                self._add_candidate(query, candidate, site_distances, tool_distances)
+                self._add_candidate(query, candidate, site_distances,
+                                    tool_distances)
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])
