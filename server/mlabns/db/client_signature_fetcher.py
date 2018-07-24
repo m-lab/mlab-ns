@@ -1,11 +1,4 @@
-from collections import defaultdict
-from functools import partial
-import logging
-import random
-
-from mlabns.db import model
 from mlabns.util import constants
-from mlabns.util import message
 
 from google.appengine.api import memcache
 
@@ -25,7 +18,7 @@ class ClientSignatureFetcher(object):
             matched entry.
         """
         matched_requests = memcache.get(
-            client_signature,
+            key,
             namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
         if matched_requests and len(matched_requests) == 1:
             return matched_requests[0].probability
