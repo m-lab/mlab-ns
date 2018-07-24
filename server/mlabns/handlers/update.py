@@ -519,7 +519,7 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
     def get(self):
         """Triggers the update handler.
 
-        Load the blacklist information from DataStore and set the memcache. 
+        Load the blacklist information from DataStore and set the memcache.
         """
         requests = list(model.Requests.all().fetch(limit=None))
         for request in requests:
