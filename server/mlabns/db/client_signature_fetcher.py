@@ -10,7 +10,7 @@ from mlabns.util import message
 from google.appengine.api import memcache
 
 class ClientSignatureFetcher(object):
-    """fetch probability of matched client signature from AppEngine memcache."""        
+    """fetch probability of matched client signature from AppEngine memcache."""     
 
     def fetch(self, key):
         """Fetch probability of matched client signature.        
