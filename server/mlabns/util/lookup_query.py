@@ -309,5 +309,7 @@ class LookupQuery:
             and policy. Otherwise, returns an empty string.
         """
         if self.ip_address and self.user_agent and self.tool_id and self.policy:
-            return self.ip_address + '#' + self.user_agent + '#' + self.tool_id + '#' + query.response_format + '#' + self.policy + '####'
+            return fmt.Sprintf("%s#%s#%s#%s#%s####",
+                               self.ip_address, self.user_agent, self.tool_id,
+                               self.response_format, self.Policy)
         return ''
