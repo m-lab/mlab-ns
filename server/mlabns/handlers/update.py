@@ -521,7 +521,9 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
 
         Load the blacklist information from DataStore and set the memcache. 
         """
-        REQUEST_URL = 'SOME FAKED URL'
-        
-        
-        
+        requests = list(model.Requests.all().fetch(limit=None))
+        for request in requests:
+            if not memcache.set(request.name_key,
+                                request.probability,
+                                namespace=constants.MEMCACHE_NAMESPACE_REQUESTS):
+                logging.error('Failed to update blacklist clients in memcache.')
