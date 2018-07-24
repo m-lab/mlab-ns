@@ -511,3 +511,17 @@ class ReloadMaxmindDb(webapp.RequestHandler):
 
         # Generates the new Reader object.
         maxmind.get_geo_reader()
+
+
+class BlacklistRequestsHandler(webapp.RequestHandler):
+    """Updates Blacklist Request list."""
+
+    def get(self):
+        """Triggers the update handler.
+
+        Load the blacklist information from DataStore and set the memcache. 
+        """
+        REQUEST_URL = 'SOME FAKED URL'
+        
+        
+        
