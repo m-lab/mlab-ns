@@ -36,6 +36,9 @@ MAX_FETCHED_RESULTS = None
 # Memcache namespace for map: tool_id -> list of sliver_tools.
 MEMCACHE_NAMESPACE_TOOLS = 'memcache_tools'
 
+# Memcache namespace for map: client_signature -> property of blacklisted clients
+MEMCACHE_NAMESPACE_REQUESTS = 'memcache_requests'
+
 # Service state status values from Nagios:
 # OK            0
 # WARNING       1

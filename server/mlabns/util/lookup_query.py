@@ -50,6 +50,7 @@ class LookupQuery:
         self.longitude = None
         self.distance = None
         self._ip_is_explicit = False
+        self.user_agent = None
         #TODO(mtlynch): We are using two country fields to store the same type
         # of information, but using user_defined_country in some cases and
         # country in others. We should consolidate them into a single field.
@@ -79,6 +80,7 @@ class LookupQuery:
         self._set_response_format(request)
         self._set_ip_address(request)
         self._set_tool_address_family(request)
+        self._set_user_agent(request)
         self._set_geolocation(request)
         self.metro = request.get(message.METRO, default_value=None)
         self._set_policy(request)
@@ -103,6 +105,9 @@ class LookupQuery:
         else:
             self.ip_address = request.remote_addr
             self._ip_is_explicit = False
+
+    def _set_user_agent(self, request):
+        self.user_agent = request.get(message.USER_AGENT, default_value=None)
 
     def _set_tool_address_family(self, request):
         tool_address_family = request.get(message.ADDRESS_FAMILY,
@@ -295,3 +300,14 @@ class LookupQuery:
         if self.latitude is not None and self.longitude is not None:
             return message.POLICY_GEO
         return message.POLICY_RANDOM
+
+    def calculate_client_signature(self):
+        """Uses ip_address, user_agent, tool_id, and policy to create a client signature.
+
+        Returns:
+            A client signature if the request has ip_address, user_agent, tool_id
+            and policy. Otherwise, returns an empty string.
+        """
+        if self.ip_address and self.user_agent and self.tool_id and self.policy:
+            return self.ip_address + '#' + self.user_agent + '#' + self.tool_id + '#' + self.policy
+        return ''
