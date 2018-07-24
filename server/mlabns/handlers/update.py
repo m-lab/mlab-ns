@@ -523,7 +523,8 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
         """
         requests = list(model.Requests.all().fetch(limit=None))
         for request in requests:
-            if not memcache.set(request.name_key,
-                                request.probability,
-                                namespace=constants.MEMCACHE_NAMESPACE_REQUESTS):
+            if not memcache.set(
+                    request.name_key,
+                    request.probability,
+                    namespace=constants.MEMCACHE_NAMESPACE_REQUESTS):
                 logging.error('Failed to update blacklist clients in memcache.')
