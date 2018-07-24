@@ -14,7 +14,7 @@ class ClientSignatureFetcher(object):
     """Fetch probability of matched client signature from AppEngine memcache."""
 
     def fetch(self, key):
-        """Fetch probability of matched client signature.        
+        """Fetch probability of matched client signature. 
 
         Args:
             key: A string in format like:
