@@ -4,6 +4,7 @@ import random
 from mlabns.db import sliver_tool_fetcher
 from mlabns.util import distance
 from mlabns.util import message
+from mlabns.db import client_signature_fetcher
 
 
 def _tool_properties_from_query(query):
@@ -120,23 +121,13 @@ class GeoResolver(ResolverBase):
         return sorted_tools[:max_results]
 
     def prob_of_blacklisted(self, query):
-        """Load blacklist signaiture from memcache.
+        """Load probability of matched blacklist signature from memcache.
 
         Returns:
             0 if the calculated siganiturenot in the blacklist. Return the probability of this
             request should be sent to 0c sites.
         """
-        # TODO: Fetch requests from memcache
-        return 0.0
-        """requests_info = memcache.get(
-            query.calculate_client_signature(),
-            namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
-        if not requests_info:
-            return 0
-        if len(requests_info) != 1:
-            # TODO: something is wrong! 
-            return 0
-        return requests_info[0].probability"""
+        return client_signature_fetcher.ClientSignatureFetcher().fetch(query.calculate_client_signature())
 
     def answer_query(self, query):
         """Selects the geographically closest SliverTool.
