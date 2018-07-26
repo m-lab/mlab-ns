@@ -36,10 +36,8 @@ class ClientSignatureFetcherTestCase(unittest.TestCase):
     def testFetchFromMemcache(self):
         # The mock response is just ints here for simplicity, though the real
         # function returns SliverTool objects.
-        mock_memcache_response = [0.1, 0.2, 0.3]
+        mock_memcache_response = 0.1
         client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = (
             mock_memcache_response)
-        tool_properties = sliver_tool_fetcher.ToolProperties(
-            tool_id='mock_tool_a')
-        fetcher_results_actual = self.fetcher.fetch(tool_properties)
-        self.assertSequenceEqual(mock_memcache_response, fetcher_results_actual)
+        fetcher_results_actual = self.fetcher.fetch('Faked_key')
+        self.assertEqual(mock_memcache_response, fetcher_results_actual)
