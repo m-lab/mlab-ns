@@ -21,12 +21,12 @@ class ClientSignatureFetcherTestCase(unittest.TestCase):
         self.testbed.init_all_stubs()
         ndb.get_context().clear_cache()
 
-        client_signature_fetcher_memcache_patch = mock.patch.object(
+        client_signature_fetcher_patch = mock.patch.object(
             client_signature_fetcher,
-            'ClientSignatureFetcherMemcache',
+            'ClientSignatureFetcher',
             autospec=True)
-        self.addCleanup(client_signature_fetcher_memcache_patch.stop)
-        client_signature_fetcher_memcache_patch.start()
+        self.addCleanup(client_signature_fetcher_patch.stop)
+        client_signature_fetcher_patch.start()
 
         self.fetcher = client_signature_fetcher.ClientSignatureFetcher()
 

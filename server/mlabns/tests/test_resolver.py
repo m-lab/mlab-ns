@@ -1,6 +1,7 @@
 import unittest
 
 from mlabns.db import model
+from mlabns.db import client_signature_fetcher
 from mlabns.db import sliver_tool_fetcher
 from mlabns.util import lookup_query
 from mlabns.util import message
@@ -274,6 +275,15 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         self.addCleanup(sliver_tool_fetcher_patch.stop)
         sliver_tool_fetcher_patch.start()
         self.resolver = resolver.GeoResolver()
+
+        client_signature_fetcher_patch = mock.patch.object(
+            client_signature_fetcher,
+            'ClientSignatureFetcher',
+            autospec=True)
+        self.addCleanup(client_signature_fetcher_patch.stop)
+        client_signature_fetcher_patch.start()
+
+        self.fetcher = client_signature_fetcher.ClientSignatureFetcher()
 
     def testAnswerQueryWhenSingleToolIsClosest(self):
         """When a single tool is closest, return that tool."""
