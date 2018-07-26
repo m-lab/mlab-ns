@@ -13,4 +13,4 @@ cron:
 # Update blacklist of client signature list for abusive clients.
 - description: Check client blacklists for abusive clients. 
   url: /cron/update_requests
-  schedule: every 1 minutes
+  schedule: every 5 minutes

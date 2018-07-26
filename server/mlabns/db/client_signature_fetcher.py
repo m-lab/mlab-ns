@@ -11,7 +11,7 @@ class ClientSignatureFetcher(object):
 
         Args:
             key: A string in format like:
-                 '108.213.206.223#Dalvik/2.1.0 (Linux; U; Android 5.1.1; AFTT Build/LVY48F)#ndt_ssl##geo_options####'
+                 '127.0.0.1#Davlik 2.1.0 (blah blah blah)#ndt_ssl#format#geo_options#af#ip#metro#lat#lon'
 
         Returns:
             The probability of matched client signature or 0 if there is no

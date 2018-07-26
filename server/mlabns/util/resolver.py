@@ -124,11 +124,17 @@ class GeoResolver(ResolverBase):
         """Load probability of matched blacklist signature from memcache.
 
         Returns:
-            0 if the calculated siganiturenot in the blacklist. Return the probability of this
-            request should be sent to 0c sites.
+            The probability of matched client signature or 0 if there is no
+            matched entry.
         """
-        return client_signature_fetcher.ClientSignatureFetcher().fetch(
-            query.calculate_client_signature())
+        # query.calculate_client_signature() returns a string in format like:
+        # '127.0.0.1#Davlik 2.1.0 (blah blah blah)#ndt_ssl#format#geo_options#af#ip#metro#lat#lon'
+        matched_requests = memcache.get(
+            query.calculate_client_signature(),
+            namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
+        if matched_requests and len(matched_requests) == 1:
+            return matched_requests[0].probability
+        return 0
 
     def answer_query(self, query):
         """Selects the geographically closest SliverTool.
