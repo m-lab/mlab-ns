@@ -4,7 +4,7 @@ import unittest
 import mock
 
 from mlabns.db import model
-from mlabns.db import sliver_tool_fetcher
+from mlabns.db import client_signature_fetcher
 from mlabns.util import constants
 from mlabns.util import message
 
