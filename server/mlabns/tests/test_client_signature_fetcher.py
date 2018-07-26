@@ -13,6 +13,7 @@ from google.appengine.ext import db
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
+
 class ClientSignatureFetcherTestCase(unittest.TestCase):
 
     def setUp(self):

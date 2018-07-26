@@ -127,7 +127,8 @@ class GeoResolver(ResolverBase):
             0 if the calculated siganiturenot in the blacklist. Return the probability of this
             request should be sent to 0c sites.
         """
-        return client_signature_fetcher.ClientSignatureFetcher().fetch(query.calculate_client_signature())
+        return client_signature_fetcher.ClientSignatureFetcher().fetch(
+            query.calculate_client_signature())
 
     def answer_query(self, query):
         """Selects the geographically closest SliverTool.
