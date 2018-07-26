@@ -1,15 +1,9 @@
-import collections
 import unittest
 
 import mock
 
-from mlabns.db import model
 from mlabns.db import client_signature_fetcher
-from mlabns.util import constants
-from mlabns.util import message
 
-from google.appengine.api import memcache
-from google.appengine.ext import db
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
