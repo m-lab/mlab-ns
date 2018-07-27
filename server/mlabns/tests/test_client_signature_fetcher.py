@@ -17,7 +17,7 @@ class ClientSignatureFetcherTestCase(unittest.TestCase):
         ndb.get_context().clear_cache()
 
         client_signature_fetcher_patch = mock.patch.object(
-        client_signature_fetcher,
+            client_signature_fetcher,
             'ClientSignatureFetcher',
             autospec=True)
         self.addCleanup(client_signature_fetcher_patch.stop)
