@@ -5,7 +5,7 @@ from google.appengine.api import memcache
 
 class ClientSignatureFetcher(object):
     """Fetch probability of matched client signature from AppEngine memcache."""
- 
+
     def fetch(self, key):
         """Fetch probability of matched client signature.
  
