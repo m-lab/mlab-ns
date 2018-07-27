@@ -13,11 +13,9 @@ class ClientSignatureFetcherTestCase(unittest.TestCase):
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
+        self.addCleanup(self.testbed.deactivate)
         self.testbed.init_all_stubs()
         ndb.get_context().clear_cache()
-
-    def tearDown(self):
-        self.testbed.deactivate()
 
     def testFetchFromMemcache(self):
         with mock.patch.object(client_signature_fetcher,
