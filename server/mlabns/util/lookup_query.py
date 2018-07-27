@@ -310,5 +310,5 @@ class LookupQuery:
         """
         if self.ip_address and self.user_agent and self.tool_id and self.policy:
             return "%s#%s#%s#%s" % (self.ip_address, self.user_agent,
-                                           self.tool_id, self.Policy)
+                                    self.tool_id, self.Policy)
         return ''
