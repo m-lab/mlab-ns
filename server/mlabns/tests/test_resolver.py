@@ -1,6 +1,7 @@
 import unittest
 
 from mlabns.db import model
+from mlabns.db import client_signature_fetcher
 from mlabns.db import sliver_tool_fetcher
 from mlabns.util import lookup_query
 from mlabns.util import message
@@ -274,6 +275,15 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         self.addCleanup(sliver_tool_fetcher_patch.stop)
         sliver_tool_fetcher_patch.start()
         self.resolver = resolver.GeoResolver()
+        
+        client_signature_fetcher_patch = mock.patch.object(
+            client_signature_fetcher,
+            'ClientSignatureFetcher',
+            autospec=True)
+        self.addCleanup(client_signature_fetcher_patch.stop)
+        client_signature_fetcher_patch.start()
+ 
+        self.fetcher = client_signature_fetcher.ClientSignatureFetcher()
 
     def testAnswerQueryWhenSingleToolIsClosest(self):
         """When a single tool is closest, return that tool."""
@@ -412,6 +422,15 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         self.resolver = resolver.GeoResolverWithOptions()
         # Allow full diff output on test failures
         self.maxDiff = None
+        
+        client_signature_fetcher_patch = mock.patch.object(
+            client_signature_fetcher,
+            'ClientSignatureFetcher',
+            autospec=True)
+        self.addCleanup(client_signature_fetcher_patch.stop)
+        client_signature_fetcher_patch.start()
+ 
+        self.fetcher = client_signature_fetcher.ClientSignatureFetcher()
 
     def testAnswerQueryWhenFourToolsAreEquallyClosest(self):
         """When exactly four tools tie for closest, return those four."""
@@ -515,6 +534,8 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
+        
+        client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = 0
 
         self.assertQueryResultWithRandomShuffle(query, mock_fetched_tools,
                                                 query_results_expected,
@@ -543,7 +564,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
-        .fetch.return_value = 0
+        client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = 0
 
         self.assertQueryResultMultiTool(query, mock_fetched_tools,
                                         query_results_expected,
@@ -555,6 +576,9 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.tool_id = tool_id
 
         # Simulate no matching tools
+        sliver_tool_fetcher.SliverToolFetcher().fetch.return_value = []
+        
+        # Simulate not a blacklisted client
         resolver.GeoResolver().prob_of_blacklisted.return_value = 0
 
         # Result should be None when there are no matches.
