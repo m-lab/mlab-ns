@@ -1,5 +1,5 @@
 import unittest
- 
+
 import mock
  
 from mlabns.db import client_signature_fetcher
