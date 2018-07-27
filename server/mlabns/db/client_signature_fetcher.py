@@ -8,7 +8,7 @@ class ClientSignatureFetcher(object):
 
     def fetch(self, key):
         """Fetch probability of matched client signature.
- 
+
         Args:
             key: A string in format like:
                  '127.0.0.1#Davlik 2.1.0 (blah blah blah)#ndt_ssl#format#geo_options#af#ip#metro#lat#lon'
