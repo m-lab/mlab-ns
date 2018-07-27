@@ -21,7 +21,7 @@ class ClientSignatureFetcherTestCase(unittest.TestCase):
 
     def testFetchFromMemcache(self):
         with mock.patch.object(client_signature_fetcher,
-                               'ClientSignatureFetcher') as _:
+                               'ClientSignatureFetcher'):
             mock_memcache_response = 0.1
             client_signature_fetcher.ClientSignatureFetcher(
             ).fetch.return_value = (mock_memcache_response)
