@@ -24,8 +24,8 @@ class ClientSignatureFetcherTestCase(unittest.TestCase):
                 client_signature_fetcher,
                 'ClientSignatureFetcher') as _:
             mock_memcache_response = 0.1
-            client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = (
-            mock_memcache_response)
+            client_signature_fetcher.ClientSignatureFetcher(
+            ).fetch.return_value = (mock_memcache_response)
             fetcher_results_actual = client_signature_fetcher.ClientSignatureFetcher(
             ).fetch('Faked_key')
             self.assertEqual(mock_memcache_response, fetcher_results_actual)
