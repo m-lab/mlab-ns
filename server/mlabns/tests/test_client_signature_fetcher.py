@@ -27,7 +27,7 @@ class ClientSignatureFetcherTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.testbed.deactivate()
- 
+
     def testFetchFromMemcache(self):
         # The mock response is just ints here for simplicity, though the real
         # function returns SliverTool objects.
