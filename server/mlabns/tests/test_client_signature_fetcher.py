@@ -1,13 +1,13 @@
 import unittest
 
 import mock
- 
+
 from mlabns.db import client_signature_fetcher
- 
+
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
- 
- 
+
+
 class ClientSignatureFetcherTestCase(unittest.TestCase):
  
     def setUp(self):
