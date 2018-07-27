@@ -9,7 +9,7 @@ from google.appengine.ext import testbed
 
 
 class ClientSignatureFetcherTestCase(unittest.TestCase):
- 
+
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
