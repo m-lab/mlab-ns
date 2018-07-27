@@ -22,9 +22,10 @@ class ClientSignatureFetcherTestCase(unittest.TestCase):
     def testFetchFromMemcache(self):
         with mock.patch.object(
                 client_signature_fetcher,
-                'ClientSignatureFetcher') as client_signature_fetcher_patch:
+                'ClientSignatureFetcher') as _:
             mock_memcache_response = 0.1
-            client_signature_fetcher_patch.fetch.return_value = (mock_memcache_response)
+            client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = (
+            mock_memcache_response)
             fetcher_results_actual = client_signature_fetcher.ClientSignatureFetcher(
             ).fetch('Faked_key')
             self.assertEqual(mock_memcache_response, fetcher_results_actual)
