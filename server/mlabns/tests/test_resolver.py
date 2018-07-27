@@ -282,7 +282,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
             autospec=True)
         self.addCleanup(client_signature_fetcher_patch.stop)
         client_signature_fetcher_patch.start()
- 
+
         self.fetcher = client_signature_fetcher.ClientSignatureFetcher()
 
     def testAnswerQueryWhenSingleToolIsClosest(self):
@@ -429,7 +429,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
             autospec=True)
         self.addCleanup(client_signature_fetcher_patch.stop)
         client_signature_fetcher_patch.start()
- 
+
         self.fetcher = client_signature_fetcher.ClientSignatureFetcher()
 
     def testAnswerQueryWhenFourToolsAreEquallyClosest(self):
