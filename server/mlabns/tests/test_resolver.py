@@ -283,8 +283,6 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         self.addCleanup(client_signature_fetcher_patch.stop)
         client_signature_fetcher_patch.start()
 
-        self.fetcher = client_signature_fetcher.ClientSignatureFetcher()
-
     def testAnswerQueryWhenSingleToolIsClosest(self):
         """When a single tool is closest, return that tool."""
         query = lookup_query.LookupQuery()
@@ -429,8 +427,6 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
             autospec=True)
         self.addCleanup(client_signature_fetcher_patch.stop)
         client_signature_fetcher_patch.start()
-
-        self.fetcher = client_signature_fetcher.ClientSignatureFetcher()
 
     def testAnswerQueryWhenFourToolsAreEquallyClosest(self):
         """When exactly four tools tie for closest, return those four."""
