@@ -578,8 +578,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # Simulate no matching tools
         sliver_tool_fetcher.SliverToolFetcher().fetch.return_value = []
         
-        # Simulate not a blacklisted client
-        resolver.GeoResolver().prob_of_blacklisted.return_value = 0
+        client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = 0
 
         # Result should be None when there are no matches.
         self.assertIsNone(self.resolver.answer_query(query))
