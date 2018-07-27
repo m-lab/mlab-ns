@@ -121,12 +121,7 @@ class GeoResolver(ResolverBase):
         return sorted_tools[:max_results]
 
     def prob_of_blacklisted(self, query):
-        """Load probability of matched blacklist signature from memcache.
-
-        Returns:
-            The probability of matched client signature or 0 if there is no
-            matched entry.
-        """
+        # Return probability of matched client signature or 0 if there is nomatched entry.
         return client_signature_fetcher.ClientSignatureFetcher().fetch(
             query.calculate_client_signature())
 
