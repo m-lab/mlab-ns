@@ -275,7 +275,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         self.addCleanup(sliver_tool_fetcher_patch.stop)
         sliver_tool_fetcher_patch.start()
         self.resolver = resolver.GeoResolver()
-        
+
         client_signature_fetcher_patch = mock.patch.object(
             client_signature_fetcher,
             'ClientSignatureFetcher',
@@ -422,7 +422,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         self.resolver = resolver.GeoResolverWithOptions()
         # Allow full diff output on test failures
         self.maxDiff = None
-        
+
         client_signature_fetcher_patch = mock.patch.object(
             client_signature_fetcher,
             'ClientSignatureFetcher',
