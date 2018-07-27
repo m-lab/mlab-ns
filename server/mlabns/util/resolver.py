@@ -127,14 +127,8 @@ class GeoResolver(ResolverBase):
             The probability of matched client signature or 0 if there is no
             matched entry.
         """
-        # query.calculate_client_signature() returns a string in format like:
-        # '127.0.0.1#Davlik 2.1.0 (blah blah blah)#ndt_ssl#format#geo_options#af#ip#metro#lat#lon'
-        matched_requests = memcache.get(
-            query.calculate_client_signature(),
-            namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
-        if matched_requests and len(matched_requests) == 1:
-            return matched_requests[0].probability
-        return 0
+        return client_signature_fetcher.ClientSignatureFetcher().fetch(
+            query.calculate_client_signature())
 
     def answer_query(self, query):
         """Selects the geographically closest SliverTool.
