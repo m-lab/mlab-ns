@@ -543,7 +543,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
-        client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = 0
+        .fetch.return_value = 0
 
         self.assertQueryResultMultiTool(query, mock_fetched_tools,
                                         query_results_expected,
@@ -555,7 +555,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         query.tool_id = tool_id
 
         # Simulate no matching tools
-        sliver_tool_fetcher.SliverToolFetcher().fetch.return_value = []
+        resolver.GeoResolver().prob_of_blacklisted.return_value = 0
 
         # Result should be None when there are no matches.
         self.assertIsNone(self.resolver.answer_query(query))
