@@ -276,6 +276,13 @@ class GeoResolverTestCase(ResolverTestCaseBase):
         sliver_tool_fetcher_patch.start()
         self.resolver = resolver.GeoResolver()
 
+        client_signature_fetcher_patch = mock.patch.object(
+            client_signature_fetcher,
+            'ClientSignatureFetcher',
+            autospec=True)
+        self.addCleanup(client_signature_fetcher_patch.stop)
+        client_signature_fetcher_patch.start()
+
     def testAnswerQueryWhenSingleToolIsClosest(self):
         """When a single tool is closest, return that tool."""
         query = lookup_query.LookupQuery()
