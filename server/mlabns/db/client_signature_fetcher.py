@@ -12,7 +12,7 @@ class ClientSignatureFetcher(object):
         Args:
             key: A string in format like:
                  '127.0.0.1#Davlik 2.1.0 (blah blah blah)#resource'
-                 resource will look like 
+                 resource will look like
                  '/ndt_ssl?policy=geo_options&format=json...'
 
         Returns:
