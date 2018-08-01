@@ -314,9 +314,12 @@ class LookupQuery:
             A client signature if the request has ip_address, user_agent, tool_id
             and policy. Otherwise, returns an empty string.
         """
-        if self.ip_address and self.user_agent and self.path_qs:
+        if self.ip_address:
             logging.warning('ip address: ' + self.ip_address)
+        if self.user_agent:
             logging.warning('user agent: ' + self.user_agent)
+        if self.path_qs:
             logging.warning('url path: ' + self.path_qs)
+        if self.ip_address and self.user_agent and self.path_qs:
             return "%s#%s#%s" % (self.user_agent, self.path_qs, self.ip_address)
         return ''
