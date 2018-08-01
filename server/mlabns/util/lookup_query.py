@@ -109,7 +109,9 @@ class LookupQuery:
             self._ip_is_explicit = False
 
     def _set_user_agent(self, request):
-        self.user_agent = request.headers[message.USER_AGENT]
+        self.user_agent = ''
+        if message.USER_AGENT in request.headers:
+            self.user_agent = request.headers[message.USER_AGENT]
 
     def _set_path_qs(self, request):
         # URI path including the query string, e.g., '/blog/article?id=1'
