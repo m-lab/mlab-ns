@@ -97,10 +97,10 @@ class GeoResolver(ResolverBase):
         filtered_candidates = []
 
         # load client blacklist from memcache. If the request signature matches the
-        # blacklist, return a 0c site with assigned probability. If not, return
+        # blacklist, return a regular site with assigned probability. If not, return
         # regular mlab1/2/3/4 sites.
         prob = self.prob_of_blacklisted(query)
-        if prob > 0 and random.uniform(0, 1) < prob:
+        if prob > 0 and random.uniform(0, 1) > prob:
             # Filter the candidates sites, only keep the 0c sites
             filtered_candidates = filter(lambda c: c.site_id[-1] == 'c',
                                          candidates)
@@ -121,7 +121,9 @@ class GeoResolver(ResolverBase):
         return sorted_tools[:max_results]
 
     def prob_of_blacklisted(self, query):
-        # Return probability of matched client signature or 0 if there is nomatched entry.
+        # Return probability of matched client signature or 0 if there is no matched entry.
+        # The probability indicates whether the request should be sent to a regular site.
+        logging.warning('Client signature: ' + query.calculate_client_signature())
         return client_signature_fetcher.ClientSignatureFetcher().fetch(
             query.calculate_client_signature())
 
