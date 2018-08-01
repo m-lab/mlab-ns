@@ -123,8 +123,6 @@ class GeoResolver(ResolverBase):
     def prob_of_blacklisted(self, query):
         # Return probability of matched client signature or 0 if there is no matched entry.
         # The probability indicates whether the request should be sent to a regular site.
-        logging.warning('Client signature: ' + query.calculate_client_signature(
-        ))
         return client_signature_fetcher.ClientSignatureFetcher().fetch(
             query.calculate_client_signature())
 
