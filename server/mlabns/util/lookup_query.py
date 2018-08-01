@@ -315,5 +315,5 @@ class LookupQuery:
             and policy. Otherwise, returns an empty string.
         """
         if self.ip_address and self.user_agent and self.tool_id and self.policy:
-            return "%s#%s#%s" % (self.ip_address, self.user_agent, self.path_qs)
+            return "%s#%s#%s" % (self.user_agent, self.path_qs, self.ip_address)
         return ''
