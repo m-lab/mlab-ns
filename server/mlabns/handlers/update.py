@@ -523,6 +523,8 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
         """
         requests = list(model.Requests.all().fetch(limit=None))
         for request in requests:
+            logging.warning('key: ' + request.name_key)
+            logging.warning('prob: %f', request.Probability)
             if not memcache.set(request.name_key,
                                 request.Probability,
                                 namespace=constants.MEMCACHE_NAMESPACE_REQUESTS,
