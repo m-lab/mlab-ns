@@ -22,5 +22,5 @@ class ClientSignatureFetcher(object):
         matched_requests = memcache.get(
             key, namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
         if matched_requests and len(matched_requests) == 1:
-            return matched_requests[0].probability
+            return matched_requests[0].Probability
         return 0
