@@ -11,17 +11,8 @@ from mlabns.util import constants
 # Data format of this class is defined in
 # https://github.com/m-lab/mlab-ns-rate-limit/blob/master/endpoint/endpoint.go
 class Requests(db.Model):
-    probability = db.FloatProperty()
-    requests_per_day = db.IntegerProperty()
-    af = db.StringProperty()
-    format = db.StringProperty()
-    latitude = db.FloatProperty()
-    longitude = db.FloatProperty()
-    metro = db.StringProperty()
-    policy = db.StringProperty()
-    path = db.StringProperty()
-    target_ip = db.StringProperty()
-    requester_ip = db.StringProperty()
+    Probability = db.FloatProperty()
+    RequestsPerDay = db.IntegerProperty()
 
 
 class SliverTool(db.Model):
