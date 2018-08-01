@@ -51,7 +51,7 @@ class LookupQuery:
         self.distance = None
         self._ip_is_explicit = False
         self.user_agent = None
-        self.path = None
+        self.path_qs = None
         #TODO(mtlynch): We are using two country fields to store the same type
         # of information, but using user_defined_country in some cases and
         # country in others. We should consolidate them into a single field.
@@ -317,6 +317,6 @@ class LookupQuery:
         logging.warning('ip address: ' + self.ip_address)
         logging.warning('user agent: ' + self.user_agent)
         logging.warning('url path: ' + self.path_qs)
-        if self.ip_address and self.user_agent:
+        if self.ip_address and self.user_agent and self.path_qs:
             return "%s#%s#%s" % (self.user_agent, self.path_qs, self.ip_address)
         return ''
