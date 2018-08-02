@@ -13,6 +13,7 @@ from mlabns.util import constants
 class Requests(db.Model):
     Probability = db.FloatProperty()
     RequestsPerDay = db.IntegerProperty()
+    Signature = db.StringProperty()
 
 
 class SliverTool(db.Model):
