@@ -5,6 +5,7 @@ import urllib2
 
 from google.appengine.api import app_identity
 from google.appengine.api import memcache
+from google.appengine.api import namespace_manager
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 
@@ -521,7 +522,8 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
 
         Load the blacklist information from DataStore and set the memcache.
         """
-        requests = list(model.Requests.all().fetch(limit=None))
+        namespace_manager.set_namespace('endpoint_stats')
+        requests = list(model.alt_requests.all().fetch(limit=None))
         for request in requests:
             logging.warning('key: ' + request.Signature)
             logging.warning('prob: %f', request.Probability)
