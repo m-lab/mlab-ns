@@ -10,10 +10,9 @@ from mlabns.util import constants
 
 # Data format of this class is defined in
 # https://github.com/m-lab/mlab-ns-rate-limit/blob/master/endpoint/endpoint.go
-class Requests(db.Model):
+class alt_requests(db.Model):
     Probability = db.FloatProperty()
     RequestsPerDay = db.IntegerProperty()
-    Signature = db.StringProperty()
 
 
 class SliverTool(db.Model):
