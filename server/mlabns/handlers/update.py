@@ -525,8 +525,6 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
         namespace_manager.set_namespace('endpoint_stats')
         requests = list(model.alt_requests.all().fetch(limit=None))
         for request in requests:
-            logging.warning('key: ' + request.key().name())
-            logging.warning('prob: %f', request.Probability)
             if not memcache.set(request.key().name(),
                                 request.Probability,
                                 namespace=constants.MEMCACHE_NAMESPACE_REQUESTS,
