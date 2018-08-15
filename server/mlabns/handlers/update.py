@@ -523,7 +523,7 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
         Load the blacklist information from DataStore and set the memcache.
         """
         namespace_manager.set_namespace('endpoint_stats')
-        requests = list(model.alt_requests.all().fetch(limit=None))
+        requests = list(model.Requests.all().fetch(limit=None))
         for request in requests:
             if not memcache.set(request.key().name(),
                                 request.Probability,
