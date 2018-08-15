@@ -114,7 +114,7 @@ class LookupQuery:
             self.user_agent = request.headers[message.USER_AGENT]
 
     def _set_path_qs(self, request):
-        # URI path including the query string, e.g., '/blog/article?id=1'
+        # URI path including the query string, e.g., '/ndt_ssl?policy=geo_options'
         self.path_qs = request.path_qs
 
     def _set_tool_address_family(self, request):
