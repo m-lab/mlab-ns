@@ -99,9 +99,9 @@ class GeoResolver(ResolverBase):
         # load client blacklist from memcache. If the request signature matches the
         # blacklist, return a regular site with assigned probability. If not, return
         # regular mlab1/2/3/4 sites.
-        prob = self.prob_of_blacklisted(query)
+        prob = self.prob_of_goodbehavior(query)
         logging.info('prob returned from memcache: %f', prob)
-        if prob < 1.0 and random.uniform(0, 1) > prob:
+        if random.uniform(0, 1) > prob:
             # Filter the candidates sites, only keep the '0c' sites
             filtered_candidates = filter(lambda c: c.site_id[-1] == 'c',
                                          candidates)
@@ -121,7 +121,7 @@ class GeoResolver(ResolverBase):
         sorted_tools = [t['tool'] for t in tool_distances]
         return sorted_tools[:max_results]
 
-    def prob_of_blacklisted(self, query):
+    def prob_of_goodbehavior(self, query):
         # Return probability of matched client signature or 1 if there is no matched entry.
         # The probability indicates whether the request should be sent to a regular site.
         return client_signature_fetcher.ClientSignatureFetcher().fetch(
