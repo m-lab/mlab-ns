@@ -109,7 +109,7 @@ class GeoResolver(ResolverBase):
             # Filter the candidates sites, only keep the regular sites
             filtered_candidates = filter(lambda c: c.site_id[-1] != 'c',
                                          candidates)
-        # only return regular sites for normal clients
+
         for candidate in filtered_candidates:
             self._add_candidate(query, candidate, site_distances,
                                 tool_distances)
