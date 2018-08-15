@@ -305,6 +305,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
             tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
 
         mock_fetched_tools = [close_tool, far_tool]
+        client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = 1.0
         self.assertQueryResultSingleTool(query, mock_fetched_tools, close_tool,
                                          tool_properties_expected)
 
@@ -332,6 +333,7 @@ class GeoResolverTestCase(ResolverTestCaseBase):
             status=message.STATUS_ONLINE)
 
         mock_fetched_tools = [close_tool, far_tool]
+        client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = 1.0
         self.assertQueryResultSingleTool(query, mock_fetched_tools, close_tool,
                                          tool_properties_expected)
 
@@ -457,7 +459,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
-
+        client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = 1.0
         self.assertQueryResultMultiTool(query, mock_fetched_tools,
                                         query_results_expected,
                                         tool_properties_expected)
