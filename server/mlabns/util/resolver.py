@@ -100,7 +100,7 @@ class GeoResolver(ResolverBase):
         # blacklist, return a regular site with assigned probability. If not, return
         # regular mlab1/2/3/4 sites.
         prob = self.prob_of_blacklisted(query)
-        logging.warning('prob returned from memcache: %f', prob)
+        logging.info('prob returned from memcache: %f', prob)
         if prob > 0 and random.uniform(0, 1) > prob:
             # Filter the candidates sites, only keep the 0c sites
             filtered_candidates = filter(lambda c: c.site_id[-1] == 'c',
