@@ -102,7 +102,7 @@ class GeoResolver(ResolverBase):
         prob = self.prob_of_blacklisted(query)
         logging.info('prob returned from memcache: %f', prob)
         tt = random.uniform(0, 1)
-        log.warning('rand: %f', tt)
+        logging.warning('rand: %f', tt)
         if prob < 1.0 and tt > prob:
             # Filter the candidates sites, only keep the '0c' sites
             filtered_candidates = filter(lambda c: c.site_id[-1] == 'c',
