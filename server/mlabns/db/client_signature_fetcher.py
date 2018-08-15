@@ -16,11 +16,11 @@ class ClientSignatureFetcher(object):
                  '/ndt_ssl?policy=geo_options&format=json...'
 
         Returns:
-            The probability of matched client signature or 0 if there is no
+            The probability of matched client signature or 1 if there is no
             matched entry.
         """
         matched_requests = memcache.get(
             key, namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
         if matched_requests:
             return matched_requests
-        return 0
+        return 1.0
