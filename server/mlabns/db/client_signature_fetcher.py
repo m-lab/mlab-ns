@@ -7,7 +7,7 @@ class ClientSignatureFetcher(object):
     """Fetch probability of matched client signature from AppEngine memcache."""
 
     def fetch(self, key):
-        """Fetch probability of matched client signature.
+        """Fetch probability of matched client signature that was assigned a regular site.
 
         Args:
             key: A string in format like:
@@ -16,8 +16,8 @@ class ClientSignatureFetcher(object):
                  '/ndt_ssl?policy=geo_options&format=json...'
 
         Returns:
-            The probability of matched client signature or 1 if there is no
-            matched entry.
+            The probability of matched client signature going to a regular site
+            or 1.0 if there is no matched entry.
         """
         matched_requests = memcache.get(
             key, namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
