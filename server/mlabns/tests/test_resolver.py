@@ -496,7 +496,7 @@ class GeoResolverWithOptionsTestCase(ResolverTestCaseBase):
         # specified tool ID.
         tool_properties_expected = sliver_tool_fetcher.ToolProperties(
             tool_id=_TOOL_ID, status=message.STATUS_ONLINE)
-
+        client_signature_fetcher.ClientSignatureFetcher().fetch.return_value = 1.0
         self.assertQueryResultWithRandomShuffle(query, mock_fetched_tools,
                                                 query_results_expected,
                                                 tool_properties_expected)
