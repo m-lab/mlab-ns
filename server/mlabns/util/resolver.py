@@ -96,10 +96,8 @@ class GeoResolver(ResolverBase):
 
         filtered_candidates = []
 
-        # load client blacklist from memcache. If the request signature matches the
-        # blacklist, return a regular site with assigned probability. If not, return
-        # regular mlab1/2/3/4 sites.
-        prob = self.prob_of_goodbehavior(query)
+        prob = client_signature_fetcher.ClientSignatureFetcher().fetch(
+            query.calculate_client_signature())
         logging.info('prob returned from memcache: %f', prob)
         if random.uniform(0, 1) > prob:
             # Filter the candidates sites, only keep the '0c' sites
@@ -120,12 +118,6 @@ class GeoResolver(ResolverBase):
         # Create a new list of just the sorted SliverTool objects.
         sorted_tools = [t['tool'] for t in tool_distances]
         return sorted_tools[:max_results]
-
-    def prob_of_goodbehavior(self, query):
-        # Return probability of matched client signature or 1 if there is no matched entry.
-        # The probability indicates whether the request should be sent to a regular site.
-        return client_signature_fetcher.ClientSignatureFetcher().fetch(
-            query.calculate_client_signature())
 
     def answer_query(self, query):
         """Selects the geographically closest SliverTool.
