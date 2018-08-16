@@ -11,8 +11,8 @@ class ClientSignatureFetcher(object):
         For each client signature, if there is a match in memcache, which means that this
         client was detected sending more than normal requests in the past 24 hours, then
         mlab-ns will assign this client to regular m-lab sites with probability p (usually p < 1),
-        and assign this client to a backup '0c' sites with probability 1-p. p is the 'probability'
-        field of the metched entry.
+        and assign this client to backup '0c' sites with probability 1-p. p is the 'probability'
+        field of the matched entry.
         If there is no matched entry in the memcache, which means this client behaved normally
         and should always be assigned to a regular site, 1.0 will be returned.
 
