@@ -51,6 +51,7 @@ class LookupQuery:
         self.distance = None
         self._ip_is_explicit = False
         self.user_agent = None
+        self.path_qs = None
         #TODO(mtlynch): We are using two country fields to store the same type
         # of information, but using user_defined_country in some cases and
         # country in others. We should consolidate them into a single field.
@@ -81,6 +82,7 @@ class LookupQuery:
         self._set_ip_address(request)
         self._set_tool_address_family(request)
         self._set_user_agent(request)
+        self._set_path_qs(request)
         self._set_geolocation(request)
         self.metro = request.get(message.METRO, default_value=None)
         self._set_policy(request)
@@ -107,7 +109,13 @@ class LookupQuery:
             self._ip_is_explicit = False
 
     def _set_user_agent(self, request):
-        self.user_agent = request.get(message.USER_AGENT, default_value=None)
+        self.user_agent = ''
+        if message.USER_AGENT in request.headers:
+            self.user_agent = request.headers[message.USER_AGENT]
+
+    def _set_path_qs(self, request):
+        # URI path including the query string, e.g., '/ndt_ssl?policy=geo_options'
+        self.path_qs = request.path_qs
 
     def _set_tool_address_family(self, request):
         tool_address_family = request.get(message.ADDRESS_FAMILY,
@@ -308,6 +316,6 @@ class LookupQuery:
             A client signature if the request has ip_address, user_agent, tool_id
             and policy. Otherwise, returns an empty string.
         """
-        if self.ip_address and self.user_agent and self.tool_id and self.policy:
-            return self.ip_address + '#' + self.user_agent + '#' + self.tool_id + '#' + self.policy
+        if self.ip_address and self.user_agent and self.path_qs:
+            return "%s#%s#%s" % (self.user_agent, self.path_qs, self.ip_address)
         return ''

@@ -5,6 +5,7 @@ import urllib2
 
 from google.appengine.api import app_identity
 from google.appengine.api import memcache
+from google.appengine.api import namespace_manager
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 
@@ -511,3 +512,21 @@ class ReloadMaxmindDb(webapp.RequestHandler):
 
         # Generates the new Reader object.
         maxmind.get_geo_reader()
+
+
+class BlacklistRequestsHandler(webapp.RequestHandler):
+    """Updates Blacklist Request list."""
+
+    def get(self):
+        """Triggers the update handler.
+
+        Load the blacklist information from DataStore and set the memcache.
+        """
+        namespace_manager.set_namespace('endpoint_stats')
+        requests = list(model.Requests.all().fetch(limit=None))
+        for request in requests:
+            if not memcache.set(request.key().name(),
+                                request.probability,
+                                namespace=constants.MEMCACHE_NAMESPACE_REQUESTS,
+                                time=900):
+                logging.error('Failed to update blacklist clients in memcache.')

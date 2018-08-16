@@ -1,8 +1,5 @@
 cron:
-#- description: Upload logs to BigQuery
-#  url: /cron/process_logs
-#  schedule: every 17 minutes
-
+# check for site status, run every minute.
 - description: Check sliver tools status
   url: /cron/check_status
   schedule: every 1 minutes
@@ -12,3 +9,8 @@ cron:
 - description: Check sites, update IP and roundrobin
   url: /cron/check_site
   schedule: every day 06:00
+
+# Update blacklist of client signature list for abusive clients.
+- description: Check client blacklists for abusive clients. 
+  url: /cron/update_requests
+  schedule: every 5 minutes

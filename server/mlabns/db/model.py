@@ -13,15 +13,6 @@ from mlabns.util import constants
 class Requests(db.Model):
     probability = db.FloatProperty()
     requests_per_day = db.IntegerProperty()
-    af = db.StringProperty()
-    format = db.StringProperty()
-    latitude = db.FloatProperty()
-    longitude = db.FloatProperty()
-    metro = db.StringProperty()
-    policy = db.StringProperty()
-    path = db.StringProperty()
-    target_ip = db.StringProperty()
-    requester_ip = db.StringProperty()
 
 
 class SliverTool(db.Model):
