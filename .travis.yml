@@ -18,9 +18,9 @@ after_success:
     coveralls
 
 deploy:
-# Testing: deploy to ns-sandbox for testing purpose.
+# Testing: deploy to mlab-sandbox for testing purpose.
 - provider: script
-  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting SERVICE_ACCOUNT_mlab_nstesting . server/app.yaml
+  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-sandbox SERVICE_ACCOUNT_mlab_sandbox . server/app.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
