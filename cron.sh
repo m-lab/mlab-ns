@@ -10,6 +10,11 @@ BASEDIR="$(dirname "$0")"
 gcloud version
 echo $PATH
 which gcloud
+export PATH=$HOME/google-cloud-sdk/bin:$PATH
+
+gcloud version
+echo $PATH
+which gcloud
 
 # check for site status, run every minute.
 "${BASEDIR}"/travis/schedule_appengine_job.sh "${PROJECT}" check_status \
