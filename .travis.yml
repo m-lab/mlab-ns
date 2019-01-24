@@ -3,9 +3,6 @@ python:
   - "2.7"
 env:
   - PYTHONPATH=$PYTHONPATH:$HOME/google-cloud-sdk/platform/google_appengine
-cache:
-  directories:
-    - "$HOME/google-cloud-sdk/"
 
 install:
   - $TRAVIS_BUILD_DIR/travis/install_gcloud.sh app-engine-python
