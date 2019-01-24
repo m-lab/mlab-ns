@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# cron.sh creates the cron jobs needed for the annotation service, using the
+# cron.sh creates the cron jobs needed for the ns service, using the
 # Cloud Schedule API to create app engine cron jobs.
 
 set -ex
