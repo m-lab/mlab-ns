@@ -7,22 +7,6 @@ set -ex
 PROJECT=${1:?Please provide project}
 BASEDIR="$(dirname "$0")"
 
-# Add gcloud to PATH.
-source "${HOME}/google-cloud-sdk/path.bash.inc"
-source $( dirname "${BASH_SOURCE[0]}" )/travis/gcloudlib.sh
-
-# Authenticate all operations using the given service account.
-activate_service_account SERVICE_ACCOUNT_${PROJECT/-/_}
-
-gcloud version
-echo $PATH
-which gcloud
-export PATH=$HOME/google-cloud-sdk/bin:$PATH
-
-gcloud version
-echo $PATH
-which gcloud
-
 # check for site status, run every minute.
 "${BASEDIR}"/travis/schedule_appengine_job.sh "${PROJECT}" check_status \
     --description="Check sliver tools status" \
