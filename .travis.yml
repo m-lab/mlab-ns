@@ -18,9 +18,9 @@ deploy:
 # Testing: deploy to mlab-sandbox for testing purpose.
 - provider: script
   script:
-    python environment_bootstrap.py sandbox
+    $TRAVIS_BUILD_DIR/cron.sh mlab-sandbox
+    && python environment_bootstrap.py sandbox
     && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-sandbox SERVICE_ACCOUNT_mlab_sandbox . server/app.yaml
-    && $TRAVIS_BUILD_DIR/cron.sh mlab-sandbox
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
