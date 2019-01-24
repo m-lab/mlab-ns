@@ -7,6 +7,8 @@ set -ex
 PROJECT=${1:?Please provide project}
 BASEDIR="$(dirname "$0")"
 
+gcloud version
+
 # check for site status, run every minute.
 "${BASEDIR}"/travis/schedule_appengine_job.sh "${PROJECT}" check_status \
     --description="Check sliver tools status" \
