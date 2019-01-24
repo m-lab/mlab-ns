@@ -7,6 +7,9 @@ set -ex
 PROJECT=${1:?Please provide project}
 BASEDIR="$(dirname "$0")"
 
+# Force correct gcloud into path
+export PATH=$HOME/google-cloud-sdk/bin:$PATH
+
 # check for site status, run every minute.
 "${BASEDIR}"/travis/schedule_appengine_job.sh "${PROJECT}" check_status \
     --description="Check sliver tools status" \
