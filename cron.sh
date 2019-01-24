@@ -9,7 +9,7 @@ BASEDIR="$(dirname "$0")"
 
 # Add gcloud to PATH.
 source "${HOME}/google-cloud-sdk/path.bash.inc"
-source $( dirname "${BASH_SOURCE[0]}" )/gcloudlib.sh
+source $( dirname "${BASH_SOURCE[0]}" )/travis/gcloudlib.sh
 
 # Authenticate all operations using the given service account.
 activate_service_account SERVICE_ACCOUNT_${PROJECT/-/_}
