@@ -8,6 +8,8 @@ PROJECT=${1:?Please provide project}
 BASEDIR="$(dirname "$0")"
 
 gcloud version
+echo $PATH
+which gcloud
 
 # check for site status, run every minute.
 "${BASEDIR}"/travis/schedule_appengine_job.sh "${PROJECT}" check_status \
