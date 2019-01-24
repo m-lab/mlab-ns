@@ -7,6 +7,13 @@ set -ex
 PROJECT=${1:?Please provide project}
 BASEDIR="$(dirname "$0")"
 
+# Add gcloud to PATH.
+source "${HOME}/google-cloud-sdk/path.bash.inc"
+source $( dirname "${BASH_SOURCE[0]}" )/gcloudlib.sh
+
+# Authenticate all operations using the given service account.
+activate_service_account SERVICE_ACCOUNT_${PROJECT/-/_}
+
 gcloud version
 echo $PATH
 which gcloud
