@@ -3,9 +3,6 @@ python:
   - "2.7"
 env:
   - PYTHONPATH=$PYTHONPATH:$HOME/google-cloud-sdk/platform/google_appengine
-cache:
-  directories:
-    - "$HOME/google-cloud-sdk/"
 
 install:
   - $TRAVIS_BUILD_DIR/travis/install_gcloud.sh app-engine-python
@@ -18,9 +15,12 @@ after_success:
     coveralls
 
 deploy:
-# Testing: deploy to ns-sandbox for testing purpose.
+# Testing: deploy to mlab-sandbox for testing purpose.
 - provider: script
-  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting SERVICE_ACCOUNT_mlab_nstesting . server/app.yaml
+  script:
+    python environment_bootstrap.py sandbox
+    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-sandbox SERVICE_ACCOUNT_mlab_sandbox . server/app.yaml
+    && $TRAVIS_BUILD_DIR/cron.sh mlab-sandbox
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
@@ -29,7 +29,9 @@ deploy:
 
 # Testing: deploy to mlab-nstesting
 - provider: script
-  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting SERVICE_ACCOUNT_mlab_nstesting . server/app.yaml
+  script:
+    python environment_bootstrap.py testing
+    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting SERVICE_ACCOUNT_mlab_nstesting . server/app.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
@@ -38,7 +40,9 @@ deploy:
 
 # Production: deploy to mlab-ns
 - provider: script
-  script: python environment_bootstrap.py live && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns SERVICE_ACCOUNT_mlab_ns . server/app.yaml
+  script:
+    python environment_bootstrap.py live
+    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns SERVICE_ACCOUNT_mlab_ns . server/app.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
