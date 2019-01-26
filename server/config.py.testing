@@ -1,6 +1,6 @@
-project_id = '240028626237'
-gs_bucket_name = 'locate-mlab-staging'
-bigquery_dataset_id = 'locate'
+project_id = '476148614562'
+gs_bucket_name = 'mlab-nstesting'
+bigquery_dataset_id = 'mlabnstesting'
 bigquery_table_id = 'lookup'
 bigquery_schema = [
     {
