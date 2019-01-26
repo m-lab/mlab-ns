@@ -147,6 +147,11 @@ class Prometheus(db.Model):
     password = db.StringProperty()
     url = db.StringProperty()
 
+class RedirectProbability(db.Model):
+    name = db.StringProperty()
+    probability = db.FloatProperty()
+    url = db.StringProperty()
+
 
 def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
     """Creates the SliverTool id from an UpdateMessage.
