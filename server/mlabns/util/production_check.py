@@ -37,5 +37,7 @@ def is_production_slice(slice_fqdn):
         # name and mlab1 is the server ID.
         if is_production_site(fqdn_parts[i]):
             server_id = fqdn_parts[i - 1]
-            return re.match(os.environ.get('SERVER_REGEX', '^mlab[123]$'), server_id, re.IGNORECASE) != None
+            return re.match(
+                os.environ.get('SERVER_REGEX', '^mlab[123]$'), server_id,
+                re.IGNORECASE) != None
     return False

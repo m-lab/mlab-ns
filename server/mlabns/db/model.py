@@ -147,6 +147,7 @@ class Prometheus(db.Model):
     password = db.StringProperty()
     url = db.StringProperty()
 
+
 class RedirectProbability(db.Model):
     name = db.StringProperty()
     probability = db.FloatProperty()
@@ -245,5 +246,6 @@ def get_redirect_probability():
     for prob in RedirectProbability.all().run():
         return prob
     logging.info('No redirect probability found')
-    return RedirectProbability(
-        name="default", probability=0, url="https://mlab-ns.appspot.com")
+    return RedirectProbability(name="default",
+                               probability=0,
+                               url="https://mlab-ns.appspot.com")
