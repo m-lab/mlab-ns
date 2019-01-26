@@ -50,7 +50,7 @@ if __name__ == '__main__':
       prog='mlab-ns Environment Bootstrapper',
       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument('environment_type',
-                      choices=['sandbox', 'testing', 'live'],
+                      choices=['sandbox', 'staging', 'live'],
                       help='The type of environment to configure.')
   main(parser.parse_args())
 
