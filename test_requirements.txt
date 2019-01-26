@@ -1,3 +1,4 @@
+setuptools
 coverage
 geoip2
 GoogleAppEngineCloudStorageClient

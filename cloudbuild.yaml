@@ -13,19 +13,18 @@ steps:
    - -c
    - python environment_bootstrap.py sandbox
 
-# TODO: run unit tests.
-
-# Report environment as a test.
+# Run unit tests for environment.
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: bash
   args:
    - -c
-   - env
+   - "pip install setuptools && pip install -r test_requirements.txt && pip install coveralls && /workspace/build"
+
   env:
+   - 'PYTHONPATH=/builder/google-cloud-sdk/platform/google_appengine'
    - 'COMMIT=$COMMIT_SHA'
    - 'TAG=$TAG_NAME'
    - 'PROJECT=$PROJECT_ID'
-   - 'ARTIFACTS=/workspace/output'
 
 # Perform deployment of AppEngine service.
 - name: gcr.io/cloud-builders/gcloud
