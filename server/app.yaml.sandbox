@@ -38,6 +38,10 @@ handlers:
 - url: /.*
   script: main.app
 
+- url: /_ah/warmup
+  script: main.py
+  login: admin
+
 builtins:
 - appstats: on
 - deferred: on
@@ -58,3 +62,6 @@ includes:
 
 env_variables:
   SERVER_REGEX: "^mlab4$"
+
+inbound_services:
+- warmup

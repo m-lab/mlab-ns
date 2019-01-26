@@ -233,3 +233,17 @@ def get_status_source_deps(source):
     if not tools:
         logging.info('No tools get their status from %s.', source)
     return tools
+
+
+def get_redirect_probability():
+    """Reads the first (and only) RedirectProbability record.
+
+    Returns:
+        RedirectProbability, either the one read from Datastore, or a
+        default instance with zero probability.
+    """
+    for prob in RedirectProbability.all().run():
+        return prob
+    logging.info('No redirect probability found')
+    return RedirectProbability(
+        name="default", probability=0, url="https://mlab-ns.appspot.com")

@@ -1,11 +1,13 @@
 import json
 import logging
+import random
 import time
 
 from mlabns.db import model
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
+from mlabns.util import redirect
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -43,6 +45,11 @@ class LookupHandler(webapp.RequestHandler):
         For more information about the URL and the supported arguments
         in the query string, see the design doc at http://goo.gl/48S22.
         """
+        # Check right away whether we should redirect this request.
+        rdp = redirect.get_redirection()
+        if random.uniform(0, 1) < rdp.probability:
+            return self.send_redirect_url(rdp.url + self.request.path_qs)
+
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
 
@@ -213,6 +220,12 @@ class LookupHandler(webapp.RequestHandler):
             return self.redirect(url)
 
         return util.send_not_found(self, 'html')
+
+    def send_redirect_url(self, url):
+        # TODO: verify that the protocol is preserved.
+        for h in ['X-Forwarded-Proto', 'X-AppEngine-Https']:
+            logging.info("%s: %s", h, self.request.headers.get(h, 'unknown'))
+        return self.redirect(str(url))
 
     def send_map_response(self, sliver_tool, query, candidates):
         """Shows the result of the query in a map.
