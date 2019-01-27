@@ -62,6 +62,7 @@ includes:
 
 env_variables:
   SERVER_REGEX: "^mlab4$"
+  IGNORE_BUSINESS_HOURS: "1"
 
 inbound_services:
 - warmup

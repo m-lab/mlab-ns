@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import random
@@ -70,11 +69,22 @@ def during_business_hours(t):
     Returns:
         bool, True if during business hours, M-Th.
     """
+    if os.environ.get('IGNORE_BUSINESS_HOURS', None) is not None:
+        return True
     # EST 9am = 14 UTC, 5pm EST = 22 UTC, 0=M, 1=Tu, 2=W, 3=Th.
     return t.hour >= 14 and t.hour <= 22 and t.weekday() < 4
 
 
 def try_redirect_url(request, t):
+    """Possibly generates a URL to redirect a client.
+
+    Args:
+       request: webapp.Request, request used to construct complete url.
+       t: datetime.datetime, time used to evaluate business hours.
+
+    Returns:
+       str, empty string for no action, or complete URL for client redirect.
+    """
     if request.path != '/ndt_ssl':
         return ""
     rdp = redirect.get_redirection()

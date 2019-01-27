@@ -221,14 +221,16 @@ class LookupHandler(webapp.RequestHandler):
         return util.send_not_found(self, 'html')
 
     def send_redirect_url(self, url):
-        # TODO: verify that the protocol is preserved.
-        for h in ['X-Forwarded-Proto', 'X-AppEngine-Https']:
-            logging.info("%s: %s", h, self.request.headers.get(h, 'unknown'))
-        logging.info("request  url: %s", self.request.url)
-        logging.info("redirect url: %s", url)
+        """Sends an HTTP redirect for given url.
+
+        Args:
+          url: str, URL to direct client.
+        """
         if url.index(':') != self.request.url.index(':'):
-            logging.info("Different protocol!")
-        return self.redirect(str(url))
+            logging.info("Resetting redirect protocol to match origin.")
+            url = (self.request.url[:self.request.url.index(':')] +
+                   url[url.index(':'):])
+        self.redirect(str(url))
 
     def send_map_response(self, sliver_tool, query, candidates):
         """Shows the result of the query in a map.
