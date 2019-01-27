@@ -1,13 +1,12 @@
+import datetime
 import json
 import logging
-import random
 import time
 
 from mlabns.db import model
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
-from mlabns.util import redirect
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -46,9 +45,9 @@ class LookupHandler(webapp.RequestHandler):
         in the query string, see the design doc at http://goo.gl/48S22.
         """
         # Check right away whether we should redirect this request.
-        rdp = redirect.get_redirection()
-        if random.uniform(0, 1) < rdp.probability:
-            return self.send_redirect_url(rdp.url + self.request.path_qs)
+        url = util.try_redirect_url(self.request, datetime.datetime.now())
+        if url:
+            return self.send_redirect_url(url)
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
@@ -225,6 +224,10 @@ class LookupHandler(webapp.RequestHandler):
         # TODO: verify that the protocol is preserved.
         for h in ['X-Forwarded-Proto', 'X-AppEngine-Https']:
             logging.info("%s: %s", h, self.request.headers.get(h, 'unknown'))
+        logging.info("request  url: %s", self.request.url)
+        logging.info("redirect url: %s", url)
+        if url.index(':') != self.request.url.index(':'):
+            logging.info("Different protocol!")
         return self.redirect(str(url))
 
     def send_map_response(self, sliver_tool, query, candidates):
