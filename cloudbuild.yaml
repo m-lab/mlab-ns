@@ -9,6 +9,7 @@ steps:
 # Setup per-project configuration.
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: bash
+  # TODO: support passing $PROJECT name as environment parameter.
   args:
    - -c
    - python environment_bootstrap.py sandbox
@@ -18,7 +19,11 @@ steps:
   entrypoint: bash
   args:
    - -c
-   - "pip install setuptools && pip install -r test_requirements.txt && pip install coveralls && /workspace/build"
+   - >
+     pip install setuptools &&
+     pip install -r test_requirements.txt &&
+     pip install coveralls &&
+     /workspace/build
 
   env:
    - 'PYTHONPATH=/builder/google-cloud-sdk/platform/google_appengine'
