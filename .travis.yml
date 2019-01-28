@@ -18,7 +18,7 @@ deploy:
 # Testing: deploy to mlab-sandbox for testing purpose.
 - provider: script
   script:
-    python environment_bootstrap.py sandbox
+    python environment_bootstrap.py mlab-sandbox
     && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-sandbox SERVICE_ACCOUNT_mlab_sandbox . server/app.yaml
     && $TRAVIS_BUILD_DIR/cron.sh mlab-sandbox
   skip_cleanup: true
@@ -27,11 +27,11 @@ deploy:
     all_branches: true
     condition: $TRAVIS_BRANCH == sandbox-* && $TRAVIS_EVENT_TYPE == push
 
-# Testing: deploy to mlab-nstesting
+# Staging: deploy to mlab-staging for pre-production validation.
 - provider: script
   script:
-    python environment_bootstrap.py testing
-    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting SERVICE_ACCOUNT_mlab_nstesting . server/app.yaml
+    python environment_bootstrap.py mlab-staging
+    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-staging SERVICE_ACCOUNT_mlab_staging . server/app.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
@@ -41,7 +41,7 @@ deploy:
 # Production: deploy to mlab-ns
 - provider: script
   script:
-    python environment_bootstrap.py live
+    python environment_bootstrap.py mlab-ns
     && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns SERVICE_ACCOUNT_mlab_ns . server/app.yaml
   skip_cleanup: true
   on:
