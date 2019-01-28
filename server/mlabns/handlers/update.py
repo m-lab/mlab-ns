@@ -539,5 +539,5 @@ class WarmupHandler(webapp.RequestHandler):
     def get(self):
         """Handles warmup request."""
         logging.info('Running warmup handlers for: redirect, maxmind')
-        redirect.update_redirection()
+        redirect.get_redirection()
         maxmind.get_geo_reader()
