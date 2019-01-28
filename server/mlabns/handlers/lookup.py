@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import time
@@ -43,6 +44,11 @@ class LookupHandler(webapp.RequestHandler):
         For more information about the URL and the supported arguments
         in the query string, see the design doc at http://goo.gl/48S22.
         """
+        # Check right away whether we should redirect this request.
+        url = util.try_redirect_url(self.request, datetime.datetime.now())
+        if url:
+            return self.send_redirect_url(url)
+
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
 
@@ -213,6 +219,18 @@ class LookupHandler(webapp.RequestHandler):
             return self.redirect(url)
 
         return util.send_not_found(self, 'html')
+
+    def send_redirect_url(self, url):
+        """Sends an HTTP redirect for given url.
+
+        Args:
+          url: str, URL to direct client.
+        """
+        if url.index(':') != self.request.url.index(':'):
+            logging.info("Resetting redirect protocol to match origin.")
+            url = (self.request.url[:self.request.url.index(':')] +
+                   url[url.index(':'):])
+        self.redirect(str(url))
 
     def send_map_response(self, sliver_tool, query, candidates):
         """Shows the result of the query in a map.

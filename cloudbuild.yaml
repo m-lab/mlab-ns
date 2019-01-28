@@ -1,0 +1,40 @@
+# Timeout for complete build. Default is 10m.
+timeout: 1800s
+
+############################################################################
+# Deployment
+############################################################################
+
+steps:
+# Setup per-project configuration.
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: bash
+  # TODO: support passing $PROJECT name as environment parameter.
+  args:
+   - -c
+   - python environment_bootstrap.py sandbox
+
+# Run unit tests for environment.
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: bash
+  args:
+   - -c
+   - >
+     pip install setuptools &&
+     pip install -r test_requirements.txt &&
+     pip install coveralls &&
+     /workspace/build
+
+  env:
+   - 'PYTHONPATH=/builder/google-cloud-sdk/platform/google_appengine'
+   - 'COMMIT=$COMMIT_SHA'
+   - 'TAG=$TAG_NAME'
+   - 'PROJECT=$PROJECT_ID'
+
+# Perform deployment of AppEngine service.
+- name: gcr.io/cloud-builders/gcloud
+  args: [
+      'app', 'deploy', '--promote', 'app.yaml'
+  ]
+  dir: 'server'
+

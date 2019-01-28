@@ -38,6 +38,10 @@ handlers:
 - url: /.*
   script: main.app
 
+- url: /_ah/warmup
+  script: main.py
+  login: admin
+
 builtins:
 - appstats: on
 - deferred: on
@@ -55,3 +59,10 @@ libraries:
 
 includes:
 - mapreduce/include.yaml
+
+env_variables:
+  SERVER_REGEX: "^mlab4$"
+  IGNORE_BUSINESS_HOURS: "1"
+
+inbound_services:
+- warmup

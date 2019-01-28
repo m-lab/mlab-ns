@@ -1,3 +1,5 @@
+import os
+
 from django.utils import simplejson
 from google.appengine.api import memcache
 from google.appengine.ext import webapp
@@ -5,6 +7,7 @@ from google.appengine.ext.webapp import template
 
 from mlabns.db import model
 from mlabns.util import constants
+from mlabns.util import production_check
 from mlabns.util import util
 
 
@@ -124,6 +127,7 @@ class AdminHandler(webapp.RequestHandler):
         values = {
             'cities': json_data,
             'tool_id': tool_id,
+            'server_regex': os.environ.get('SERVER_REGEX', '^mlab[123]$'),
             'address_family': address_family,
             'privacy_doc_url': constants.PRIVACY_DOC_URL,
             'design_doc_url': constants.DESIGN_DOC_URL
@@ -169,6 +173,8 @@ class AdminHandler(webapp.RequestHandler):
 
         # Add sliver tools info to the sites.
         for sliver_tool in sliver_tools:
+            if not production_check.is_production_slice(sliver_tool.fqdn):
+                continue
             sliver_tool_info = {}
             sliver_tool_info['slice_id'] = sliver_tool.slice_id
             sliver_tool_info['tool_id'] = sliver_tool.tool_id

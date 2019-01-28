@@ -34,7 +34,7 @@
       var errorMarkersArray = [];
 
       function isProductionServer(serverName) {
-        return /^mlab[0-3]$/.test(serverName);
+        return /{{server_regex}}/.test(serverName);
       }
 
       function initialize() {

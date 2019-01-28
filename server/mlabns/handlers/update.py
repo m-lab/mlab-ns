@@ -19,6 +19,7 @@ from mlabns.util import message
 from mlabns.util import nagios_status
 from mlabns.util import prometheus_status
 from mlabns.util import production_check
+from mlabns.util import redirect
 from mlabns.util import util
 
 
@@ -530,3 +531,13 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
                                 namespace=constants.MEMCACHE_NAMESPACE_REQUESTS,
                                 time=900):
                 logging.error('Failed to update blacklist clients in memcache.')
+
+
+class WarmupHandler(webapp.RequestHandler):
+    """Loads expensive queries into memory before starting service."""
+
+    def get(self):
+        """Handles warmup request."""
+        logging.info('Running warmup handlers for: redirect, maxmind')
+        redirect.get_redirection()
+        maxmind.get_geo_reader()
