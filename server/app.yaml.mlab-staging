@@ -2,6 +2,7 @@ runtime: python27
 api_version: 1
 threadsafe: false
 instance_class: F4_1G
+service: locate
 
 handlers:
 
@@ -37,6 +38,10 @@ handlers:
 - url: /.*
   script: main.app
 
+- url: /_ah/warmup
+  script: main.py
+  login: admin
+
 builtins:
 - appstats: on
 - deferred: on
@@ -54,3 +59,9 @@ libraries:
 
 includes:
 - mapreduce/include.yaml
+
+env_variables:
+  SERVER_REGEX: "^mlab4$"
+
+inbound_services:
+- warmup
