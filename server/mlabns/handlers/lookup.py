@@ -7,6 +7,7 @@ from mlabns.db import model
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
+from mlabns.util import redirect
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -45,7 +46,7 @@ class LookupHandler(webapp.RequestHandler):
         in the query string, see the design doc at http://goo.gl/48S22.
         """
         # Check right away whether we should redirect this request.
-        url = util.try_redirect_url(self.request, datetime.datetime.now())
+        url = redirect.try_redirect_url(self.request, datetime.datetime.now())
         if url:
             return self.send_redirect_url(url)
 
