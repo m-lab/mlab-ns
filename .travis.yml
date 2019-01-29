@@ -32,6 +32,7 @@ deploy:
   script:
     python environment_bootstrap.py mlab-staging
     && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-staging SERVICE_ACCOUNT_mlab_staging . server/app.yaml
+    && $TRAVIS_BUILD_DIR/cron.sh mlab-staging
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
