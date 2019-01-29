@@ -89,12 +89,6 @@ appcfg.py --url ${GAE_URL}/_ah/remote_api upload_data \
 appcfg.py --url ${GAE_URL}/_ah/remote_api upload_data \
   --oauth2_access_token=${TOKEN} \
   --config_file=server/bulkloader.yaml \
-  --filename=server/mlabns/conf/nagios.csv \
-  --kind=Nagios
-
-appcfg.py --url ${GAE_URL}/_ah/remote_api upload_data \
-  --oauth2_access_token=${TOKEN} \
-  --config_file=server/bulkloader.yaml \
   --filename=server/mlabns/conf/prometheus.csv \
   --kind=Prometheus
 
@@ -113,7 +107,7 @@ likely start with `~/.appcfg*`).
 
 After the Datastore is populated with seed information, manually kick off the
 cron jobs to finish populating the Datastore with the latest live information
-from Nagios.
+from Prometheus.
 
 Run the following jobs from GCP under Compute > App Engine > Task queues > Cron Jobs.
 
