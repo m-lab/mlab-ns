@@ -7,12 +7,14 @@ env:
 install:
   - $TRAVIS_BUILD_DIR/travis/install_gcloud.sh app-engine-python
   - $HOME/google-cloud-sdk/install.sh
-  - pip install -r test_requirements.txt
   - pip install coveralls
+  - docker build -t mlabns-testing .
+
 script:
-  - ./build
+  - docker run -w /workdir -v $TRAVIS_BUILD_DIR:/workdir -it mlabns-testing ./build
+
 after_success:
-    coveralls
+  - coveralls
 
 deploy:
 # Testing: deploy to mlab-sandbox for testing purpose.
