@@ -12,10 +12,16 @@ mlab-ns is intergrated with Travis to build and deploy to testing and production
 
 ## Manual Deployments
 
-Though we use Travis now to build and deploy, the previous instructions are retained below for reference.
+Though we use Travis now to build and deploy, the previous instructions are
+retained below for reference.
 
 ### Testing environment
-To deploy to the standard mlab-ns testing environment (mlab-nstesting.appspot.com), follow the instructions below with no modifications. To deploy to a different testing environment, you must edit `server/app.yaml.testing` to update the "application" field to your test environment's GCP project ID.
+
+To deploy to the standard mlab-ns testing environment
+(locate-dot-mlab-sandbox.appspot.com), follow the instructions below with no
+modifications. To deploy to a different testing environment, you may need to
+edit `server/app.yaml.mlab-sandbox` to update the "service" field to work
+within your test environment's other App Engine services names.
 
 ```
 git clone --recursive https://github.com/m-lab/mlab-ns.git mlabns-testing
