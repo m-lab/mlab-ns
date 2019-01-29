@@ -254,3 +254,19 @@ transformers:
     - property: show_tool_extra
       external_name: show_tool_extra
       import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+
+- kind: RedirectProbability
+  connector: csv
+  connector_options:
+      encoding: utf-8
+  property_map:
+    - property: __key__
+      external_name: name
+      export_transform: transform.key_id_or_name_as_string
+
+    - property: probability
+      external_name: probability
+
+    - property: url
+      external_name: url
