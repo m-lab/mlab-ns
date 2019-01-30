@@ -13,6 +13,8 @@ script:
   - docker run
     -e TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
     -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID
+    -e TRAVIS=true
+    -e COVERALLS_SERVICE_NAME=travis-ci
     -w /workdir -v $TRAVIS_BUILD_DIR:/workdir -t mlabns-testing bash -c "./build; coveralls"
 
 
