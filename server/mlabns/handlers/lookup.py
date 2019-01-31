@@ -400,8 +400,8 @@ class LookupHandler(webapp.RequestHandler):
 
         logging.info(
             ('[server.distance],{tool_id},{site_id},{country},'
-             '{city},{geo_type},{distance_appengine},'
-             '{distance_maxmind},{difference}').format(
+             '{city},{geo_type},{dist_appengine},'
+             '{dist_maxmind},{difference}').format(
                 tool_id=query.tool_id,
                 site_id=sliver_tool.site_id,
                 country=sliver_tool.country,
