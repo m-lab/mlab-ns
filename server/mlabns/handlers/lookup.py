@@ -4,6 +4,7 @@ import logging
 import time
 
 from mlabns.db import model
+from mlabns.util import distance
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
@@ -79,6 +80,10 @@ class LookupHandler(webapp.RequestHandler):
             # redirect only applies to web-based tools.
 
             self.send_json_response(sliver_tools, query)
+
+        # At this point, the client has received a response but the server has
+        # not closed the connection.
+        self.log_location(query, sliver_tools)
 
         # TODO (claudiu) Add a FORMAT_TYPE column in the BigQuery schema.
         self.log_request(query, sliver_tools)
@@ -360,3 +365,49 @@ class LookupHandler(webapp.RequestHandler):
                      str(time.time()),
                      # Calculated information about the lookup:
                      str(query.distance))
+
+    def log_location(self, query, sliver_tools):
+        """Logs the client location Country & City."""
+        if query.tool_id != 'ndt_ssl':
+            return
+
+        if type(sliver_tools) != list or not sliver_tools:
+            return
+
+        # Log only the first returned site (this is random but makes log
+        # analysis easier than multiple lines).
+        sliver_tool = sliver_tools[0]
+
+        t0 = datetime.datetime.now()
+        # Lookup the maxmind information also.
+        query._set_maxmind_geolocation(
+            query.ip_address, query.country, query.city)
+
+        # Calculate the difference between the two systems.
+        difference = distance.distance(
+            query._gae_latitude, query._gae_longitude)
+            query._maxmind_latitude, query._maxmind_longitude)
+
+        # Calculate the server-to-client distance for AppEngine & Maxmind.
+        dist_appengine = distance.distance(
+            sliver_tool.latitude, sliver_tool.longitude,
+            query._gae_latitude, query._gae_longitude)
+        dist_maxmind = distance.distance(
+            sliver_tool.latitude, sliver_tool.longitude,
+            query._maxmind_latitude, query._maxmind_longitude)
+
+        logging.info(
+            ('[server.distance],{tool_id},{site_id},{country},'
+             '{city},{geo_type},{distance_appengine},'
+             '{distance_maxmind},{difference}').format(
+                tool_id=query.tool_id,
+                site_id=sliver_tool.site_id,
+                country=sliver_tool.country,
+                city=sliver_tool.city,
+                geo_type=query._geolocation_type,
+                dist_appengine=dist_appengine,
+                dist_maxmind=dist_maxmind,
+                difference=difference))
+
+        t1 = datetime.datetime.now()
+        logging.info('[log_location.delay],{delay}'.format(delay=str(t1-t0)))
