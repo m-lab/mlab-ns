@@ -369,9 +369,11 @@ class LookupHandler(webapp.RequestHandler):
     def log_location(self, query, sliver_tools):
         """Logs the client location Country & City."""
         if query.tool_id != 'ndt_ssl':
+            logging.info('wrong-tool_id: %s', query.tool_id)
             return
 
         if type(sliver_tools) != list or not sliver_tools:
+            logging.info('wrong sliver_tools type: %s', len(sliver_tools))
             return
 
         # Log only the first returned site (this is random but makes log
