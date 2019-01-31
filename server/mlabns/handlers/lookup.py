@@ -387,7 +387,7 @@ class LookupHandler(webapp.RequestHandler):
 
         # Calculate the difference between the two systems.
         difference = distance.distance(
-            query._gae_latitude, query._gae_longitude)
+            query._gae_latitude, query._gae_longitude,
             query._maxmind_latitude, query._maxmind_longitude)
 
         # Calculate the server-to-client distance for AppEngine & Maxmind.
