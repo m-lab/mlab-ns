@@ -376,6 +376,10 @@ class LookupHandler(webapp.RequestHandler):
             logging.info('wrong sliver_tools type: %s', len(sliver_tools))
             return
 
+        if query._geolocation_type != constants.GEOLOCATION_APP_ENGINE:
+            logging.info('not using appengine geoloc')
+            return
+
         # Log only the first returned site (this is random but makes log
         # analysis easier than multiple lines).
         sliver_tool = sliver_tools[0]
