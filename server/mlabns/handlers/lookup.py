@@ -50,7 +50,9 @@ class LookupHandler(webapp.RequestHandler):
         # Check right away whether we should redirect this request.
         url = redirect.try_redirect_url(self.request, datetime.datetime.now())
         if url:
+            logging.info('[redirect],true,%s', url)
             return self.send_redirect_url(url)
+        logging.info('[redirect],false,')
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
@@ -381,14 +383,15 @@ class LookupHandler(webapp.RequestHandler):
             logging.info('not using appengine geoloc')
             return
 
+        logging.info('[client.country],%s', query.country)
+
         # Log only the first returned site (this is random but makes log
         # analysis easier than multiple lines).
         sliver_tool = sliver_tools[0]
 
         t0 = datetime.datetime.now()
         # Lookup the maxmind information also.
-        query._set_maxmind_geolocation(query.ip_address, query.country,
-                                       query.city)
+        query._set_maxmind_geolocation(query.ip_address, None, None)
 
         # Calculate the difference between the two systems.
         difference = distance.distance(
@@ -403,6 +406,7 @@ class LookupHandler(webapp.RequestHandler):
             sliver_tool.latitude, sliver_tool.longitude,
             query._maxmind_latitude, query._maxmind_longitude)
 
+        logging.info('[nearest.site],%s', sliver_tool.site_id)
         logging.info(('[server.distance],{tool_id},{site_id},{country},'
                       '{city},{geo_type},{dist_appengine},'
                       '{dist_maxmind},{difference}').format(
@@ -416,4 +420,5 @@ class LookupHandler(webapp.RequestHandler):
                           difference=difference))
 
         t1 = datetime.datetime.now()
-        logging.info('[log_location.delay],{delay}'.format(delay=str(t1 - t0)))
+        logging.info('[log_location.delay],{delay}'.format(delay=str((
+            t1 - t0).total_seconds())))
