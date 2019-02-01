@@ -382,34 +382,33 @@ class LookupHandler(webapp.RequestHandler):
 
         t0 = datetime.datetime.now()
         # Lookup the maxmind information also.
-        query._set_maxmind_geolocation(
-            query.ip_address, query.country, query.city)
+        query._set_maxmind_geolocation(query.ip_address, query.country,
+                                       query.city)
 
         # Calculate the difference between the two systems.
         difference = distance.distance(
-            query._gae_latitude, query._gae_longitude,
-            query._maxmind_latitude, query._maxmind_longitude)
+            query._gae_latitude, query._gae_longitude, query._maxmind_latitude,
+            query._maxmind_longitude)
 
         # Calculate the server-to-client distance for AppEngine & Maxmind.
         dist_appengine = distance.distance(
-            sliver_tool.latitude, sliver_tool.longitude,
-            query._gae_latitude, query._gae_longitude)
+            sliver_tool.latitude, sliver_tool.longitude, query._gae_latitude,
+            query._gae_longitude)
         dist_maxmind = distance.distance(
             sliver_tool.latitude, sliver_tool.longitude,
             query._maxmind_latitude, query._maxmind_longitude)
 
-        logging.info(
-            ('[server.distance],{tool_id},{site_id},{country},'
-             '{city},{geo_type},{dist_appengine},'
-             '{dist_maxmind},{difference}').format(
-                tool_id=query.tool_id,
-                site_id=sliver_tool.site_id,
-                country=sliver_tool.country,
-                city=sliver_tool.city,
-                geo_type=query._geolocation_type,
-                dist_appengine=dist_appengine,
-                dist_maxmind=dist_maxmind,
-                difference=difference))
+        logging.info(('[server.distance],{tool_id},{site_id},{country},'
+                      '{city},{geo_type},{dist_appengine},'
+                      '{dist_maxmind},{difference}').format(
+                          tool_id=query.tool_id,
+                          site_id=sliver_tool.site_id,
+                          country=sliver_tool.country,
+                          city=sliver_tool.city,
+                          geo_type=query._geolocation_type,
+                          dist_appengine=dist_appengine,
+                          dist_maxmind=dist_maxmind,
+                          difference=difference))
 
         t1 = datetime.datetime.now()
-        logging.info('[log_location.delay],{delay}'.format(delay=str(t1-t0)))
+        logging.info('[log_location.delay],{delay}'.format(delay=str(t1 - t0)))
