@@ -4,6 +4,7 @@ import logging
 import time
 
 from mlabns.db import model
+from mlabns.util import constants
 from mlabns.util import distance
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
