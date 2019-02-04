@@ -32,6 +32,7 @@ class LookupTest(unittest2.TestCase):
             self.response = mock.Mock()
             self.error_code = None
             self.url = url
+            self.scheme = url[:url.index(':')]
             self.path = path
             self.path_qs = path
             self.uri = url

@@ -235,7 +235,7 @@ class LookupHandler(webapp.RequestHandler):
         Args:
           url: str, URL to direct client.
         """
-        if url.index(':') != len(self.requet.scheme):
+        if url.index(':') != len(self.request.scheme):
             logging.info("Resetting redirect scheme to match origin.")
             url = (self.request.scheme + url[url.index(':'):])
         self.redirect(str(url))
@@ -406,18 +406,19 @@ class LookupHandler(webapp.RequestHandler):
             sliver_tool.latitude, sliver_tool.longitude,
             query._maxmind_latitude, query._maxmind_longitude)
 
-        logging.info(('[server.distance],{scheme},{tool_id},{site_id},{country},'
-                      '{city},{geo_type},{dist_appengine},'
-                      '{dist_maxmind},{difference}').format(
-                          scheme=self.request.scheme,
-                          tool_id=query.tool_id,
-                          site_id=sliver_tool.site_id,
-                          country=sliver_tool.country,
-                          city=sliver_tool.city,
-                          geo_type=query._geolocation_type,
-                          dist_appengine=dist_appengine,
-                          dist_maxmind=dist_maxmind,
-                          difference=difference))
+        logging.info((
+            '[server.distance],{scheme},{tool_id},{site_id},{country},'
+            '{city},{geo_type},{dist_appengine},'
+            '{dist_maxmind},{difference}').format(
+                scheme=self.request.scheme,
+                tool_id=query.tool_id,
+                site_id=sliver_tool.site_id,
+                country=sliver_tool.country,
+                city=sliver_tool.city,
+                geo_type=query._geolocation_type,
+                dist_appengine=dist_appengine,
+                dist_maxmind=dist_maxmind,
+                difference=difference))
 
         t1 = datetime.datetime.now()
         logging.info('[log_location.delay],{delay}'.format(delay=str((
