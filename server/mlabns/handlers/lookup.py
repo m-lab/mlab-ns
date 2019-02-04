@@ -369,7 +369,7 @@ class LookupHandler(webapp.RequestHandler):
                      str(query.distance))
 
     def log_location(self, query, sliver_tools):
-        """Logs the client location Country & City."""
+        """Logs the client Country and compares Maxmind to AppEngine distance"""
         if query.tool_id != 'ndt_ssl':
             logging.info('wrong-tool_id: %s', query.tool_id)
             return
