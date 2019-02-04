@@ -235,10 +235,9 @@ class LookupHandler(webapp.RequestHandler):
         Args:
           url: str, URL to direct client.
         """
-        if url.index(':') != self.request.url.index(':'):
-            logging.info("Resetting redirect protocol to match origin.")
-            url = (self.request.url[:self.request.url.index(':')] +
-                   url[url.index(':'):])
+        if url.index(':') != len(self.requet.scheme):
+            logging.info("Resetting redirect scheme to match origin.")
+            url = (self.request.scheme + url[url.index(':'):])
         self.redirect(str(url))
 
     def send_map_response(self, sliver_tool, query, candidates):
@@ -383,6 +382,7 @@ class LookupHandler(webapp.RequestHandler):
             logging.info('not using appengine geoloc')
             return
 
+        # Log client country to display geomap summaries of client origins.
         logging.info('[client.country],%s', query.country)
 
         # Log only the first returned site (this is random but makes log
@@ -406,10 +406,10 @@ class LookupHandler(webapp.RequestHandler):
             sliver_tool.latitude, sliver_tool.longitude,
             query._maxmind_latitude, query._maxmind_longitude)
 
-        logging.info('[nearest.site],%s', sliver_tool.site_id)
-        logging.info(('[server.distance],{tool_id},{site_id},{country},'
+        logging.info(('[server.distance],{scheme},{tool_id},{site_id},{country},'
                       '{city},{geo_type},{dist_appengine},'
                       '{dist_maxmind},{difference}').format(
+                          scheme=self.request.scheme,
                           tool_id=query.tool_id,
                           site_id=sliver_tool.site_id,
                           country=sliver_tool.country,
