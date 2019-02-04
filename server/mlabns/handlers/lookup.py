@@ -52,7 +52,6 @@ class LookupHandler(webapp.RequestHandler):
         if url:
             logging.info('[redirect],true,%s', url)
             return self.send_redirect_url(url)
-        logging.info('[redirect],false,')
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
@@ -398,26 +397,15 @@ class LookupHandler(webapp.RequestHandler):
             query._gae_latitude, query._gae_longitude, query._maxmind_latitude,
             query._maxmind_longitude)
 
-        # Calculate the server-to-client distance for AppEngine & Maxmind.
-        dist_appengine = distance.distance(
-            sliver_tool.latitude, sliver_tool.longitude, query._gae_latitude,
-            query._gae_longitude)
-        dist_maxmind = distance.distance(
-            sliver_tool.latitude, sliver_tool.longitude,
-            query._maxmind_latitude, query._maxmind_longitude)
-
         logging.info((
             '[server.distance],{scheme},{tool_id},{site_id},{country},'
-            '{city},{geo_type},{dist_appengine},'
-            '{dist_maxmind},{difference}').format(
+            '{city},{same_country},{difference}').format(
                 scheme=self.request.scheme,
                 tool_id=query.tool_id,
                 site_id=sliver_tool.site_id,
                 country=sliver_tool.country,
                 city=sliver_tool.city,
-                geo_type=query._geolocation_type,
-                dist_appengine=dist_appengine,
-                dist_maxmind=dist_maxmind,
+                same_country=(query._gae_country == query._maxmind_country),
                 difference=difference))
 
         t1 = datetime.datetime.now()
