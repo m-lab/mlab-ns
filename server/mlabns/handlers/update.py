@@ -37,8 +37,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                        LAT_FIELD, LON_FIELD, ROUNDROBIN_FIELD]
-    SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-site-stats.json'
-    TESTING_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/current/mlab-site-stats.json'
+    DEFAULT_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-site-stats.json'
+    TEMPLATE_SITE_LIST_URL = 'https://storage.googleapis.com/operator-{project}/metadata/v0/current/mlab-site-stats.json'
 
     @classmethod
     def _is_valid_site(cls, site):
@@ -71,10 +71,11 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         """
         try:
             project = app_identity.get_application_id()
-            if project == 'mlab-nstesting':
-                json_file = self.TESTING_SITE_LIST_URL
+            if project == 'mlab-ns':
+                # TODO: eliminate project translation.
+                json_file = self.DEFAULT_SITE_LIST_URL
             else:
-                json_file = self.SITE_LIST_URL
+                json_file = self.TEMPLATE_SITE_LIST_URL.format(project=project)
         except AttributeError:
             logging.error('Cannot get project name.')
             return util.send_not_found(self)
@@ -166,8 +167,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 class IPUpdateHandler():
     """Updates SliverTools' IP addresses."""
 
-    IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
-    TESTING_IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-sandbox/metadata/v0/current/mlab-host-ips.txt'
+    DEFAULT_IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
+    TEMPLATE_IP_LIST_URL = 'https://storage.googleapis.com/operator-{project}/metadata/v0/current/mlab-host-ips.txt'
 
     def update(self):
         """Triggers the update handler.
@@ -177,10 +178,11 @@ class IPUpdateHandler():
         lines = []
         try:
             project = app_identity.get_application_id()
-            if project == 'mlab-nstesting':
-                host_ips_url = self.TESTING_IP_LIST_URL
+            if project == 'mlab-ns':
+                # TODO: eliminate project translation.
+                host_ips_url = self.DEFAULT_IP_LIST_URL
             else:
-                host_ips_url = self.IP_LIST_URL
+                host_ips_url = self.TEMPLATE_IP_LIST_URL.format(project=project)
         except AttributeError:
             logging.error('Cannot get project name.')
             return util.send_not_found(self)

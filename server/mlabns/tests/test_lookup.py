@@ -1,7 +1,9 @@
 import mock
 import unittest2
 
+from mlabns.db import model
 from mlabns.handlers import lookup
+from mlabns.util import constants
 from mlabns.util import redirect
 
 
@@ -30,6 +32,7 @@ class LookupTest(unittest2.TestCase):
             self.response = mock.Mock()
             self.error_code = None
             self.url = url
+            self.scheme = url[:url.index(':')]
             self.path = path
             self.path_qs = path
             self.uri = url
@@ -48,6 +51,26 @@ class LookupTest(unittest2.TestCase):
         h.get()
 
         self.assertEqual(h.response.code, 302)
+
+    def test_log_location(self):
+        h = lookup.LookupHandler()
+        h.request = LookupTest.RequestMockup(url='https://mlab-ns.appspot.com',
+                                             path='/ndt_ssl')
+        h.response = LookupTest.ResponseMockup()
+        query = mock.Mock()
+        query.tool_id = 'ndt_ssl'
+        # Place lat/lon at known distances apart and from server.
+        query._gae_latitude, query._gae_longitude = (0.0, 1.0)
+        query._maxmind_latitude, query._maxmind_longitude = (0.0, 2.0)
+        query._geolocation_type = constants.GEOLOCATION_APP_ENGINE
+        sliver_tools = [model.SliverTool(tool_id='ndt_ssl',
+                                         site_id='foo01',
+                                         country='US',
+                                         city='New_York',
+                                         latitude=0.0,
+                                         longitude=0.0)]
+
+        h.log_location(query, sliver_tools)
 
 
 if __name__ == '__main__':

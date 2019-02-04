@@ -4,6 +4,8 @@ import logging
 import time
 
 from mlabns.db import model
+from mlabns.util import constants
+from mlabns.util import distance
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
@@ -48,6 +50,7 @@ class LookupHandler(webapp.RequestHandler):
         # Check right away whether we should redirect this request.
         url = redirect.try_redirect_url(self.request, datetime.datetime.now())
         if url:
+            logging.info('[redirect],true,%s', url)
             return self.send_redirect_url(url)
 
         query = lookup_query.LookupQuery()
@@ -79,6 +82,10 @@ class LookupHandler(webapp.RequestHandler):
             # redirect only applies to web-based tools.
 
             self.send_json_response(sliver_tools, query)
+
+        # At this point, the client has received a response but the server has
+        # not closed the connection.
+        self.log_location(query, sliver_tools)
 
         # TODO (claudiu) Add a FORMAT_TYPE column in the BigQuery schema.
         self.log_request(query, sliver_tools)
@@ -227,10 +234,9 @@ class LookupHandler(webapp.RequestHandler):
         Args:
           url: str, URL to direct client.
         """
-        if url.index(':') != self.request.url.index(':'):
-            logging.info("Resetting redirect protocol to match origin.")
-            url = (self.request.url[:self.request.url.index(':')] +
-                   url[url.index(':'):])
+        if url.index(':') != len(self.request.scheme):
+            logging.info("Resetting redirect scheme to match origin.")
+            url = (self.request.scheme + url[url.index(':'):])
         self.redirect(str(url))
 
     def send_map_response(self, sliver_tool, query, candidates):
@@ -360,3 +366,48 @@ class LookupHandler(webapp.RequestHandler):
                      str(time.time()),
                      # Calculated information about the lookup:
                      str(query.distance))
+
+    def log_location(self, query, sliver_tools):
+        """Logs the client Country and compares Maxmind to AppEngine distance"""
+        if query.tool_id != 'ndt_ssl':
+            # We only want to look at ndt_ssl clients for now.
+            return
+
+        if type(sliver_tools) != list or not sliver_tools:
+            logging.info('unexpected sliver_tools type: %s', len(sliver_tools))
+            return
+
+        if query._geolocation_type != constants.GEOLOCATION_APP_ENGINE:
+            # We cannot compare AppEngine location to Maxmind in this case.
+            return
+
+        t0 = datetime.datetime.now()
+
+        # Log client country to display geomap summaries of client origins.
+        logging.info('[client.country],%s', query.country)
+
+        # Log only the first (closest) site.
+        sliver_tool = sliver_tools[0]
+
+        # Lookup the maxmind information.
+        query._set_maxmind_geolocation(query.ip_address, None, None)
+
+        # Calculate the difference between the two systems.
+        difference = distance.distance(
+            query._gae_latitude, query._gae_longitude, query._maxmind_latitude,
+            query._maxmind_longitude)
+
+        logging.info((
+            '[server.distance],{scheme},{tool_id},{site_id},{country},'
+            '{city},{same_country},{difference}').format(
+                scheme=self.request.scheme,
+                tool_id=query.tool_id,
+                site_id=sliver_tool.site_id,
+                country=sliver_tool.country,
+                city=sliver_tool.city,
+                same_country=(query._gae_country == query._maxmind_country),
+                difference=difference))
+
+        t1 = datetime.datetime.now()
+        logging.info('[log_location.delay],{delay}'.format(delay=str((
+            t1 - t0).total_seconds())))
