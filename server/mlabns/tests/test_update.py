@@ -57,7 +57,7 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
     "roundrobin": false
 }
 ]""")
-        app_identity.get_application_id.return_value = 'mlab-nstesting'
+        app_identity.get_application_id.return_value = 'mlab-testing'
         db.Query.fetch.return_value = [mock.Mock(site_id='xyz01')]
         handler = update.SiteRegistrationHandler()
         handler.get()
@@ -81,7 +81,7 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
     "roundrobin": false
 }
 ]""")
-        app_identity.get_application_id.return_value = 'mlab-nstesting'
+        app_identity.get_application_id.return_value = 'mlab-testing'
         db.Query.fetch.return_value = [mock.Mock(site_id='xyz01')]
         handler = update.SiteRegistrationHandler()
         handler.get()

@@ -36,7 +36,7 @@ def parse_options(args):
     parser.add_argument(
         '--instance_two_url',
         dest='instance_two_url',
-        default='http://mlab-nstesting.appspot.com',
+        default='http://locate-dot-mlab-staging.appspot.com',
         help='Base URL for the second mlab-ns instance to query.')
     parser.add_argument('--tool_id',
                         dest='tool_id',
