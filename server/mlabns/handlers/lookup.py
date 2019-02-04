@@ -371,26 +371,26 @@ class LookupHandler(webapp.RequestHandler):
     def log_location(self, query, sliver_tools):
         """Logs the client Country and compares Maxmind to AppEngine distance"""
         if query.tool_id != 'ndt_ssl':
-            logging.info('wrong-tool_id: %s', query.tool_id)
+            # We only want to look at ndt_ssl clients for now.
             return
 
         if type(sliver_tools) != list or not sliver_tools:
-            logging.info('wrong sliver_tools type: %s', len(sliver_tools))
+            logging.info('unexpected sliver_tools type: %s', len(sliver_tools))
             return
 
         if query._geolocation_type != constants.GEOLOCATION_APP_ENGINE:
-            logging.info('not using appengine geoloc')
+            # We cannot compare AppEngine location to Maxmind in this case.
             return
+
+        t0 = datetime.datetime.now()
 
         # Log client country to display geomap summaries of client origins.
         logging.info('[client.country],%s', query.country)
 
-        # Log only the first returned site (this is random but makes log
-        # analysis easier than multiple lines).
+        # Log only the first (closest) site.
         sliver_tool = sliver_tools[0]
 
-        t0 = datetime.datetime.now()
-        # Lookup the maxmind information also.
+        # Lookup the maxmind information.
         query._set_maxmind_geolocation(query.ip_address, None, None)
 
         # Calculate the difference between the two systems.
