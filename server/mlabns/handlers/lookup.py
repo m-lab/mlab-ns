@@ -131,13 +131,14 @@ class LookupHandler(webapp.RequestHandler):
                 tool selected for this lookup request.
             query: A LookupQuery instance representing the user lookup request.
         """
-        array_response = False
-        if len(sliver_tools) > 1:
-            array_response = True
-
         if type(sliver_tools) is not list:
             logging.error("Problem: sliver_tools is not a list.")
             return
+
+        array_response = False
+        if len(sliver_tools) != 1:
+            # Respond with an array for 0 or more than 1 items.
+            array_response = True
 
         tool = None
         json_data = ""
