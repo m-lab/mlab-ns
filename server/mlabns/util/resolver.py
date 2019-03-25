@@ -117,7 +117,7 @@ class GeoResolver(ResolverBase):
 
         # Create a new list of just the sorted SliverTool objects.
         sorted_tools = [t['tool'] for t in tool_distances]
-        return sorted_tools[:max_results]
+        return [] # sorted_tools[:max_results]
 
     def answer_query(self, query):
         """Selects the geographically closest SliverTool.
