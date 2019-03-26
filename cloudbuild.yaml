@@ -12,7 +12,7 @@ steps:
   # TODO: support passing $PROJECT name as environment parameter.
   args:
    - -c
-   - python environment_bootstrap.py sandbox
+   - python environment_bootstrap.py mlab-sandbox
 
 # Run unit tests for environment.
 - name: gcr.io/cloud-builders/gcloud
@@ -32,9 +32,9 @@ steps:
    - 'PROJECT=$PROJECT_ID'
 
 # Perform deployment of AppEngine service.
-- name: gcr.io/cloud-builders/gcloud
-  args: [
-      'app', 'deploy', '--promote', 'app.yaml'
-  ]
-  dir: 'server'
+#- name: gcr.io/cloud-builders/gcloud
+#  args: [
+#      'app', 'deploy', '--promote', 'app.yaml'
+#  ]
+#  dir: 'server'
 
