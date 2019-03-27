@@ -6,27 +6,17 @@ timeout: 1800s
 ############################################################################
 
 steps:
-# Setup per-project configuration.
-- name: gcr.io/cloud-builders/gcloud
-  entrypoint: bash
-  # TODO: support passing $PROJECT name as environment parameter.
-  args:
-   - -c
-   - python environment_bootstrap.py mlab-sandbox
+# Create the image for testing mlab-ns.
+- name: gcr.io/cloud-builders/docker
+  args: [
+    'build', '-t', 'mlabns-tester', '.'
+  ]
 
 # Run unit tests for environment.
-- name: gcr.io/cloud-builders/gcloud
-  entrypoint: bash
-  args:
-   - -c
-   - >
-     pip install setuptools &&
-     pip install -r test_requirements.txt &&
-     pip install coveralls &&
-     /workspace/build
-
+- name: mlabns-tester
+  # "build" runs all unit tests.
+  entrypoint: /workspace/build
   env:
-   - 'PYTHONPATH=/builder/google-cloud-sdk/platform/google_appengine'
    - 'COMMIT=$COMMIT_SHA'
    - 'TAG=$TAG_NAME'
    - 'PROJECT=$PROJECT_ID'
