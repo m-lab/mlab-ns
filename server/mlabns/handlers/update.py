@@ -528,10 +528,12 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
         namespace_manager.set_namespace('endpoint_stats')
         requests = list(model.Requests.all().fetch(limit=None))
         for request in requests:
+            # NB: we set the expiration time to 30min. We must schedule cron
+            # jobs more frequently to catch evicted or expired records.
             if not memcache.set(request.key().name(),
                                 request.probability,
                                 namespace=constants.MEMCACHE_NAMESPACE_REQUESTS,
-                                time=900):
+                                time=1800):
                 logging.error('Failed to update blacklist clients in memcache.')
 
 
