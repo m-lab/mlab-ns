@@ -1,0 +1,25 @@
+cron:
+# check for site status, run every minute.
+- description: Check sliver tools status
+  url: /cron/check_status
+  target: {{TARGET}}
+  schedule: every 1 minutes
+
+# check for new sites, and for new and/or updated IP addresses, roundrobin information.
+# run every 24 hours, starting at 06:00
+- description: Check sites, update IP and roundrobin
+  url: /cron/check_site
+  target: {{TARGET}}
+  schedule: every day 06:00
+
+# Update blacklist of client signature list for abusive clients.
+- description: Check client blacklists for abusive clients.
+  url: /cron/update_requests
+  target: {{TARGET}}
+  schedule: every 10 minutes
+
+# Collect blacklist signatures from mlab-ns.
+- description: Collect blacklist signatures and place them in Datastore.
+  url: /update
+  target: rate-limiter
+  schedule: every 30 minutes
