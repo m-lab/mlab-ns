@@ -96,9 +96,9 @@ class GeoResolver(ResolverBase):
 
         filtered_candidates = []
 
-        prob = client_signature_fetcher.ClientSignatureFetcher().fetch(
-            query.calculate_client_signature())
-        logging.info('prob returned from memcache: %f', prob)
+        sig = query.calculate_client_signature()
+        prob = client_signature_fetcher.ClientSignatureFetcher().fetch(sig)
+        logging.debug('prob returned from memcache for %s: %f', sig, prob)
         if random.uniform(0, 1) > prob:
             # Filter the candidates sites, only keep the '0c' sites
             filtered_candidates = filter(lambda c: c.site_id[-1] == 'c',

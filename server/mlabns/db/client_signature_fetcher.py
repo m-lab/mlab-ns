@@ -24,6 +24,7 @@ class ClientSignatureFetcher(object):
         """
         matched_requests = memcache.get(
             key, namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
-        if matched_requests:
+        # NB: allow probability to equal zero.
+        if matched_requests is not None:
             return matched_requests
         return 1.0
