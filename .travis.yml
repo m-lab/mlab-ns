@@ -24,7 +24,8 @@ deploy:
   script:
     python environment_bootstrap.py mlab-sandbox
     && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-sandbox SERVICE_ACCOUNT_mlab_sandbox . server/app.yaml
-    && $TRAVIS_BUILD_DIR/cron.sh mlab-sandbox
+    && sed -i -e 's/{{TARGET}}/locate/g' cron.yaml
+    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-sandbox SERVICE_ACCOUNT_mlab_sandbox . cron.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
@@ -36,7 +37,8 @@ deploy:
   script:
     python environment_bootstrap.py mlab-staging
     && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-staging SERVICE_ACCOUNT_mlab_staging . server/app.yaml
-    && $TRAVIS_BUILD_DIR/cron.sh mlab-staging
+    && sed -i -e 's/{{TARGET}}/locate/g' cron.yaml
+    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-staging SERVICE_ACCOUNT_mlab_staging . cron.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
@@ -48,6 +50,8 @@ deploy:
   script:
     python environment_bootstrap.py mlab-ns
     && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns SERVICE_ACCOUNT_mlab_ns . server/app.yaml
+    && sed -i -e 's/{{TARGET}}/default/g' cron.yaml
+    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns SERVICE_ACCOUNT_mlab_ns . cron.yaml
   skip_cleanup: true
   on:
     repo: m-lab/mlab-ns
