@@ -530,18 +530,16 @@ class BlacklistRequestsHandler(webapp.RequestHandler):
         found = 0
         missing = 0
         for request in requests:
-            val = memcache.get(
-                request.key().name(),
-                namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
+            val = memcache.get(request.key().name(),
+                               namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
             if val is not None:
                 found += 1
             else:
                 missing += 1
 
-        logging.info(
-            ('Client signatures from datastore; '
-            'found_in: %d missing_from: %d memcache'),
-            found, missing)
+        logging.info(('Client signatures from datastore; '
+                      'found_in: %d missing_from: %d memcache'), found, missing)
+
 
 class WarmupHandler(webapp.RequestHandler):
     """Loads expensive queries into memory before starting service."""

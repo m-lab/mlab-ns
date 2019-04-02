@@ -32,6 +32,8 @@ class ClientSignatureFetcher(object):
                 # Convert string to a float.
                 return int(probability_str) / 10000.0
             except ValueError as e:
-                logging.warning('Corrupt value in memcache: %s - %s', probability_str, e)
+                logging.warning('Corrupt value in memcache: %s - %s',
+                                probability_str, e)
+
                 # Fall through.
         return 1.0
