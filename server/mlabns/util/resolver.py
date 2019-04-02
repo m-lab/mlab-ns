@@ -100,8 +100,8 @@ class GeoResolver(ResolverBase):
         prob = client_signature_fetcher.ClientSignatureFetcher().fetch(sig)
         if random.uniform(0, 1) > prob:
             # NB: the string format makes log monitoring possible.
-            logging.info(
-                'SIGNATURE_FOUND: %f returned from memcache for %s', prob, sig)
+            logging.info('SIGNATURE_FOUND: %f returned from memcache for %s',
+                         prob, sig)
             # Filter the candidates sites, only keep the '0c' sites
             filtered_candidates = filter(lambda c: c.site_id[-1] == 'c',
                                          candidates)
