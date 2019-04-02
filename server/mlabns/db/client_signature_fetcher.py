@@ -34,6 +34,5 @@ class ClientSignatureFetcher(object):
             except ValueError as e:
                 logging.warning('Corrupt value in memcache: %s - %s',
                                 probability_str, e)
-
                 # Fall through.
         return 1.0
