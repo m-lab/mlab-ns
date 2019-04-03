@@ -18,8 +18,8 @@ cron:
   target: {{TARGET}}
   schedule: every 10 minutes
 
-# Update request signatures in memcache for mlab-ns.
-- description: Update request signatures in memcache for mlab-ns.
-  url: /update_request_signatures
-  target: rate-limiter
-  schedule: every 30 minutes
+## Update request signatures in memcache for mlab-ns.
+#- description: Update request signatures in memcache for mlab-ns.
+#  url: /update_request_signatures
+#  target: rate-limiter
+#  schedule: every 30 minutes
