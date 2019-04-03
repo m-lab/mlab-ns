@@ -517,14 +517,11 @@ class ReloadMaxmindDb(webapp.RequestHandler):
         maxmind.get_geo_reader()
 
 
-class BlacklistRequestsHandler(webapp.RequestHandler):
-    """Updates Blacklist Request list."""
+class CountRequestSignaturesHandler(webapp.RequestHandler):
+    """Counts Request Signatures in memcache relative to Datastore."""
 
     def get(self):
-        """Triggers the update handler.
-
-        Load the blacklist information from DataStore and compare to memcache.
-        """
+        """Logs request signature counts found in memcache."""
         namespace_manager.set_namespace('endpoint_stats')
         requests = list(model.Requests.all().fetch(limit=None))
         found = 0
