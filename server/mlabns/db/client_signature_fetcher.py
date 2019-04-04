@@ -1,3 +1,4 @@
+import logging
 from mlabns.util import constants
 
 from google.appengine.api import memcache
@@ -22,9 +23,16 @@ class ClientSignatureFetcher(object):
                  resource will look like
                  '/ndt_ssl?policy=geo_options&format=json...'
         """
-        matched_requests = memcache.get(
+        # NB: records are ints encoded as strings. Ints are fixed-format floats.
+        probability_str = memcache.get(
             key, namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
         # NB: allow probability to equal zero.
-        if matched_requests is not None:
-            return matched_requests
+        if probability_str is not None:
+            try:
+                # Convert string to a float.
+                return int(probability_str) / 10000.0
+            except ValueError as e:
+                logging.warning('Corrupt value in memcache: %s - %s',
+                                probability_str, e)
+                # Fall through.
         return 1.0

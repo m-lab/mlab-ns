@@ -13,7 +13,7 @@ app = webapp.WSGIApplication(
     (r'/admin.*', admin.AdminHandler),
     (r'/cron/check_status', update.StatusUpdateHandler),
     (r'/cron/check_site', update.SiteRegistrationHandler),
-    (r'/cron/update_requests', update.BlacklistRequestsHandler),
+    (r'/cron/count_request_signatures', update.CountRequestSignaturesHandler),
     (r'/reload_maxminddb', update.ReloadMaxmindDb),
     (r'/privacy', privacy.PrivacyHandler),
     (r'/docs', docs.DocsHandler),

@@ -517,24 +517,25 @@ class ReloadMaxmindDb(webapp.RequestHandler):
         maxmind.get_geo_reader()
 
 
-class BlacklistRequestsHandler(webapp.RequestHandler):
-    """Updates Blacklist Request list."""
+class CountRequestSignaturesHandler(webapp.RequestHandler):
+    """Counts Request Signatures in memcache relative to Datastore."""
 
     def get(self):
-        """Triggers the update handler.
-
-        Load the blacklist information from DataStore and set the memcache.
-        """
+        """Logs request signature counts found in memcache."""
         namespace_manager.set_namespace('endpoint_stats')
         requests = list(model.Requests.all().fetch(limit=None))
+        found = 0
+        missing = 0
         for request in requests:
-            # NB: we set the expiration time to 30min. We must schedule cron
-            # jobs more frequently to catch evicted or expired records.
-            if not memcache.set(request.key().name(),
-                                request.probability,
-                                namespace=constants.MEMCACHE_NAMESPACE_REQUESTS,
-                                time=1800):
-                logging.error('Failed to update blacklist clients in memcache.')
+            val = memcache.get(request.key().name(),
+                               namespace=constants.MEMCACHE_NAMESPACE_REQUESTS)
+            if val is not None:
+                found += 1
+            else:
+                missing += 1
+
+        logging.info(('Client signatures from datastore; '
+                      'found_in: %d missing_from: %d memcache'), found, missing)
 
 
 class WarmupHandler(webapp.RequestHandler):
