@@ -38,6 +38,7 @@ QUERIES = {
             ((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
               node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) < bool 0.95 OR
+            kube_node_spec_taint{cluster="platform-cluster", value="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="ndt.iupui"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
@@ -51,6 +52,7 @@ QUERIES = {
             ((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
               node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) < bool 0.95 OR
+            kube_node_spec_taint{cluster="platform-cluster", value="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="ndt.iupui"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
@@ -64,6 +66,7 @@ QUERIES = {
             ((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
               node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) < bool 0.95 OR
+            kube_node_spec_taint{cluster="platform-cluster", value="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="ndt.iupui"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
@@ -77,6 +80,7 @@ QUERIES = {
             ((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
               node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) < bool 0.95 OR
+            kube_node_spec_taint{cluster="platform-cluster", value="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="ndt.iupui"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
@@ -84,6 +88,7 @@ QUERIES = {
     'neubot': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="neubot"} OR
+            kube_node_spec_taint{cluster="platform-cluster", value="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
         )
@@ -91,6 +96,7 @@ QUERIES = {
     'neubot_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="neubot_ipv6"} OR
+            kube_node_spec_taint{cluster="platform-cluster", value="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
         )
@@ -100,6 +106,7 @@ QUERIES = {
             probe_success{service="mobiperf", instance=~".*:6001"} OR
             probe_success{service="mobiperf", instance=~".*:6002"} OR
             probe_success{service="mobiperf", instance=~".*:6003"} OR
+            kube_node_spec_taint{cluster="platform-cluster", value="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="1.michigan"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "1.michigan", "", "") != bool 1
         )
@@ -109,6 +116,7 @@ QUERIES = {
             probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR
             probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR
             probe_success{service="mobiperf_ipv6", instance=~".*:6003"} OR
+            kube_node_spec_taint{cluster="platform-cluster", value="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="1.michigan"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "1.michigan", "", "") != bool 1
         )
