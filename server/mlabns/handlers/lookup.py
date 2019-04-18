@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import time
+import urllib2
 
 from mlabns.db import model
 from mlabns.util import constants
@@ -50,8 +51,12 @@ class LookupHandler(webapp.RequestHandler):
         # Check right away whether we should redirect this request.
         url = redirect.try_redirect_url(self.request, datetime.datetime.now())
         if url:
-            logging.info('[redirect],true,%s', url)
-            return self.send_redirect_url(url)
+            # NB: if the send proxy url is unsuccessful, then fall through to
+            # regular request handling.
+            success = self.send_proxy_url(url)
+            if success:
+                logging.info('[redirect],true,%s', url)
+                return
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
@@ -229,16 +234,25 @@ class LookupHandler(webapp.RequestHandler):
 
         return util.send_not_found(self, 'html')
 
-    def send_redirect_url(self, url):
-        """Sends an HTTP redirect for given url.
+    def send_proxy_url(self, url):
+        """Sends result of requesting the given URL.
 
         Args:
-          url: str, URL to direct client.
+          url: str, proxy URL content to client.
         """
-        if url.index(':') != len(self.request.scheme):
-            logging.info("Resetting redirect scheme to match origin.")
-            url = (self.request.scheme + url[url.index(':'):])
-        self.redirect(str(url))
+        try:
+            resp = urllib2.urlopen(url)
+            body = resp.read()
+            self.response.headers['Cache-Control'] = 'no-cache'
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
+            # NB: the headers are normalized to all-lowercase by urllib2.
+            self.response.headers['Content-Type'] = resp.info().headers[
+                'content-type']
+            self.response.out.write(body)
+            return True
+        except urllib2.URLError:
+            logging.exception('[redirect],failure,%s', url)
+            return False
 
     def send_map_response(self, sliver_tool, query, candidates):
         """Shows the result of the query in a map.
