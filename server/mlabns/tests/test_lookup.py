@@ -46,6 +46,9 @@ class LookupTest(unittest2.TestCase):
         def __init__(self, headers):
             self.headers = headers
 
+        def getheader(self, header):
+            return self.headers[header.lower()]
+
     class URLLibResponseMockup:
 
         def __init__(self, data, headers):
