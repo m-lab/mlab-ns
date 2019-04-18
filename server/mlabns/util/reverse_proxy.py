@@ -2,27 +2,36 @@ import logging
 import os
 import random
 
-from mlabns.db import model
+from google.appengine.api import memcache
 
-_redirect = None
+from mlabns.db import model
+from mlabns.util import constants
 
 # Default value if datastore contains no records.
-default_redirect = model.RedirectProbability(name="default",
-                                             probability=0.0,
-                                             url="https://mlab-ns.appspot.com")
+default_reverse_proxy = model.ReverseProxyProbability(
+    name="default",
+    probability=0.0,
+    url="https://mlab-ns.appspot.com")
 
 
-def get_redirection():
-    """Reads and caches the first (and only) RedirectProbability record."""
-    global _redirect
-    if _redirect is None:
-        for prob in model.RedirectProbability.all().run():
-            _redirect = prob
-            return _redirect
-
-        logging.info('No redirect probability found; using default')
-        _redirect = default_redirect
-    return _redirect
+def get_reverse_proxy():
+    """Reads and caches the first (and only) ReverseProxyProbability record."""
+    reverse_proxy = memcache.get(
+        'default',
+        namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY)
+    if reverse_proxy is None:
+        for prob in model.ReverseProxyProbability.all().run():
+            if not memcache.set(
+                    'default',
+                    prob,
+                    time=1800,
+                    namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY):
+                logging.error(
+                    'Failed to update ReverseProxyProbability in memcache')
+            return prob
+        logging.info('No reverse proxy probability found; using default')
+        reverse_proxy = default_reverse_proxy
+    return reverse_proxy
 
 
 def during_business_hours(t):
@@ -43,19 +52,19 @@ def during_business_hours(t):
     return t.hour >= 14 and t.hour <= 22 and t.weekday() < 4
 
 
-def try_redirect_url(request, t):
-    """Possibly generates a URL to redirect a client.
+def try_reverse_proxy_url(request, t):
+    """Possibly generates a URL to perform a reverse proxy for client request.
 
     Args:
        request: webapp.Request, request used to construct complete url.
        t: datetime.datetime, time used to evaluate business hours.
 
     Returns:
-       str, empty string for no action, or complete URL for client redirect.
+       str, empty string for no action, or complete URL to reverse proxy.
     """
     if request.path != '/ndt_ssl':
         return ""
-    rdp = get_redirection()
+    rdp = get_reverse_proxy()
     if random.uniform(0, 1) > rdp.probability:
         return ""
     if not during_business_hours(t):

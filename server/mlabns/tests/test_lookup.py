@@ -5,7 +5,7 @@ import urllib2
 from mlabns.db import model
 from mlabns.handlers import lookup
 from mlabns.util import constants
-from mlabns.util import redirect
+from mlabns.util import reverse_proxy
 
 
 class LookupTest(unittest2.TestCase):
@@ -62,9 +62,11 @@ class LookupTest(unittest2.TestCase):
             return self.content
 
     @mock.patch.object(urllib2, 'urlopen')
-    @mock.patch.object(redirect, 'try_redirect_url')
-    def test_get_with_redirect(self, mock_try_redirect_url, mock_urlopen):
-        mock_try_redirect_url.return_value = 'https://new-mlab-ns.appspot.com'
+    @mock.patch.object(reverse_proxy, 'try_reverse_proxy_url')
+    def test_get_with_reverse_proxy(self, mock_try_reverse_proxy_url,
+                                    mock_urlopen):
+        mock_try_reverse_proxy_url.return_value = (
+            'https://new-mlab-ns.appspot.com')
         h = lookup.LookupHandler()
         h.request = LookupTest.RequestMockup(url='https://mlab-ns.appspot.com',
                                              path='/ndt_ssl')

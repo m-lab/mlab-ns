@@ -10,7 +10,7 @@ from mlabns.util import distance
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
-from mlabns.util import redirect
+from mlabns.util import reverse_proxy
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -48,14 +48,15 @@ class LookupHandler(webapp.RequestHandler):
         For more information about the URL and the supported arguments
         in the query string, see the design doc at http://goo.gl/48S22.
         """
-        # Check right away whether we should redirect this request.
-        url = redirect.try_redirect_url(self.request, datetime.datetime.now())
+        # Check right away whether we should proxy this request.
+        url = reverse_proxy.try_reverse_proxy_url(self.request,
+                                                  datetime.datetime.now())
         if url:
-            # NB: if the send proxy url is unsuccessful, then fall through to
+            # NB: if sending the proxy url is unsuccessful, then fall through to
             # regular request handling.
-            success = self.send_proxy_url(url)
+            success = self.send_proxy_response(url)
             if success:
-                logging.info('[redirect],true,%s', url)
+                logging.info('[reverse_proxy],true,%s', url)
                 return
 
         query = lookup_query.LookupQuery()
@@ -234,7 +235,7 @@ class LookupHandler(webapp.RequestHandler):
 
         return util.send_not_found(self, 'html')
 
-    def send_proxy_url(self, url):
+    def send_proxy_response(self, url):
         """Sends result of requesting the given URL.
 
         Args:
@@ -251,7 +252,7 @@ class LookupHandler(webapp.RequestHandler):
             self.response.out.write(body)
             return True
         except urllib2.URLError:
-            logging.exception('[redirect],failure,%s', url)
+            logging.exception('[reverse_proxy],failure,%s', url)
             return False
 
     def send_map_response(self, sliver_tool, query, candidates):

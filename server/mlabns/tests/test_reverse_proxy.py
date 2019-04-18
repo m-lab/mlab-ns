@@ -4,101 +4,122 @@ import mock
 import unittest2
 
 from mlabns.db import model
-from mlabns.util import redirect
+from mlabns.util import constants
+from mlabns.util import reverse_proxy
+
+from google.appengine.api import memcache
+from google.appengine.ext import testbed
 
 
-class RedirectionTest(unittest2.TestCase):
+class ReverseProxyTest(unittest2.TestCase):
 
     def setUp(self):
-        self.fake_redirect = model.RedirectProbability(
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_all_stubs()
+
+        self.fake_reverse_proxy = model.ReverseProxyProbability(
             name="default",
             probability=0.0,
             url="https://mlab-ns.appspot.com")
-        redirect._redirect = None
+        reverse_proxy._reverse_proxy = None
 
-    @mock.patch.object(model, 'RedirectProbability')
-    def test_get_redirection_returns_mock_value(self, mock_redirect):
-        mock_redirect.return_value.all.return_value.run.return_value = (
-            [self.fake_redirect])
+    def tearDown(self):
+        self.testbed.deactivate()
 
-        actual = redirect.get_redirection()
+    @mock.patch.object(model, 'ReverseProxyProbability')
+    def test_get_reverse_proxy_returns_mock_value(self, mock_reverse_proxy):
+        mock_reverse_proxy.return_value.all.return_value.run.return_value = (
+            [self.fake_reverse_proxy])
 
-        self.assertEqual(actual.name, self.fake_redirect.name)
-        self.assertEqual(actual.probability, self.fake_redirect.probability)
-        self.assertEqual(actual.url, self.fake_redirect.url)
+        actual = reverse_proxy.get_reverse_proxy()
 
-    @mock.patch.object(model, 'RedirectProbability')
-    def test_get_redirection_returns_default_value(self, mock_redirect):
-        mock_redirect.return_value.all.return_value.run.return_value = []
-
-        actual = redirect.get_redirection()
-
-        self.assertEqual(actual, redirect.default_redirect)
-        self.assertEqual(actual.name, redirect.default_redirect.name)
+        self.assertEqual(actual.name, self.fake_reverse_proxy.name)
         self.assertEqual(actual.probability,
-                         redirect.default_redirect.probability)
-        self.assertEqual(actual.url, redirect.default_redirect.url)
+                         self.fake_reverse_proxy.probability)
+        self.assertEqual(actual.url, self.fake_reverse_proxy.url)
+
+    @mock.patch.object(model, 'ReverseProxyProbability')
+    def test_get_reverse_proxy_returns_default_value(self, mock_reverse_proxy):
+        mock_reverse_proxy.return_value.all.return_value.run.return_value = []
+
+        actual = reverse_proxy.get_reverse_proxy()
+
+        self.assertEqual(actual, reverse_proxy.default_reverse_proxy)
+        self.assertEqual(actual.name, reverse_proxy.default_reverse_proxy.name)
+        self.assertEqual(actual.probability,
+                         reverse_proxy.default_reverse_proxy.probability)
+        self.assertEqual(actual.url, reverse_proxy.default_reverse_proxy.url)
 
     def test_during_business_hours_returns_true(self):
         t = datetime.datetime(2019, 1, 24, 16, 0, 0)
-        self.assertTrue(redirect.during_business_hours(t))
+        self.assertTrue(reverse_proxy.during_business_hours(t))
 
     def test_during_business_hours_with_ignore_environment_returns_true(self):
         t = datetime.datetime(2019, 1, 25, 16, 0, 0)
         os.environ['IGNORE_BUSINESS_HOURS'] = '1'
-        self.assertTrue(redirect.during_business_hours(t))
+        self.assertTrue(reverse_proxy.during_business_hours(t))
         del os.environ['IGNORE_BUSINESS_HOURS']
 
     def test_during_business_hours_returns_false(self):
         t = datetime.datetime(2019, 1, 25, 16, 0, 0)
-        self.assertFalse(redirect.during_business_hours(t))
+        self.assertFalse(reverse_proxy.during_business_hours(t))
 
-    def test_try_redirect_url_when_wrong_path_returns_emptystr(self):
+    def test_try_reverse_proxy_url_when_wrong_path_returns_emptystr(self):
         mock_request = mock.Mock()
         mock_request.path = '/wrong_path'
         t = datetime.datetime(2019, 1, 24, 16, 0, 0)
 
-        url = redirect.try_redirect_url(mock_request, t)
+        url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
 
         self.assertEqual(url, "")
 
-    def test_try_redirect_url_when_probability_zero_returns_emptystr(self):
+    def test_try_reverse_proxy_url_when_probability_zero_returns_emptystr(self):
         mock_request = mock.Mock()
         mock_request.path = '/ndt_ssl'
         t = datetime.datetime(2019, 1, 24, 16, 0, 0)
-        redirect._redirect = model.RedirectProbability(
-            name="default",
-            probability=0.0,
-            url="https://fake.appspot.com")
+        rp = model.ReverseProxyProbability(name="default",
+                                           probability=0.0,
+                                           url="https://fake.appspot.com")
+        memcache.set('default',
+                     rp,
+                     time=1800,
+                     namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY)
 
-        url = redirect.try_redirect_url(mock_request, t)
+        url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
 
         self.assertEqual(url, "")
 
-    def test_try_redirect_url_when_outside_business_returns_emptystr(self):
+    def test_try_reverse_proxy_url_when_outside_business_returns_emptystr(self):
         mock_request = mock.Mock()
         mock_request.path = '/ndt_ssl'
         t = datetime.datetime(2019, 1, 25, 16, 0, 0)
-        redirect._redirect = model.RedirectProbability(
-            name="default",
-            probability=1.0,
-            url="https://fake.appspot.com")
+        rp = model.ReverseProxyProbability(name="default",
+                                           probability=1.0,
+                                           url="https://fake.appspot.com")
+        memcache.set('default',
+                     rp,
+                     time=1800,
+                     namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY)
 
-        url = redirect.try_redirect_url(mock_request, t)
+        url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
 
         self.assertEqual(url, "")
 
-    def test_try_redirect_url_returns_url(self):
+    def test_try_reverse_proxy_url_returns_url(self):
         mock_request = mock.Mock()
         mock_request.path = '/ndt_ssl'
         mock_request.path_qs = '/ndt_ssl?format=geo_options'
         t = datetime.datetime(2019, 1, 24, 16, 0, 0)
-        redirect._redirect = model.RedirectProbability(
-            name="default",
-            probability=1.0,
-            url="https://fake.appspot.com")
+        rp = model.ReverseProxyProbability(name="default",
+                                           probability=1.0,
+                                           url="https://fake.appspot.com")
+        memcache.set('default',
+                     rp,
+                     time=1800,
+                     namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY)
 
-        actual_url = redirect.try_redirect_url(mock_request, t)
+        actual_url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
 
         self.assertEqual(actual_url,
-                         "https://fake.appspot.com/ndt_ssl?format=geo_options")
+                         'https://fake.appspot.com/ndt_ssl?format=geo_options')
