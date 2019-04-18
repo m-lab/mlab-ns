@@ -245,9 +245,9 @@ class LookupHandler(webapp.RequestHandler):
             body = resp.read()
             self.response.headers['Cache-Control'] = 'no-cache'
             self.response.headers['Access-Control-Allow-Origin'] = '*'
-            # NB: the headers are normalized to all-lowercase by urllib2.
-            self.response.headers['Content-Type'] = resp.info().headers[
-                'content-type']
+            self.response.headers['Connection'] = 'close'
+            self.response.headers['Content-Type'] = (
+                resp.info().getheader('Content-Type'))
             self.response.out.write(body)
             return True
         except urllib2.URLError:
