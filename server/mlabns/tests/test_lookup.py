@@ -67,8 +67,7 @@ class LookupTest(unittest2.TestCase):
                                              path='/ndt_ssl')
         h.response = LookupTest.ResponseMockup()
         mock_urlopen.return_value = LookupTest.URLLibResponseMockup(
-            'any-fake-data',
-            {'content-type': 'application/json'})
+            'any-fake-data', {'content-type': 'application/json'})
 
         h.get()
 
