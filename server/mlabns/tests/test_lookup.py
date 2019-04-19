@@ -1,10 +1,11 @@
 import mock
 import unittest2
+import urllib2
 
 from mlabns.db import model
 from mlabns.handlers import lookup
 from mlabns.util import constants
-from mlabns.util import redirect
+from mlabns.util import reverse_proxy
 
 
 class LookupTest(unittest2.TestCase):
@@ -40,17 +41,44 @@ class LookupTest(unittest2.TestCase):
         def error(self, error_code):
             self.error_code = error_code
 
-    @mock.patch.object(redirect, 'try_redirect_url')
-    def test_get_with_redirect(self, mock_try_redirect_url):
-        mock_try_redirect_url.return_value = 'https://new-mlab-ns.appspot.com'
+    class Info:
+
+        def __init__(self, headers):
+            self.headers = headers
+
+        def getheader(self, header):
+            return self.headers[header.lower()]
+
+    class URLLibResponseMockup:
+
+        def __init__(self, data, headers):
+            self.content = data
+            self.headers = headers
+
+        def info(self):
+            return LookupTest.Info(self.headers)
+
+        def read(self):
+            return self.content
+
+    @mock.patch.object(urllib2, 'urlopen')
+    @mock.patch.object(reverse_proxy, 'try_reverse_proxy_url')
+    def test_get_with_reverse_proxy(self, mock_try_reverse_proxy_url,
+                                    mock_urlopen):
+        mock_try_reverse_proxy_url.return_value = (
+            'https://new-mlab-ns.appspot.com')
         h = lookup.LookupHandler()
         h.request = LookupTest.RequestMockup(url='https://mlab-ns.appspot.com',
                                              path='/ndt_ssl')
         h.response = LookupTest.ResponseMockup()
+        mock_urlopen.return_value = LookupTest.URLLibResponseMockup(
+            'any-fake-data', {'content-type': 'application/json'})
 
         h.get()
 
-        self.assertEqual(h.response.code, 302)
+        # Check response headers, and fake content.
+        self.assertEqual(h.response.out.msg, 'any-fake-data')
+        self.assertEqual(h.response.headers['Content-Type'], 'application/json')
 
     def test_log_location(self):
         h = lookup.LookupHandler()

@@ -19,7 +19,7 @@ from mlabns.util import message
 from mlabns.util import nagios_status
 from mlabns.util import prometheus_status
 from mlabns.util import production_check
-from mlabns.util import redirect
+from mlabns.util import reverse_proxy
 from mlabns.util import util
 
 
@@ -544,5 +544,5 @@ class WarmupHandler(webapp.RequestHandler):
     def get(self):
         """Handles warmup request."""
         logging.info('Running warmup handlers for: redirect, maxmind')
-        redirect.get_redirection()
+        reverse_proxy.get_reverse_proxy()
         maxmind.get_geo_reader()

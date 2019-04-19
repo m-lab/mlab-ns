@@ -39,6 +39,9 @@ MEMCACHE_NAMESPACE_TOOLS = 'memcache_tools'
 # Memcache namespace for map: client_signature -> property of blacklisted clients
 MEMCACHE_NAMESPACE_REQUESTS = 'memcache_requests'
 
+# Memcache namespace for reverse_proxy: default -> ReverseProxyProbability object.
+MEMCACHE_NAMESPACE_REVERSE_PROXY = 'memcache_reverse_proxy'
+
 # Service state status values from Nagios:
 # OK            0
 # WARNING       1

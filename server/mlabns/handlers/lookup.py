@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import time
+import urllib2
 
 from mlabns.db import model
 from mlabns.util import constants
@@ -9,7 +10,7 @@ from mlabns.util import distance
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
-from mlabns.util import redirect
+from mlabns.util import reverse_proxy
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -47,11 +48,16 @@ class LookupHandler(webapp.RequestHandler):
         For more information about the URL and the supported arguments
         in the query string, see the design doc at http://goo.gl/48S22.
         """
-        # Check right away whether we should redirect this request.
-        url = redirect.try_redirect_url(self.request, datetime.datetime.now())
+        # Check right away whether we should proxy this request.
+        url = reverse_proxy.try_reverse_proxy_url(self.request,
+                                                  datetime.datetime.now())
         if url:
-            logging.info('[redirect],true,%s', url)
-            return self.send_redirect_url(url)
+            # NB: if sending the proxy url is unsuccessful, then fall through to
+            # regular request handling.
+            success = self.send_proxy_response(url)
+            if success:
+                logging.info('[reverse_proxy],true,%s', url)
+                return
 
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
@@ -229,16 +235,25 @@ class LookupHandler(webapp.RequestHandler):
 
         return util.send_not_found(self, 'html')
 
-    def send_redirect_url(self, url):
-        """Sends an HTTP redirect for given url.
+    def send_proxy_response(self, url):
+        """Sends result of requesting the given URL.
 
         Args:
-          url: str, URL to direct client.
+          url: str, proxy URL content to client.
         """
-        if url.index(':') != len(self.request.scheme):
-            logging.info("Resetting redirect scheme to match origin.")
-            url = (self.request.scheme + url[url.index(':'):])
-        self.redirect(str(url))
+        try:
+            resp = urllib2.urlopen(url)
+            body = resp.read()
+            self.response.headers['Cache-Control'] = 'no-cache'
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
+            self.response.headers['Connection'] = 'close'
+            self.response.headers['Content-Type'] = (
+                resp.info().getheader('Content-Type'))
+            self.response.out.write(body)
+            return True
+        except urllib2.URLError:
+            logging.exception('[reverse_proxy],failure,%s', url)
+            return False
 
     def send_map_response(self, sliver_tool, query, candidates):
         """Shows the result of the query in a map.

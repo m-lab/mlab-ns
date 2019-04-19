@@ -148,7 +148,7 @@ class Prometheus(db.Model):
     url = db.StringProperty()
 
 
-class RedirectProbability(db.Model):
+class ReverseProxyProbability(db.Model):
     name = db.StringProperty()
     probability = db.FloatProperty()
     url = db.StringProperty()
