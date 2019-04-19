@@ -196,7 +196,7 @@ class ToolFetcherCommonTests(object):
                               roundrobin=True)
         self.insertCreatedTools()
 
-    def xxxtestRoundRobin(self):
+    def testRoundRobin(self):
         self.initToolSetForRoundRobin()
         tool_properties = sliver_tool_fetcher.ToolProperties(tool_id='rr_tool')
         rr_counter = [0, 0, 0]
