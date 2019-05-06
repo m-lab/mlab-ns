@@ -50,8 +50,9 @@ class LookupHandler(webapp.RequestHandler):
         """
 
         # TODO: only temporary test.
-        self.response.set_status(204)
-        return
+        if self.request.path == '/test_204':
+            self.response.set_status(204)
+            return
 
         # Check right away whether we should proxy this request.
         url = reverse_proxy.try_reverse_proxy_url(self.request,
