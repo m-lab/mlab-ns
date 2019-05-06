@@ -51,6 +51,7 @@ class LookupHandler(webapp.RequestHandler):
 
         # TODO: only temporary test.
         if self.request.path == '/test_204':
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
             self.response.set_status(204)
             return
 
