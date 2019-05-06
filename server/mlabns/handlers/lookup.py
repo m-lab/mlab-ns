@@ -48,6 +48,11 @@ class LookupHandler(webapp.RequestHandler):
         For more information about the URL and the supported arguments
         in the query string, see the design doc at http://goo.gl/48S22.
         """
+
+        # TODO: only temporary test.
+        self.response.set_status(204)
+        return
+
         # Check right away whether we should proxy this request.
         url = reverse_proxy.try_reverse_proxy_url(self.request,
                                                   datetime.datetime.now())
