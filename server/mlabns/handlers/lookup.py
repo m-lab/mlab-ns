@@ -48,13 +48,6 @@ class LookupHandler(webapp.RequestHandler):
         For more information about the URL and the supported arguments
         in the query string, see the design doc at http://goo.gl/48S22.
         """
-
-        # TODO: only temporary test.
-        if self.request.path == '/test_204':
-            self.response.headers['Access-Control-Allow-Origin'] = '*'
-            self.response.set_status(204)
-            return
-
         # Check right away whether we should proxy this request.
         url = reverse_proxy.try_reverse_proxy_url(self.request,
                                                   datetime.datetime.now())
@@ -148,9 +141,9 @@ class LookupHandler(webapp.RequestHandler):
             logging.error("Problem: sliver_tools is not a list.")
             return
 
+        # We will respond with HTTP status 204 if len(sliver_tools) == 0
         array_response = False
-        if len(sliver_tools) != 1:
-            # Respond with an array for 0 or more than 1 items.
+        if len(sliver_tools) > 1:
             array_response = True
 
         tool = None
@@ -197,7 +190,10 @@ class LookupHandler(webapp.RequestHandler):
             json_data = "[" + json_data + "]"
         self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(json_data)
+        if json_data:
+            self.response.out.write(json_data)
+        else:
+            self.response.set_status(204)
 
     def send_html_response(self, sliver_tools, query):
         """Sends the response to the lookup request in html format.
