@@ -114,7 +114,9 @@ class IPUpdateHandlerTest(unittest2.TestCase):
         self.addCleanup(tool_model_patch.stop)
         tool_model_patch.start()
 
-        sliver_model_patch = mock.patch.object(model, 'SliverTool', autospec=True)
+        sliver_model_patch = mock.patch.object(model,
+                                               'SliverTool',
+                                               autospec=True)
         self.addCleanup(sliver_model_patch.stop)
         sliver_model_patch.start()
 
@@ -130,14 +132,16 @@ class IPUpdateHandlerTest(unittest2.TestCase):
 }
 ]""")
         model.Site.all.return_value.fetch.return_value = [
-            mock.Mock(site_id='xyz01')]
+            mock.Mock(site_id='xyz01')
+        ]
         model.Tool.all.return_value.fetch.return_value = [
-            mock.Mock(
-                slice_id='iupui_ndt', tool_id='ndt')]
+            mock.Mock(slice_id='iupui_ndt', tool_id='ndt')
+        ]
         model.SliverTool.all.return_value.fetch.return_value = [
-            mock.Mock(
-                slice_id='iupui_ndt', tool_id='ndt',
-                fqdn='ndt.iupui.mlab1.xyz0t.measurement-lab.org')]
+            mock.Mock(slice_id='iupui_ndt',
+                      tool_id='ndt',
+                      fqdn='ndt.iupui.mlab1.xyz0t.measurement-lab.org')
+        ]
 
         handler = update.IPUpdateHandler()
         handler.update()

@@ -175,7 +175,6 @@ class IPUpdateHandler():
 
         Updates sliver tool IP addresses.
         """
-        lines = []
         try:
             project = app_identity.get_application_id()
             if project == 'mlab-ns':
@@ -199,7 +198,7 @@ class IPUpdateHandler():
             rows = json.loads(raw_json)
         except (TypeError, ValueError) as e:
             logging.error('Failed to parse raw json from %s: %s', host_ips_url,
-                e)
+                          e)
             return util.send_not_found(self)
 
         # Fetch all data that we are going to need from the datastore up front.
