@@ -85,6 +85,17 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
+    'ndt7': textwrap.dedent("""\
+        min by (experiment, machine) (
+            probe_success{service="ndt7"} OR
+            ((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
+              node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
+                node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) < bool 0.95 OR
+            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{experiment="ndt.iupui"} != bool 1 OR
+            label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
+        )
+        """),
     'neubot': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="neubot"} OR
