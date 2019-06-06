@@ -38,7 +38,7 @@ For a complete snapshot of the current DB see:
 
 mlab-ns detects new sites through a cron job that runs once daily. It causes mlab-ns to query a current site list at the following URL:
 
-* https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-site-stats.json
+* https://siteinfo.mlab-oti.measurementlab.net/v1/sites/locations.json
 
 mlab-ns then compares checks if any new sites appear in this list, and if so, registers the new sites in the data store.
 
@@ -48,20 +48,47 @@ mlab-ns is integrated with Prometheus, M-Lab’s monitoring system, to check whi
 
 ## Detecting IP Address Changes
 
-mlab-ns detects changes to M-Lab site IP addresses via a cron job that runs once daily. It fetches the file mlab-host-ips.txt via the following URL:
+mlab-ns detects changes to M-Lab site IP addresses via a cron job that runs once daily. It fetches the file hostnames.json via the following URL:
 
-* https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt
+* https://siteinfo.mlab-oti.measurementlab.net/v1/sites/hostnames.json
 
-The file format is CSV, in the following format:
+The file format is JSON, in the following format:
 
-> [slice FQDN],[IPv4],[IPv6]
+```
+[
+  {
+    "hostname": [slice FQDN],
+	"ipv4": [IPv4],
+	"ipv6": [IPv6]
+  },
+  ...
+]
+```
 
-Where each field is separated by commas. An example of partial results from this file is shown below.
+Where each field is a separate object in the array. An example of partial results from this file is shown below.
 
-    broadband.mpisws.mlab4.sea04.measurement-lab.org,4.71.157.180,
-    bismark.gt.mlab4.sea04.measurement-lab.org,4.71.157.185,
-    utility.mlab.mlab4.sea04.measurement-lab.org,4.71.157.188,2001:1900:2100:16::188
-    ispmon.samknows.mlab4.sea04.measurement-lab.org,4.71.157.184,2001:1900:2100:16::184
+```
+{
+   "hostname": "ndt.iupui.mlab2.ams03.measurement-lab.org",
+   "ipv4": "80.239.169.24",
+   "ipv6": "2001:2030:32::24"
+},
+{
+   "hostname": "geoloc4.uw.mlab2.ams03.measurement-lab.org",
+   "ipv4": "80.239.169.28",
+   "ipv6": "2001:2030:32::28"
+},
+{
+   "hostname": "ispmon.samknows.mlab2.ams03.measurement-lab.org",
+   "ipv4": "80.239.169.30",
+   "ipv6": "2001:2030:32::30"
+},
+{
+   "hostname": "bismark.gt.mlab2.ams03.measurement-lab.org",
+   "ipv4": "80.239.169.31",
+   "ipv6": "2001:2030:32::31"
+},
+```
 
 Using this information, mlab-ns adds sliver information to its data store (for previously unknown slivers) or updates the existing sliver entries in the data store (for previously added slivers).
 

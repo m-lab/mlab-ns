@@ -37,8 +37,8 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                        LAT_FIELD, LON_FIELD, ROUNDROBIN_FIELD]
-    DEFAULT_SITE_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-site-stats.json'
-    TEMPLATE_SITE_LIST_URL = 'https://storage.googleapis.com/operator-{project}/metadata/v0/current/mlab-site-stats.json'
+    DEFAULT_SITE_LIST_URL = 'https://siteinfo.mlab-oti.measurementlab.net/v1/sites/locations.json'
+    TEMPLATE_SITE_LIST_URL = 'https://siteinfo.{project}.measurementlab.net/v1/sites/locations.json'
 
     @classmethod
     def _is_valid_site(cls, site):
@@ -167,15 +167,14 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 class IPUpdateHandler():
     """Updates SliverTools' IP addresses."""
 
-    DEFAULT_IP_LIST_URL = 'https://storage.googleapis.com/operator-mlab-oti/metadata/v0/current/mlab-host-ips.txt'
-    TEMPLATE_IP_LIST_URL = 'https://storage.googleapis.com/operator-{project}/metadata/v0/current/mlab-host-ips.txt'
+    DEFAULT_IP_LIST_URL = 'https://siteinfo.mlab-oti.measurementlab.net/v1/sites/hostnames.json'
+    TEMPLATE_IP_LIST_URL = 'https://siteinfo.{project}.measurementlab.net/v1/sites/hostnames.json'
 
     def update(self):
         """Triggers the update handler.
 
         Updates sliver tool IP addresses.
         """
-        lines = []
         try:
             project = app_identity.get_application_id()
             if project == 'mlab-ns':
@@ -188,11 +187,18 @@ class IPUpdateHandler():
             return util.send_not_found(self)
 
         try:
-            lines = urllib2.urlopen(host_ips_url).read().strip('\n').split('\n')
-            logging.info('Fetched mlab-host-ips.txt from: %s', host_ips_url)
+            raw_json = urllib2.urlopen(host_ips_url).read()
+            logging.info('Fetched hostnames.json from: %s', host_ips_url)
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
             logging.error('Cannot open %s.', host_ips_url)
+            return util.send_not_found(self)
+
+        try:
+            rows = json.loads(raw_json)
+        except (TypeError, ValueError) as e:
+            logging.error('Failed to parse raw json from %s: %s', host_ips_url,
+                          e)
             return util.send_not_found(self)
 
         # Fetch all data that we are going to need from the datastore up front.
@@ -200,15 +206,11 @@ class IPUpdateHandler():
         tools = list(model.Tool.all().fetch(limit=None))
         slivertools = list(model.SliverTool.all().fetch(limit=None))
 
-        for line in lines:
-            # Expected format: "FQDN,IPv4,IPv6" (IPv6 can be an empty string).
-            line_fields = line.split(',')
-            if len(line_fields) != 3:
-                logging.error('Line does not have 3 fields: %s.', line)
-                continue
-            fqdn = line_fields[0]
-            ipv4 = line_fields[1]
-            ipv6 = line_fields[2]
+        for row in rows:
+            # Expected keys: "hostname,ipv4,ipv6" (ipv6 can be an empty string).
+            fqdn = row['hostname']
+            ipv4 = row['ipv4']
+            ipv6 = row['ipv6']
 
             if not production_check.is_production_slice(fqdn):
                 continue
