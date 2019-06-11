@@ -96,12 +96,12 @@ class GeoResolver(ResolverBase):
 
         filtered_candidates = []
 
-        sig = query.calculate_client_signature()
-        prob = client_signature_fetcher.ClientSignatureFetcher().fetch(sig)
+        prob = client_signature_fetcher.ClientSignatureFetcher().fetch(
+            self.client_signature)
         if random.uniform(0, 1) > prob:
             # NB: the string format makes log monitoring possible.
             logging.info('SIGNATURE_FOUND: %f returned from memcache for %s',
-                         prob, sig)
+                         prob, self.client_signature)
             # Filter the candidates sites, only keep the '0c' sites
             filtered_candidates = filter(lambda c: c.site_id[-1] == 'c',
                                          candidates)
@@ -243,7 +243,7 @@ def new_resolver(policy, client_signature=''):
     elif policy == message.POLICY_COUNTRY:
         return CountryResolver(client_signature)
     elif policy == message.POLICY_GEO_OPTIONS:
-        return GeoResolverWithOptions()
+        return GeoResolverWithOptions(client_signature)
     elif policy == message.POLICY_ALL:
         return AllResolver(client_signature)
     else:
