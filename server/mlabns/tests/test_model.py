@@ -47,9 +47,12 @@ class GetAllToolIdsTest(unittest2.TestCase):
 
         actual_ids = model.get_all_tool_ids()
         self.assertItemsEqual(actual_ids, expected_ids)
+        self.assertTrue(model.is_valid_tool('tool_c'))
+        self.assertFalse(model.is_valid_tool('this_is_an_invalid_tool_id'))
 
     def test_get_all_tool_ids_no_stored_tools_returns_empty(self):
         self.assertItemsEqual(model.get_all_tool_ids(), [])
+        self.assertFalse(model.is_valid_tool('any_tool_id'))
 
 
 if __name__ == '__main__':
