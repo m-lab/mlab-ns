@@ -8,6 +8,9 @@ class UtilTestCase(unittest2.TestCase):
 
     class OutMockup:
 
+        def __init__(self):
+            self.msg = ''
+
         def write(self, msg):
             self.msg = msg
 
@@ -17,6 +20,9 @@ class UtilTestCase(unittest2.TestCase):
             self.out = UtilTestCase.OutMockup()
             self.headers = {}
 
+        def set_status(self, code):
+            self.status = code
+
     class RequestMockup:
 
         def __init__(self):
@@ -25,6 +31,14 @@ class UtilTestCase(unittest2.TestCase):
 
         def error(self, error_code):
             self.error_code = error_code
+
+    def testSendNoContent(self):
+        request = UtilTestCase.RequestMockup()
+        util.send_no_content(request)
+        self.assertEqual(request.response.status, 204)
+        self.assertEqual(request.response.headers['Content-Type'],
+                         'application/json')
+        self.assertEqual(request.response.out.msg, '')
 
     def testSendNotFoundJson(self):
         request = UtilTestCase.RequestMockup()

@@ -69,7 +69,14 @@ class LookupHandler(webapp.RequestHandler):
         sliver_tools = lookup_resolver.answer_query(query)
 
         if sliver_tools is None:
-            return util.send_not_found(self, query.response_format)
+            # NOTE: at this point, we know that either the query is invalid
+            # (e.g. bad tool_id) or that a valid query has no capacity.
+            if model.is_valid_tool(query.tool_id):
+                # A.K.A. "no capacity".
+                return util.send_no_content(self)
+            else:
+                # Invalid tool, so report "404 Not Found".
+                return util.send_not_found(self, query.response_format)
 
         if query.response_format == message.FORMAT_JSON:
             self.send_json_response(sliver_tools, query)
@@ -188,12 +195,12 @@ class LookupHandler(webapp.RequestHandler):
 
         if array_response:
             json_data = "[" + json_data + "]"
-        self.response.headers['Access-Control-Allow-Origin'] = '*'
-        self.response.headers['Content-Type'] = 'application/json'
         if json_data:
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
+            self.response.headers['Content-Type'] = 'application/json'
             self.response.out.write(json_data)
         else:
-            self.response.set_status(204)
+            util.send_no_content(self)
 
     def send_html_response(self, sliver_tools, query):
         """Sends the response to the lookup request in html format.
