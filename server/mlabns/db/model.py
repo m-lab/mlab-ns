@@ -234,3 +234,8 @@ def get_status_source_deps(source):
     if not tools:
         logging.info('No tools get their status from %s.', source)
     return tools
+
+
+def is_valid_tool(tool_id):
+    """Indicates whether the given tool_id is valid and known in datastore."""
+    return tool_id in get_all_tool_ids()
