@@ -126,6 +126,7 @@ class LookupTest(unittest2.TestCase):
         h.get()
 
         self.assertEqual(h.response.out.msg, '')
+        self.assertEqual(h.response.code, 204)
 
     @mock.patch.object(reverse_proxy, 'try_reverse_proxy_url')
     def test_get_with_not_found(self, mock_try_reverse_proxy_url):
@@ -141,6 +142,7 @@ class LookupTest(unittest2.TestCase):
         h.get()
 
         self.assertEqual(h.response.out.msg, '{"status_code": "404 Not found"}')
+        self.assertEqual(h.response.code, 404)
 
     def test_log_location(self):
         h = lookup.LookupHandler()
