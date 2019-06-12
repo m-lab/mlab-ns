@@ -15,8 +15,7 @@ default_reverse_proxy = model.ReverseProxyProbability(
 
 
 def get_reverse_proxy(experiment):
-    """Reads and caches the ReverseProxyProbability record for a given experiment.
-    If the experiment does not exist, it returns a default probability."""
+    """Reads and caches the ReverseProxyProbability record for an experiment"""
     reverse_proxy = memcache.get(
         experiment,
         namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY)

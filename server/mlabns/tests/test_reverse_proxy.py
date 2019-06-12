@@ -1,13 +1,8 @@
-import datetime
-import os
-import mock
 import unittest2
 
 from mlabns.db import model
-from mlabns.util import constants
 from mlabns.util import reverse_proxy
 
-from google.appengine.api import memcache
 from google.appengine.ext import testbed
 
 
