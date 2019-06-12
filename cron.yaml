@@ -6,11 +6,14 @@ cron:
   schedule: every 1 minutes
 
 # Check for new sites, and for new and/or updated IP addresses, roundrobin information.
-# run every 24 hours, starting at 06:00
+# run every 24 hours, starting at 15:05. 15:05 is 5 minutes after the
+# script_exporter updates its traffic control filters for the ndt_e2e test.
+# Running at this time ensures that for new sites the ndt_e2e metrics will
+# exist for the site before mlab-ns starts querying for it.
 - description: Check sites, update IP and roundrobin
   url: /cron/check_site
   target: {{TARGET}}
-  schedule: every day 06:00
+  schedule: every day 15:05
 
 # Count client signatures found in memcache.
 - description: Count client signatures found in memcache.
