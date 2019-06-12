@@ -20,6 +20,8 @@ def get_reverse_proxy(experiment):
         experiment,
         namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY)
     if reverse_proxy is None:
+        logging.info("Getting reverse proxy probability for experiment" +
+                     experiment)
         reverse_proxy = model.ReverseProxyProbability.get_by_key_name(
             experiment)
 
