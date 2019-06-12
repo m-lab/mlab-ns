@@ -14,23 +14,28 @@ default_reverse_proxy = model.ReverseProxyProbability(
     url="https://mlab-ns.appspot.com")
 
 
-def get_reverse_proxy():
-    """Reads and caches the first (and only) ReverseProxyProbability record."""
+def get_reverse_proxy(experiment):
+    """Reads and caches the ReverseProxyProbability record for a given experiment.
+    If the experiment does not exist, it returns a default probability."""
     reverse_proxy = memcache.get(
-        'default',
+        experiment,
         namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY)
     if reverse_proxy is None:
-        for prob in model.ReverseProxyProbability.all().run():
-            if not memcache.set(
-                    'default',
-                    prob,
-                    time=1800,
-                    namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY):
-                logging.error(
-                    'Failed to update ReverseProxyProbability in memcache')
-            return prob
-        logging.info('No reverse proxy probability found; using default')
-        reverse_proxy = default_reverse_proxy
+        reverse_proxy = model.ReverseProxyProbability.get_by_key_name(experiment)
+
+        if reverse_proxy is None:
+            logging.info('No reverse proxy probability found; using default')
+            return default_reverse_proxy
+
+        if not memcache.set(
+            experiment,
+            reverse_proxy,
+            time=1800,
+            namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY):
+
+            logging.error(
+                'Failed to update ReverseProxyProbability in memcache')
+
     return reverse_proxy
 
 
@@ -62,9 +67,11 @@ def try_reverse_proxy_url(request, t):
     Returns:
        str, empty string for no action, or complete URL to reverse proxy.
     """
-    if request.path != '/ndt_ssl':
+    if request.path != '/ndt_ssl' and request.path != '/ndt7':
         return ""
-    rdp = get_reverse_proxy()
+
+    experiment = request.path.strip('/')
+    rdp = get_reverse_proxy(experiment)
     if random.uniform(0, 1) > rdp.probability:
         return ""
     if not during_business_hours(t):
