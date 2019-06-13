@@ -7,7 +7,9 @@ from google.appengine.api import memcache
 from mlabns.db import model
 from mlabns.util import constants
 
-# Default value if datastore contains no records.
+# Default value if datastore contains no records for a given experiment.
+# This object should not be returned directly, but you can make a copy
+# with a custom name by calling default_reverse_proxy.with_name("name").
 default_reverse_proxy = model.ReverseProxyProbability(
     name="default",
     probability=0.0,
