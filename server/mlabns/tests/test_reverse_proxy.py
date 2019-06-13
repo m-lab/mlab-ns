@@ -45,6 +45,7 @@ class ReverseProxyTest(unittest2.TestCase):
             url="https://fake.appspot.com")
         ndt7_probability.put()
         ndt_ssl_probability.put()
+
         actual = reverse_proxy.get_reverse_proxy('ndt_ssl')
 
         self.assertEqual(actual.name, ndt_ssl_probability.name)
