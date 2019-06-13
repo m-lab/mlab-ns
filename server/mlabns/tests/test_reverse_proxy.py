@@ -25,13 +25,12 @@ class ReverseProxyTest(unittest2.TestCase):
 
     def test_get_reverse_proxy_returns_default_value(self):
         # If the entity does not exist, get_reverse_proxy should return a
-        # default probability.
-        actual = reverse_proxy.get_reverse_proxy('default')
+        # default probability of 0.0 for the requested experiment name.
+        actual = reverse_proxy.get_reverse_proxy('not_valid')
 
-        self.assertEqual(actual.name, reverse_proxy.default_reverse_proxy.name)
-        self.assertEqual(actual.probability,
-                         reverse_proxy.default_reverse_proxy.probability)
-        self.assertEqual(actual.url, reverse_proxy.default_reverse_proxy.url)
+        self.assertEqual(actual.name, 'not_valid')
+        self.assertEqual(actual.probability, 0.0)
+        self.assertEqual(actual.url, "https://mlab-ns.appspot.com")
 
     def test_get_reverse_proxy_returns_probability_and_caches(self):
         # If the entity exists, get_reverse_proxy should return it.

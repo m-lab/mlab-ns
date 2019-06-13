@@ -10,7 +10,7 @@ from mlabns.util import constants
 # Default value if datastore contains no records.
 default_reverse_proxy = model.ReverseProxyProbability(
     name="default",
-    probability=1.0,
+    probability=0.0,
     url="https://mlab-ns.appspot.com")
 
 
@@ -40,7 +40,7 @@ def get_reverse_proxy(experiment):
 
         if reverse_proxy is None:
             logging.info('No reverse proxy probability found; using default')
-            reverse_proxy = default_reverse_proxy
+            reverse_proxy = default_reverse_proxy.with_name(experiment)
 
     return reverse_proxy
 

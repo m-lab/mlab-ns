@@ -1,3 +1,4 @@
+import copy
 import logging
 
 from google.appengine.ext import db
@@ -152,6 +153,11 @@ class ReverseProxyProbability(db.Model):
     name = db.StringProperty()
     probability = db.FloatProperty()
     url = db.StringProperty()
+
+    def with_name(self, name):
+        prob = copy.copy(self)
+        prob.name = name
+        return prob
 
 
 def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
