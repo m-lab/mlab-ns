@@ -15,7 +15,10 @@ default_reverse_proxy = model.ReverseProxyProbability(
 
 
 def get_reverse_proxy(experiment):
-    """Reads and caches the ReverseProxyProbability record for an experiment"""
+    """Reads the ReverseProxyProbability record for an experiment.
+
+    If the entity is not cached, it also refreshes the cache.
+    """
     reverse_proxy = memcache.get(
         experiment,
         namespace=constants.MEMCACHE_NAMESPACE_REVERSE_PROXY)
@@ -23,6 +26,9 @@ def get_reverse_proxy(experiment):
     if reverse_proxy is None:
         # Update ReverseProxyProbability for all the experiments.
         for prob in model.ReverseProxyProbability.all().run():
+            if experiment == prob.name:
+                reverse_proxy = experiment
+
             if not memcache.set(
                     prob.name,
                     prob,
