@@ -10,7 +10,7 @@ def rewrite(fqdn, address_family, tool_id):
 
     Performs the following rewrites on an FQDN:
     * Adds a v4/v6 annotation if the client requested an explicit address family
-    * Applies a workaround to fix FQDNs for NDT-SSL queries.
+    * Applies a workaround to fix FQDNs for NDT-SSL and ndt7 queries.
 
     Args:
         fqdn: A tool FQDN with no address family specific annotation.
@@ -62,7 +62,7 @@ def _apply_af_awareness(fqdn, address_family):
 
 
 def _apply_ndt_ssl_workaround(fqdn):
-    """Rewrites ndt_ssl FQDNs to use dash separators for subdomains.
+    """Rewrites ndt_ssl/ndt7 FQDNs to use dash separators for subdomains.
 
     The NDT-SSL test uses dashes instead of dots as separators in the subdomain,
     but Nagios currently reports the FQDNs as using dots.
@@ -75,15 +75,15 @@ def _apply_ndt_ssl_workaround(fqdn):
 
         ndt-iupui-mlab1-lga06.measurement-lab.org
 
-    We rewrite the dotted FQDNs to use dashes so that NDT-SSL works properly.
-    This is intended to be a temporary workaround until we can find a solution
-    that does not require NDT-SSL to be a special case from mlab-ns's
-    perspective.
+    We rewrite the dotted FQDNs to use dashes so that NDT-SSL/ndt7 work
+    properly. This is intended to be a temporary workaround until we can
+    find a solution that does not require NDT-SSL/ndt7 to be special cases
+    from mlab-ns's perspective.
 
     See https://github.com/m-lab/mlab-ns/issues/48 for more information.
 
     Args:
-        fqdn: An NDT-SSL FQDN in dotted notation.
+        fqdn: An NDT-SSL or ndt7 FQDN in dotted notation.
 
     Returns:
         FQDN with rewritten dashes if a rewrite was necessary, the original FQDN
