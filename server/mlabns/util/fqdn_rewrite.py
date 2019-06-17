@@ -22,8 +22,8 @@ def rewrite(fqdn, address_family, tool_id):
         FQDN after rewriting to apply all modifications to the raw FQDN.
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
-    # If this is ndt_ssl, apply the special case workaround.
-    if tool_id == 'ndt_ssl':
+    # If this is ndt_ssl or ndt7, apply the special case workaround.
+    if tool_id == 'ndt_ssl' or tool_id == 'ndt7':
         rewritten_fqdn = _apply_ndt_ssl_workaround(rewritten_fqdn)
     return rewritten_fqdn
 

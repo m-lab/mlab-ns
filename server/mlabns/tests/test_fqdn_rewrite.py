@@ -50,6 +50,29 @@ class FqdnRewriteTest(unittest.TestCase):
             fqdn_original, message.ADDRESS_FAMILY_IPv6, 'ndt_ssl')
         self.assertEqual(fqdn_expected, fqdn_actual)
 
+    def testAfAgnosticNdt7Fqdn(self):
+        """Convet dots to dashes, but omit AF annotation for ndt7."""
+        fqdn_original = 'ndt.iupui.mlab1.lga06.measurement-lab.org'
+        fqdn_expected = 'ndt-iupui-mlab1-lga06.measurement-lab.org'
+        fqdn_actual = fqdn_rewrite.rewrite(fqdn_original, None, 'ndt7')
+        self.assertEqual(fqdn_expected, fqdn_actual)
+
+    def testIPv4Ndt7Fqdn(self):
+        """Add a v4 annotation and rewrite dots to dashes for ndt7."""
+        fqdn_original = 'ndt.iupui.mlab1.lga06.measurement-lab.org'
+        fqdn_expected = 'ndt-iupui-mlab1v4-lga06.measurement-lab.org'
+        fqdn_actual = fqdn_rewrite.rewrite(fqdn_original,
+                                           message.ADDRESS_FAMILY_IPv4, 'ndt7')
+        self.assertEqual(fqdn_expected, fqdn_actual)
+
+    def testIPv6Ndt7Fqdn(self):
+        """Add a v6 annotation and rewrite dots to dashes for ndt7."""
+        fqdn_original = 'ndt.iupui.mlab1.lga06.measurement-lab.org'
+        fqdn_expected = 'ndt-iupui-mlab1v6-lga06.measurement-lab.org'
+        fqdn_actual = fqdn_rewrite.rewrite(fqdn_original,
+                                           message.ADDRESS_FAMILY_IPv6, 'ndt7')
+        self.assertEqual(fqdn_expected, fqdn_actual)
+
 
 if __name__ == '__main__':
     unittest.main()
