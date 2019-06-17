@@ -51,7 +51,7 @@ class FqdnRewriteTest(unittest.TestCase):
         self.assertEqual(fqdn_expected, fqdn_actual)
 
     def testAfAgnosticNdt7Fqdn(self):
-        """Convet dots to dashes, but omit AF annotation for ndt7."""
+        """Convert dots to dashes, but omit AF annotation for ndt7."""
         fqdn_original = 'ndt.iupui.mlab1.lga06.measurement-lab.org'
         fqdn_expected = 'ndt-iupui-mlab1-lga06.measurement-lab.org'
         fqdn_actual = fqdn_rewrite.rewrite(fqdn_original, None, 'ndt7')
