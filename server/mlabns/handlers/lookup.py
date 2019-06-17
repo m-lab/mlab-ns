@@ -48,8 +48,11 @@ class LookupHandler(webapp.RequestHandler):
         For more information about the URL and the supported arguments
         in the query string, see the design doc at http://goo.gl/48S22.
         """
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.request)
+
         # Check right away whether we should proxy this request.
-        url = reverse_proxy.try_reverse_proxy_url(self.request,
+        url = reverse_proxy.try_reverse_proxy_url(query,
                                                   datetime.datetime.now())
         if url:
             # NB: if sending the proxy url is unsuccessful, then fall through to
@@ -58,9 +61,6 @@ class LookupHandler(webapp.RequestHandler):
             if success:
                 logging.info('[reverse_proxy],true,%s', url)
                 return
-
-        query = lookup_query.LookupQuery()
-        query.initialize_from_http_request(self.request)
 
         logging.info('Policy is %s', query.policy)
 
