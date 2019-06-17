@@ -131,7 +131,7 @@ class ReverseProxyTest(unittest2.TestCase):
 
         self.assertEqual(url, "")
 
-    def test_try_reverse_proxy_url_returns_url(self):
+    def test_try_reverse_proxy_url_returns_url_with_latlon(self):
         ndt_ssl_probability = model.ReverseProxyProbability(
             name="ndt_ssl",
             probability=1.0,
@@ -140,9 +140,31 @@ class ReverseProxyTest(unittest2.TestCase):
         mock_request = mock.Mock()
         mock_request.path = '/ndt_ssl'
         mock_request.path_qs = '/ndt_ssl?format=geo_options'
+        mock_request.latitude = 40.7
+        mock_request.longitude = 74.0
         t = datetime.datetime(2019, 1, 24, 16, 0, 0)
 
         actual_url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
 
-        self.assertEqual(actual_url,
-                         'https://fake.appspot.com/ndt_ssl?format=geo_options')
+        self.assertEqual(actual_url, (
+            'https://fake.appspot.com/ndt_ssl?format=geo_options&lat=40.700000'
+            '&lon=74.000000'))
+
+    def test_try_reverse_proxy_url_returns_url_with_only_latlon(self):
+        ndt_ssl_probability = model.ReverseProxyProbability(
+            name="ndt_ssl",
+            probability=1.0,
+            url="https://fake.appspot.com")
+        ndt_ssl_probability.put()
+        mock_request = mock.Mock()
+        mock_request.path = '/ndt_ssl'
+        mock_request.path_qs = '/ndt_ssl'
+        mock_request.latitude = 40.7
+        mock_request.longitude = 74.0
+        t = datetime.datetime(2019, 1, 24, 16, 0, 0)
+
+        actual_url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
+
+        self.assertEqual(
+            actual_url,
+            'https://fake.appspot.com/ndt_ssl?lat=40.700000&lon=74.000000')

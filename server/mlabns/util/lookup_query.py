@@ -78,6 +78,7 @@ class LookupQuery:
             request: An instance of google.appengine.webapp.Request.
         """
         self.tool_id = request.path.strip('/').split('/')[0]
+        self.path = request.path
         self._set_response_format(request)
         self._set_ip_address(request)
         self._set_tool_address_family(request)

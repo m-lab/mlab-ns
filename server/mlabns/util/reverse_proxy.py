@@ -65,23 +65,26 @@ def during_business_hours(t):
     return t.hour >= 14 and t.hour <= 22 and t.weekday() < 4
 
 
-def try_reverse_proxy_url(request, t):
+def try_reverse_proxy_url(query, t):
     """Possibly generates a URL to perform a reverse proxy for client request.
 
     Args:
-       request: webapp.Request, request used to construct complete url.
+       query: lookup_query.LookupQuery, query used to construct complete url.
        t: datetime.datetime, time used to evaluate business hours.
 
     Returns:
        str, empty string for no action, or complete URL to reverse proxy.
     """
-    if request.path != '/ndt_ssl' and request.path != '/ndt7':
+    if query.path != '/ndt_ssl' and query.path != '/ndt7':
         return ""
 
-    experiment = request.path.strip('/')
+    experiment = query.path.strip('/')
     rdp = get_reverse_proxy(experiment)
     if random.uniform(0, 1) > rdp.probability:
         return ""
     if not during_business_hours(t):
         return ""
-    return rdp.url + request.path_qs
+
+    latlon = 'lat=%f&lon=%f' % (query.latitude, query.longitude)
+    query_str = query.path_qs + ('&' if '?' in query.path_qs else '?') + latlon
+    return rdp.url + query_str
