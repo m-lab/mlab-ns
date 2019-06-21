@@ -82,7 +82,7 @@ def try_reverse_proxy_url(query, t):
     rdp = get_reverse_proxy(experiment)
     if random.uniform(0, 1) > rdp.probability:
         return ""
-    if not during_business_hours(t):
+    if query.path == '/ndt_ssl' and not during_business_hours(t):
         return ""
 
     latlon = 'lat=%f&lon=%f' % (query.latitude, query.longitude)
