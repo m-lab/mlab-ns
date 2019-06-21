@@ -80,9 +80,12 @@ def try_reverse_proxy_url(query, t):
 
     experiment = query.path.strip('/')
     rdp = get_reverse_proxy(experiment)
+
+    # ndt_ssl is only proxied during EST business hours, ndt7 doesn't have
+    # this restriction.
     if random.uniform(0, 1) > rdp.probability:
         return ""
-    if not during_business_hours(t):
+    if query.path == '/ndt_ssl' and not during_business_hours(t):
         return ""
 
     latlon = 'lat=%f&lon=%f' % (query.latitude, query.longitude)
