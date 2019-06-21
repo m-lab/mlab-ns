@@ -117,7 +117,8 @@ class ReverseProxyTest(unittest2.TestCase):
 
         self.assertEqual(url, "")
 
-    def test_try_reverse_proxy_url_when_outside_business_returns_emptystr(self):
+    def test_try_reverse_proxy_url_when_outside_business(self):
+        # This should return an empty string only for ndt_ssl.
         ndt_ssl_probability = model.ReverseProxyProbability(
             name="ndt_ssl",
             probability=1.0,
@@ -130,6 +131,23 @@ class ReverseProxyTest(unittest2.TestCase):
         url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
 
         self.assertEqual(url, "")
+
+        ndt7_probability = model.ReverseProxyProbability(
+            name="ndt7",
+            probability=1.0,
+            url="https://fake.appspot.com")
+        ndt7_probability.put()
+        mock_request = mock.Mock()
+        mock_request.path = '/ndt7'
+        mock_request.path_qs = '/ndt7'
+        mock_request.latitude = 40.7
+        mock_request.longitude = 74.0
+        t = datetime.datetime(2019, 1, 25, 16, 0, 0)
+
+        url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
+
+        self.assertEqual(url, (
+            'https://fake.appspot.com/ndt7?lat=40.700000&lon=74.000000'))
 
     def test_try_reverse_proxy_url_returns_url_with_latlon(self):
         ndt_ssl_probability = model.ReverseProxyProbability(
