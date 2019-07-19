@@ -416,7 +416,9 @@ class LookupHandler(webapp.RequestHandler):
         sliver_tool = sliver_tools[0]
 
         # Lookup the maxmind information.
-        query._set_maxmind_geolocation(query.ip_address, None, None)
+        status = query._set_maxmind_geolocation(query.ip_address, None, None)
+        if not status:
+            return False
 
         # Calculate the difference between the two systems.
         difference = distance.distance(

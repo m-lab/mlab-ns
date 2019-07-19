@@ -231,6 +231,11 @@ class LookupQuery:
         self._maxmind_latitude = geo_record.latitude
         self._maxmind_longitude = geo_record.longitude
 
+        if not geo_record:
+            return False
+        else:
+            return True
+
     def _set_appengine_geolocation(self, request):
         """Adds geolocation info using the data provided by AppEngine.
 
