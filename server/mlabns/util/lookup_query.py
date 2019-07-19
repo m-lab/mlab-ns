@@ -226,15 +226,16 @@ class LookupQuery:
             geo_record = maxmind.get_city_geolocation(city, country)
         elif country is not None:
             geo_record = maxmind.get_country_geolocation(country)
+
+        if geo_record.latitude == None or geo_record.longitude == None:
+            return False
+
         self._maxmind_city = geo_record.city
         self._maxmind_country = geo_record.country
         self._maxmind_latitude = geo_record.latitude
         self._maxmind_longitude = geo_record.longitude
 
-        if not geo_record:
-            return False
-        else:
-            return True
+        return True
 
     def _set_appengine_geolocation(self, request):
         """Adds geolocation info using the data provided by AppEngine.
