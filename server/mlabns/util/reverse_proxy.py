@@ -1,5 +1,4 @@
 import logging
-import os
 import random
 
 from google.appengine.api import memcache
@@ -47,30 +46,11 @@ def get_reverse_proxy(experiment):
     return reverse_proxy
 
 
-def during_business_hours(t):
-    """Indicates whether the current time is within EST busines hours, M-Th.
-
-    AppEngine system time is always in UTC. This function hard-codes business
-    times as 9-5 EST and only returns True Monday through Thursday.
-
-    Args:
-        t: datetime, the time to check.
-
-    Returns:
-        bool, True if during business hours, M-Th.
-    """
-    if os.environ.get('IGNORE_BUSINESS_HOURS', None) is not None:
-        return True
-    # EST 9am = 14 UTC, 5pm EST = 22 UTC, 0=M, 1=Tu, 2=W, 3=Th.
-    return t.hour >= 14 and t.hour <= 22 and t.weekday() < 4
-
-
-def try_reverse_proxy_url(query, t):
+def try_reverse_proxy_url(query):
     """Possibly generates a URL to perform a reverse proxy for client request.
 
     Args:
        query: lookup_query.LookupQuery, query used to construct complete url.
-       t: datetime.datetime, time used to evaluate business hours.
 
     Returns:
        str, empty string for no action, or complete URL to reverse proxy.
@@ -81,11 +61,7 @@ def try_reverse_proxy_url(query, t):
     experiment = query.path.strip('/')
     rdp = get_reverse_proxy(experiment)
 
-    # ndt_ssl is only proxied during EST business hours, ndt7 doesn't have
-    # this restriction.
     if random.uniform(0, 1) > rdp.probability:
-        return ""
-    if query.path == '/ndt_ssl' and not during_business_hours(t):
         return ""
 
     latlon = 'lat=%f&lon=%f' % (query.latitude, query.longitude)
