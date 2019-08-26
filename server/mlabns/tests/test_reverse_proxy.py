@@ -1,5 +1,3 @@
-import datetime
-import os
 import mock
 import unittest2
 
@@ -80,26 +78,11 @@ class ReverseProxyTest(unittest2.TestCase):
         self.assertEqual(cached_ndt7.probability, ndt7_probability.probability)
         self.assertEqual(cached_ndt7.url, ndt7_probability.url)
 
-    def test_during_business_hours_returns_true(self):
-        t = datetime.datetime(2019, 1, 24, 16, 0, 0)
-        self.assertTrue(reverse_proxy.during_business_hours(t))
-
-    def test_during_business_hours_with_ignore_environment_returns_true(self):
-        t = datetime.datetime(2019, 1, 25, 16, 0, 0)
-        os.environ['IGNORE_BUSINESS_HOURS'] = '1'
-        self.assertTrue(reverse_proxy.during_business_hours(t))
-        del os.environ['IGNORE_BUSINESS_HOURS']
-
-    def test_during_business_hours_returns_false(self):
-        t = datetime.datetime(2019, 1, 25, 16, 0, 0)
-        self.assertFalse(reverse_proxy.during_business_hours(t))
-
     def test_try_reverse_proxy_url_when_wrong_path_returns_emptystr(self):
         mock_request = mock.Mock()
         mock_request.path = '/wrong_path'
-        t = datetime.datetime(2019, 1, 24, 16, 0, 0)
 
-        url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
+        url = reverse_proxy.try_reverse_proxy_url(mock_request)
 
         self.assertEqual(url, "")
 
@@ -111,43 +94,10 @@ class ReverseProxyTest(unittest2.TestCase):
         ndt_zero_probability.put()
         mock_request = mock.Mock()
         mock_request.path = '/ndt_ssl'
-        t = datetime.datetime(2019, 1, 24, 16, 0, 0)
 
-        url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
-
-        self.assertEqual(url, "")
-
-    def test_try_reverse_proxy_url_when_outside_business(self):
-        # This should return an empty string only for ndt_ssl.
-        ndt_ssl_probability = model.ReverseProxyProbability(
-            name="ndt_ssl",
-            probability=1.0,
-            url="https://fake.appspot.com")
-        ndt_ssl_probability.put()
-        mock_request = mock.Mock()
-        mock_request.path = '/ndt_ssl'
-        t = datetime.datetime(2019, 1, 25, 16, 0, 0)
-
-        url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
+        url = reverse_proxy.try_reverse_proxy_url(mock_request)
 
         self.assertEqual(url, "")
-
-        ndt7_probability = model.ReverseProxyProbability(
-            name="ndt7",
-            probability=1.0,
-            url="https://fake.appspot.com")
-        ndt7_probability.put()
-        mock_request = mock.Mock()
-        mock_request.path = '/ndt7'
-        mock_request.path_qs = '/ndt7'
-        mock_request.latitude = 40.7
-        mock_request.longitude = 74.0
-        t = datetime.datetime(2019, 1, 25, 16, 0, 0)
-
-        url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
-
-        self.assertEqual(url, (
-            'https://fake.appspot.com/ndt7?lat=40.700000&lon=74.000000'))
 
     def test_try_reverse_proxy_url_returns_url_with_latlon(self):
         ndt_ssl_probability = model.ReverseProxyProbability(
@@ -160,9 +110,8 @@ class ReverseProxyTest(unittest2.TestCase):
         mock_request.path_qs = '/ndt_ssl?format=geo_options'
         mock_request.latitude = 40.7
         mock_request.longitude = 74.0
-        t = datetime.datetime(2019, 1, 24, 16, 0, 0)
 
-        actual_url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
+        actual_url = reverse_proxy.try_reverse_proxy_url(mock_request)
 
         self.assertEqual(actual_url, (
             'https://fake.appspot.com/ndt_ssl?format=geo_options&lat=40.700000'
@@ -179,9 +128,8 @@ class ReverseProxyTest(unittest2.TestCase):
         mock_request.path_qs = '/ndt_ssl'
         mock_request.latitude = 40.7
         mock_request.longitude = 74.0
-        t = datetime.datetime(2019, 1, 24, 16, 0, 0)
 
-        actual_url = reverse_proxy.try_reverse_proxy_url(mock_request, t)
+        actual_url = reverse_proxy.try_reverse_proxy_url(mock_request)
 
         self.assertEqual(
             actual_url,

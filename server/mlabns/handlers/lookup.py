@@ -52,8 +52,7 @@ class LookupHandler(webapp.RequestHandler):
         query.initialize_from_http_request(self.request)
 
         # Check right away whether we should proxy this request.
-        url = reverse_proxy.try_reverse_proxy_url(query,
-                                                  datetime.datetime.now())
+        url = reverse_proxy.try_reverse_proxy_url(query)
         if url:
             # NB: if sending the proxy url is unsuccessful, then fall through to
             # regular request handling.
