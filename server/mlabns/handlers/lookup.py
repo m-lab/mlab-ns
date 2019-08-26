@@ -58,7 +58,8 @@ class LookupHandler(webapp.RequestHandler):
             # regular request handling.
             success = self.send_proxy_response(url)
             if success:
-                logging.info('[reverse_proxy],true,%s', url)
+                experiment = query.path.strip('/')
+                logging.info('[reverse_proxy],true,%s,%s', url, experiment)
                 return
 
         logging.info('Policy is %s', query.policy)
