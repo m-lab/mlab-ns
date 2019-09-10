@@ -323,5 +323,5 @@ class LookupQuery:
         """
         # NB: do not check for self.user_agent, because it can be empty.
         if self.ip_address and self.path_qs:
-            return "%s#%s#%s" % (self.user_agent, self.path_qs, self.ip_address)
+            return "%s#%s#%s" % (self.ip_address, self.user_agent, self.path_qs)
         return ''
