@@ -56,6 +56,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                                                     self.mock_gae_longitude),
             message.HEADER_CITY: self.mock_gae_city,
             message.HEADER_COUNTRY: self.mock_gae_country,
+            message.USER_AGENT: 'fake user agent'
         }
 
     def testDefaultConstructor(self):
@@ -512,6 +513,14 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         self.assertEqual(message.POLICY_METRO, query.policy)
         self.assertEqual('lax', query.metro)
+
+    def testGenerateClientSignature(self):
+        self.mock_request.path_qs = '/ndt'
+
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+        self.assertEqual('1.2.3.4#fake user agent#/ndt',
+                         query.calculate_client_signature())
 
 
 if __name__ == '__main__':
