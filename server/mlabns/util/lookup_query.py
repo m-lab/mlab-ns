@@ -317,17 +317,36 @@ class LookupQuery:
     def calculate_client_signature(self):
         """Uses ip_address, user_agent, tool_id, and policy to create a client signature.
 
+        The generated client signature cannot be longer than 250 characters so
+        it can be used as a Memcache key.
+
         Returns:
             A client signature if the request has ip_address, user_agent, tool_id
             and policy. Otherwise, returns an empty string.
         """
         # NB: do not check for self.user_agent, because it can be empty.
         if self.ip_address and self.path_qs:
-            key = "%s#%s#%s" % (self.ip_address, self.user_agent, self.path_qs)
-            # Memcache keys cannot be longer than 250 characters. The same
-            # truncation is applied in rate-limiter.
-            if len(key) > 250:
-                key = key[:250]
+            resource = self.path_qs
+            user_agent = self.user_agent
+            key_max_size = 250
+
+            # At least 40 characters are allocated to the resource part.
+            res_min_size = 40
+            res_max_size = key_max_size - len(self.ip_address) - len(resource) - 2
+
+            if res_max_size < res_min_size:
+                res_max_size = res_min_size
+
+            if len(resource) > res_max_size:
+                resource = resource[:res_max_size]
+
+            # The remaining length is available for the User Agent part
+            ua_max_size = (key_max_size - len(self.ip_address) -
+                           len(resource) - 2)
+            if len(user_agent) > ua_max_size:
+                user_agent = user_agent[:ua_max_size]
+
+            key = "%s#%s#%s" % (self.ip_address, user_agent, resource)
 
             return key
         return ''
