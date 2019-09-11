@@ -332,7 +332,8 @@ class LookupQuery:
 
             # At least 40 characters are allocated to the resource part.
             res_min_size = 40
-            res_max_size = key_max_size - len(self.ip_address) - len(resource) - 2
+            res_max_size = key_max_size - len(self.ip_address) - len(
+                resource) - 2
 
             if res_max_size < res_min_size:
                 res_max_size = res_min_size
@@ -341,8 +342,8 @@ class LookupQuery:
                 resource = resource[:res_max_size]
 
             # The remaining length is available for the User Agent part
-            ua_max_size = (key_max_size - len(self.ip_address) -
-                           len(resource) - 2)
+            ua_max_size = (
+                key_max_size - len(self.ip_address) - len(resource) - 2)
             if len(user_agent) > ua_max_size:
                 user_agent = user_agent[:ua_max_size]
 
