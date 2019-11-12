@@ -4,6 +4,16 @@ import logging
 
 from mlabns.util import message
 
+# List of `tool_id`s that require FQDNs to be rewritten using "flattened" names
+# to accommodate the *.measurement-lab.org wildcard certificate.
+# TODO (nkinkade): This would be more cleanly implemented as a property of the
+# Tool in GCD.
+FLAT_HOSTNAMES = [
+    'ndt7',
+    'ndt_ssl',
+    'neubot_tls',
+]
+
 
 def rewrite(fqdn, address_family, tool_id):
     """Rewrites an FQDN to add necessary annotations and special-casing.
@@ -22,9 +32,9 @@ def rewrite(fqdn, address_family, tool_id):
         FQDN after rewriting to apply all modifications to the raw FQDN.
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
-    # If this is ndt_ssl or ndt7, apply the special case workaround.
-    if tool_id == 'ndt_ssl' or tool_id == 'ndt7':
-        rewritten_fqdn = _apply_ndt_ssl_workaround(rewritten_fqdn)
+    # If this Tool requires "flat" hostname, rewrite it.
+    if tool_id in FLAT_HOSTNAMES:
+        rewritten_fqdn = _apply_flat_hostname(rewritten_fqdn)
     return rewritten_fqdn
 
 
@@ -61,29 +71,22 @@ def _apply_af_awareness(fqdn, address_family):
     return '.'.join(fqdn_parts)
 
 
-def _apply_ndt_ssl_workaround(fqdn):
-    """Rewrites ndt_ssl/ndt7 FQDNs to use dash separators for subdomains.
-
-    The NDT-SSL test uses dashes instead of dots as separators in the subdomain,
-    but Nagios currently reports the FQDNs as using dots.
+def _apply_flat_hostname(fqdn):
+    """Rewrites FQDNs to use dash separators for subdomains.
 
     For example, instead of:
 
         ndt.iupui.mlab1.lga06.measurement-lab.org
 
-    NDT-SSL uses:
+    TLS endpoints use:
 
         ndt-iupui-mlab1-lga06.measurement-lab.org
 
-    We rewrite the dotted FQDNs to use dashes so that NDT-SSL/ndt7 work
-    properly. This is intended to be a temporary workaround until we can
-    find a solution that does not require NDT-SSL/ndt7 to be special cases
-    from mlab-ns's perspective.
-
-    See https://github.com/m-lab/mlab-ns/issues/48 for more information.
+    We rewrite the dotted FQDNs to use dashes so that FQDNs work
+    properly with the *.measurement-lab.org wildcard certificate.
 
     Args:
-        fqdn: An NDT-SSL or ndt7 FQDN in dotted notation.
+        fqdn: An FQDN in dotted notation.
 
     Returns:
         FQDN with rewritten dashes if a rewrite was necessary, the original FQDN

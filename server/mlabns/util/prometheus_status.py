@@ -129,6 +129,22 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
         )
         """),
+    'neubot_tls': textwrap.dedent("""\
+        min by (experiment, machine) (
+            probe_success{service="neubot_tls"} OR
+            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
+            label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
+        )
+        """),
+    'neubot_tls_ipv6': textwrap.dedent("""\
+        min by (experiment, machine) (
+            probe_success{service="neubot_tls_ipv6"} OR
+            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
+            label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
+        )
+        """),
     'mobiperf': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="mobiperf", instance=~".*:6001"} OR
@@ -178,14 +194,16 @@ class PrometheusSliceInfo(object):
         self._address_family = address_family
 
     def __eq__(self, other):
-        return all([self.slice_url == other.slice_url,
-                    self.tool_id == other.tool_id,
-                    self.address_family == other.address_family])
+        return all([
+            self.slice_url == other.slice_url, self.tool_id == other.tool_id,
+            self.address_family == other.address_family
+        ])
 
     def __ne__(self, other):
-        return any([self.slice_url != other.slice_url,
-                    self.tool_id != other.tool_id,
-                    self.address_family != other.address_family])
+        return any([
+            self.slice_url != other.slice_url, self.tool_id != other.tool_id,
+            self.address_family != other.address_family
+        ])
 
     @property
     def slice_url(self):
