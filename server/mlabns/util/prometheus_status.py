@@ -29,7 +29,8 @@ from mlabns.util import message
 # as intended. label_replace() here just manually adds the experiment label to
 # every result with a static value.
 QUERIES = {
-    'ndt': textwrap.dedent("""\
+    'ndt':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt_raw"} OR
             script_success{service="ndt_e2e"} OR
@@ -44,7 +45,8 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
-    'ndt_ipv6': textwrap.dedent("""\
+    'ndt_ipv6':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt_raw_ipv6"} OR
             script_success{service="ndt_e2e"} OR
@@ -59,7 +61,8 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
-    'ndt_ssl': textwrap.dedent("""\
+    'ndt_ssl':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt_ssl"} OR
             script_success{service="ndt_e2e"} OR
@@ -74,7 +77,8 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
-    'ndt_ssl_ipv6': textwrap.dedent("""\
+    'ndt_ssl_ipv6':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt_ssl_ipv6"} OR
             script_success{service="ndt_e2e"} OR
@@ -89,7 +93,8 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
-    'ndt7': textwrap.dedent("""\
+    'ndt7':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt7"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
@@ -101,7 +106,8 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
-    'ndt7_ipv6': textwrap.dedent("""\
+    'ndt7_ipv6':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt7_ipv6"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
@@ -113,7 +119,8 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
-    'neubot': textwrap.dedent("""\
+    'neubot':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="neubot"} OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
@@ -121,7 +128,8 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
         )
         """),
-    'neubot_ipv6': textwrap.dedent("""\
+    'neubot_ipv6':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="neubot_ipv6"} OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
@@ -129,7 +137,26 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
         )
         """),
-    'mobiperf': textwrap.dedent("""\
+    'neubot_tls':
+    textwrap.dedent("""\
+        min by (experiment, machine) (
+            probe_success{service="neubot_tls"} OR
+            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
+            label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
+        )
+        """),
+    'neubot_tls_ipv6':
+    textwrap.dedent("""\
+        min by (experiment, machine) (
+            probe_success{service="neubot_tls_ipv6"} OR
+            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
+            label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
+        )
+        """),
+    'mobiperf':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="mobiperf", instance=~".*:6001"} OR
             probe_success{service="mobiperf", instance=~".*:6002"} OR
@@ -139,7 +166,8 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "1.michigan", "", "") != bool 1
         )
         """),
-    'mobiperf_ipv6': textwrap.dedent("""\
+    'mobiperf_ipv6':
+    textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR
             probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR
@@ -178,14 +206,16 @@ class PrometheusSliceInfo(object):
         self._address_family = address_family
 
     def __eq__(self, other):
-        return all([self.slice_url == other.slice_url,
-                    self.tool_id == other.tool_id,
-                    self.address_family == other.address_family])
+        return all([
+            self.slice_url == other.slice_url, self.tool_id == other.tool_id,
+            self.address_family == other.address_family
+        ])
 
     def __ne__(self, other):
-        return any([self.slice_url != other.slice_url,
-                    self.tool_id != other.tool_id,
-                    self.address_family != other.address_family])
+        return any([
+            self.slice_url != other.slice_url, self.tool_id != other.tool_id,
+            self.address_family != other.address_family
+        ])
 
     @property
     def slice_url(self):
