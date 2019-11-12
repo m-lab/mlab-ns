@@ -14,6 +14,7 @@ FLAT_HOSTNAMES = [
     'neubot_tls',
 ]
 
+
 def rewrite(fqdn, address_family, tool_id):
     """Rewrites an FQDN to add necessary annotations and special-casing.
 
