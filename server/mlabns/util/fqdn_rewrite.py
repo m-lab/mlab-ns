@@ -11,7 +11,7 @@ from mlabns.util import message
 FLAT_HOSTNAMES = [
     'ndt7',
     'ndt_ssl',
-    'neubot_tls',
+    'neubot',
 ]
 
 

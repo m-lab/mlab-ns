@@ -116,6 +116,7 @@ QUERIES = {
     'neubot': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="neubot"} OR
+            probe_success{service="neubot_tls"} OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
@@ -124,21 +125,6 @@ QUERIES = {
     'neubot_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="neubot_ipv6"} OR
-            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
-            lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
-            label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
-        )
-        """),
-    'neubot_tls': textwrap.dedent("""\
-        min by (experiment, machine) (
-            probe_success{service="neubot_tls"} OR
-            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
-            lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
-            label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
-        )
-        """),
-    'neubot_tls_ipv6': textwrap.dedent("""\
-        min by (experiment, machine) (
             probe_success{service="neubot_tls_ipv6"} OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             lame_duck_experiment{experiment="neubot.mlab"} != bool 1 OR
