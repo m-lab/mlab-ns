@@ -34,6 +34,7 @@ QUERIES = {
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -46,6 +47,7 @@ QUERIES = {
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -58,6 +60,7 @@ QUERIES = {
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -70,6 +73,7 @@ QUERIES = {
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -81,6 +85,7 @@ QUERIES = {
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -92,6 +97,7 @@ QUERIES = {
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -109,24 +115,6 @@ QUERIES = {
             probe_success{service="neubot_tls_ipv6"} OR
             kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
-        )
-        """),
-    'mobiperf': textwrap.dedent("""\
-        min by (experiment, machine) (
-            probe_success{service="mobiperf", instance=~".*:6001"} OR
-            probe_success{service="mobiperf", instance=~".*:6002"} OR
-            probe_success{service="mobiperf", instance=~".*:6003"} OR
-            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
-            label_replace(gmx_machine_maintenance, "experiment", "1.michigan", "", "") != bool 1
-        )
-        """),
-    'mobiperf_ipv6': textwrap.dedent("""\
-        min by (experiment, machine) (
-            probe_success{service="mobiperf_ipv6", instance=~".*:6001"} OR
-            probe_success{service="mobiperf_ipv6", instance=~".*:6002"} OR
-            probe_success{service="mobiperf_ipv6", instance=~".*:6003"} OR
-            kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
-            label_replace(gmx_machine_maintenance, "experiment", "1.michigan", "", "") != bool 1
         )
         """),
 }
