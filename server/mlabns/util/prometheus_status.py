@@ -31,7 +31,7 @@ QUERIES = {
             probe_success{service="ndt_raw"} OR
             script_success{service="ndt_e2e"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
+              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
@@ -45,7 +45,7 @@ QUERIES = {
             probe_success{service="ndt_raw_ipv6"} OR
             script_success{service="ndt_e2e"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
+              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
@@ -59,7 +59,7 @@ QUERIES = {
             probe_success{service="ndt_ssl"} OR
             script_success{service="ndt_e2e"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
+              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
@@ -73,7 +73,7 @@ QUERIES = {
             probe_success{service="ndt_ssl_ipv6"} OR
             script_success{service="ndt_e2e"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
+              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
@@ -86,7 +86,7 @@ QUERIES = {
         min by (experiment, machine) (
             probe_success{service="ndt7"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
+              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
@@ -99,7 +99,7 @@ QUERIES = {
         min by (experiment, machine) (
             probe_success{service="ndt7_ipv6"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_free_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
+              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
