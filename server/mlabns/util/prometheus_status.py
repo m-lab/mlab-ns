@@ -36,7 +36,7 @@ QUERIES = {
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -50,7 +50,7 @@ QUERIES = {
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -64,7 +64,7 @@ QUERIES = {
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -78,7 +78,7 @@ QUERIES = {
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -91,7 +91,7 @@ QUERIES = {
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -104,7 +104,7 @@ QUERIES = {
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
             label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster", key="lame-duck"} != bool 1 OR
+            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
