@@ -21,7 +21,6 @@ import "time"
 // QueryResult is returned by the location service in response to query
 // requests.
 type QueryResult struct {
-
 	// Error contains information about request failures.
 	Error *Error `json:"error,omitempty"`
 
@@ -50,9 +49,18 @@ type QueryResult struct {
 // will be handled as if no access token were provided, i.e. using a lower
 // priority class.
 type NextRequest struct {
-	NotBefore time.Time `json:"not_before"` // Valid after.
-	Expires   time.Time `json:"expires"`    // Valid until.
-	URL       string    `json:"url"`
+	// NotBefore defines the time after which the URL will become valid. This
+	// value is the same time used in "nbf" field of the underlying JWT claim. To
+	// show this equivalence, we use the same name.
+	NotBefore time.Time `json:"not_before"`
+
+	// Expires defines the time after which the URL will be invalid. Expires will
+	// always be greater than NotBefore. This value is the same time used in the
+	// "exp" field of the underlying JWT claim.
+	Expires time.Time `json:"expires"`
+
+	// URL should be used to make the next request to the location service.
+	URL string `json:"url"`
 }
 
 // Target contains information needed to run a measurement to a measurement
@@ -60,7 +68,6 @@ type NextRequest struct {
 // resources. A Target contains at least one measurement service resource in
 // URLs.
 type Target struct {
-
 	// Machine is the FQDN of the machine hosting the measurement service.
 	Machine string `json:"machine"`
 
