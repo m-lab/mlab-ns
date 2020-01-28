@@ -50,14 +50,14 @@ type QueryResult struct {
 // priority class.
 type NextRequest struct {
 	// NotBefore defines the time after which the URL will become valid. This
-	// value is the same time used in "nbf" field of the underlying JWT claim. To
-	// show this equivalence, we use the same name.
-	NotBefore time.Time `json:"not_before"`
+	// value is the same time used in "nbf" field of the underlying JSON Web
+	// Token (JWT) claim. To show this equivalence, we use the same name.
+	NotBefore time.Time `json:"nbf"`
 
 	// Expires defines the time after which the URL will be invalid. Expires will
 	// always be greater than NotBefore. This value is the same time used in the
 	// "exp" field of the underlying JWT claim.
-	Expires time.Time `json:"expires"`
+	Expires time.Time `json:"exp"`
 
 	// URL should be used to make the next request to the location service.
 	URL string `json:"url"`
