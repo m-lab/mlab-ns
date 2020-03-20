@@ -29,7 +29,7 @@ def is_production_slice(slice_fqdn):
         True if the slice FQDN matches the schema of a production slice.
     """
 
-    fqdn_parts = list(re.match('^(mlab[1-4])[.-]([a-z]{3}[0-9c]{2}', slice_fqdn).groups())
+    fqdn_parts = list(re.match('^(mlab[1-4])[.-]([a-z]{3}[0-9c]{2})', slice_fqdn).groups())
     # Look for a production site name in the FQDN
     for i in range(1, len(fqdn_parts)):
         # If a production site name exists, the previous part of the FQDN will
