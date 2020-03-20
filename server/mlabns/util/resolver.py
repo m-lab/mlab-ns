@@ -53,6 +53,26 @@ class AllResolver(ResolverBase):
     def answer_query(self, query):
         return self._get_matching_candidates(query)
 
+# site_keep_probability defines explicit probabilities for 1g sites that cannot
+# handle the current number of requests. Each value is the probability of
+# selecting this site. The default value is 1.0.
+site_keep_probability = {
+    'bom01': 0.5,
+    'hnd01': 0.2,  # 0.2
+    'lga1t': 0.5,
+    'lis01': 0.5,
+    'lju01': 0.5,
+    'tnr01': 0.5,
+    'tun01': 0.5,
+    'vie01': 0.5,
+    'yqm01': 0.5,
+    'yul02': 0.2,  # 0.2
+    'yvr01': 0.5,
+    'ywg01': 0.5,
+    'yyc02': 0.5,
+    'yyz02': 0.2,  # 0.2
+}
+
 
 class GeoResolver(ResolverBase):
     """Chooses the server geographically closest to the client."""
@@ -111,8 +131,12 @@ class GeoResolver(ResolverBase):
                                          candidates)
 
         for candidate in filtered_candidates:
-            self._add_candidate(query, candidate, site_distances,
-                                tool_distances)
+            prob = site_keep_probability.get(candidate.site_id, 1.0)
+            if random.uniform(0, 1) < prob:
+                # Only add candidate if a random probability is under the "site
+                # keep probability" threshold.
+                self._add_candidate(query, candidate, site_distances,
+                                    tool_distances)
 
         # Sort the tools by distance
         tool_distances.sort(key=lambda t: t['distance'])
