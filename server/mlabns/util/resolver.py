@@ -53,13 +53,12 @@ class AllResolver(ResolverBase):
     def answer_query(self, query):
         return self._get_matching_candidates(query)
 
-
 # site_keep_probability defines explicit probabilities for 1g sites that cannot
 # handle the current number of requests. Each value is the probability of
 # selecting this site. The default value is 1.0.
 site_keep_probability = {
     'bom01': 0.5,
-    'hnd01': 0.2, # 0.2
+    'hnd01': 0.2,  # 0.2
     'lga1t': 0.5,
     'lis01': 0.5,
     'lju01': 0.5,
@@ -67,11 +66,11 @@ site_keep_probability = {
     'tun01': 0.5,
     'vie01': 0.5,
     'yqm01': 0.5,
-    'yul02': 0.2, # 0.2
+    'yul02': 0.2,  # 0.2
     'yvr01': 0.5,
     'ywg01': 0.5,
     'yyc02': 0.5,
-    'yyz02': 0.2, # 0.2
+    'yyz02': 0.2,  # 0.2
 }
 
 
