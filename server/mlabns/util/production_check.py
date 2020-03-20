@@ -32,7 +32,7 @@ def is_production_slice(slice_fqdn):
     m = re.match('^(.*?)(mlab[1-4])[.-]([a-z]{3}[0-9c]{2})', slice_fqdn)
     if m:
         fqdn_parts = list(m.groups())
-    else
+    else:
         return False
 
     # Look for a production site name in the FQDN
