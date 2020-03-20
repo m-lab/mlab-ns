@@ -131,9 +131,6 @@ class GeoResolver(ResolverBase):
                                          candidates)
 
         for candidate in filtered_candidates:
-            if max_results == 1 and candidate.site_id in site_keep_probability:
-                # Skip 1g sites if we're returning a single result.
-                continue
             prob = site_keep_probability.get(candidate.site_id, 1.0)
             if random.uniform(0, 1) < prob:
                 # Only add candidate if a random probability is under the "site
