@@ -1,6 +1,7 @@
 import re
 import os
 
+
 def is_production_site(site_name):
     """Determines if the given site name matches the production site schema
 
