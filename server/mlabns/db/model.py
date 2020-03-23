@@ -1,5 +1,6 @@
 import copy
 import logging
+import re
 
 from google.appengine.ext import db
 
@@ -191,17 +192,15 @@ def get_fqdn(slice_id, server_id, site_id):
 
 
 def get_slice_site_server_ids(fqdn):
-    try:
-        slice_id_part1, slice_id_part2, server_id, site_id, unused = fqdn.split(
-            '.', 4)
-    except ValueError:
-        return None, None, None
-    if (slice_id_part1 is None or slice_id_part2 is None or server_id is None or
-            site_id is None):
-        return None, None, None
-
-    slice_id = '_'.join([slice_id_part2, slice_id_part1])
-    return slice_id, site_id, server_id
+    regex = '([a-z]+)[.-]?([a-z]+)?[.-](mlab[1-4])[.-]([a-z]{3}[0-9tc]{2})\.'
+    m = re.match(regex, fqdn)
+    if m:
+        p = list(m.groups())
+        if p[1]:
+            return '%s_%s' % (p[1], p[0]), p[3], p[2]
+        else:
+            return p[0], p[3], p[2]
+    return None, None, None
 
 
 def get_tool_from_tool_id(tool_id):
