@@ -38,7 +38,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                        LAT_FIELD, LON_FIELD, ROUNDROBIN_FIELD]
     DEFAULT_SITE_LIST_URL = 'https://siteinfo.mlab-oti.measurementlab.net/v1/sites/locations.json'
-    TEMPLATE_SITE_LIST_URL = 'https://siteinfo.{project}.measurementlab.net/v2/sites/locations.json'
+    TEMPLATE_SITE_LIST_URL = 'https://siteinfo.{project}.measurementlab.net/v1/sites/locations.json'
 
     @classmethod
     def _is_valid_site(cls, site):
