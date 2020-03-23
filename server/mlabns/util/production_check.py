@@ -3,6 +3,9 @@ import re
 
 from google.appengine.api import app_identity
 
+# Get the current GCP project.
+project = app_identity.get_application_id()
+
 
 def is_production_site(site_name):
     """Determines if the given site name matches the production site schema
@@ -13,7 +16,6 @@ def is_production_site(site_name):
     Returns:
         True if the site name matches the schema of a production site.
     """
-    project = app_identity.get_application_id()
     if project == 'mlab-sandbox':
         # Matches sandbox sites, and returns them as "production", but only if
         # the project is mlab-sandbox. This should make testing in sandbox
@@ -39,7 +41,10 @@ def is_production_slice(slice_fqdn):
         True if the slice FQDN matches the schema of a production slice.
     """
 
-    m = re.match('^(.*?)(mlab[1-4])[.-]([a-z]{3}[0-9c]{2})\.', slice_fqdn)
+    if project == 'mlab-sandbox':
+        m = re.match('^(.*?)(mlab[1-4])[.-]([a-z]{3}\dt)\.', slice_fqdn)
+    else:
+        m = re.match('^(.*?)(mlab[1-4])[.-]([a-z]{3}[0-9c]{2})\.', slice_fqdn)
     if m:
         fqdn_parts = list(m.groups())
     else:
