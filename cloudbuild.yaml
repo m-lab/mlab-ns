@@ -26,6 +26,7 @@ steps:
 # TODO: eliminate use of "locate" for legacy service.
 - name: gcr.io/$PROJECT_ID/gcloud-jsonnet-cbif
   env:
+    # Use cbif condition: only run these steps in one of these projects.
     - PROJECT_IN=mlab-sandbox,mlab-staging
   args:
     - python environment_bootstrap.py $PROJECT_ID
@@ -36,6 +37,7 @@ steps:
 # Perform deployment in mlab-ns.
 - name: gcr.io/$PROJECT_ID/gcloud-jsonnet-cbif
   env:
+    # Use cbif condition: only run these steps in mlab-ns project.
     - PROJECT_IN=mlab-ns
   args:
     - python environment_bootstrap.py $PROJECT_ID
