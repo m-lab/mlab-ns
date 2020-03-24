@@ -4,6 +4,8 @@ import logging
 
 from mlabns.util import message
 
+from google.appengine.api import app_identity
+
 # List of `tool_id`s that require FQDNs to be rewritten using "flattened" names
 # to accommodate the *.measurement-lab.org wildcard certificate.
 # TODO (nkinkade): This would be more cleanly implemented as a property of the
@@ -13,6 +15,9 @@ FLAT_HOSTNAMES = [
     'ndt_ssl',
     'neubot',
 ]
+
+# Get the current GCP project.
+project = app_identity.get_application_id()
 
 
 def rewrite(fqdn, address_family, tool_id):
@@ -33,7 +38,9 @@ def rewrite(fqdn, address_family, tool_id):
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
     # If this Tool requires "flat" hostname, rewrite it.
-    if tool_id in FLAT_HOSTNAMES:
+    if project == 'mlab-sandbox':
+        return rewritten_fqdn
+    elif tool_id in FLAT_HOSTNAMES:
         rewritten_fqdn = _apply_flat_hostname(rewritten_fqdn)
     return rewritten_fqdn
 
