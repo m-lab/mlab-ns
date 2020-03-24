@@ -23,6 +23,7 @@ steps:
    - ./build
 
 # Perform deployment in sandbox & staging.
+# TODO: eliminate use of "locate" for legacy service.
 - name: gcr.io/$PROJECT_ID/gcloud-jsonnet-cbif
   env:
     - PROJECT_IN=mlab-sandbox,mlab-staging
