@@ -1,6 +1,10 @@
 # Timeout for complete build. Default is 10m.
 timeout: 1800s
 
+options:
+  env:
+  - PROJECT_ID=$PROJECT_ID
+
 ############################################################################
 # Deployment
 ############################################################################
@@ -15,16 +19,28 @@ steps:
 # Run unit tests for environment.
 - name: mlabns-tester
   # "build" runs all unit tests.
-  entrypoint: /workspace/build
+  args:
+   - ./build
+
+# Perform deployment in sandbox & staging.
+# TODO: eliminate use of "locate" for legacy service.
+- name: gcr.io/$PROJECT_ID/gcloud-jsonnet-cbif
   env:
-   - 'COMMIT=$COMMIT_SHA'
-   - 'TAG=$TAG_NAME'
-   - 'PROJECT=$PROJECT_ID'
+    # Use cbif condition: only run these steps in one of these projects.
+    - PROJECT_IN=mlab-sandbox,mlab-staging
+  args:
+    - python environment_bootstrap.py $PROJECT_ID
+    - bash -c "cd server; gcloud --project $PROJECT_ID app deploy --promote app.yaml"
+    - sed -i -e 's/{{TARGET}}/locate/g' cron.yaml
+    - gcloud --project $PROJECT_ID app deploy --promote cron.yaml
 
-# Perform deployment of AppEngine service.
-#- name: gcr.io/cloud-builders/gcloud
-#  args: [
-#      'app', 'deploy', '--promote', 'app.yaml'
-#  ]
-#  dir: 'server'
-
+# Perform deployment in mlab-ns.
+- name: gcr.io/$PROJECT_ID/gcloud-jsonnet-cbif
+  env:
+    # Use cbif condition: only run these steps in mlab-ns project.
+    - PROJECT_IN=mlab-ns
+  args:
+    - python environment_bootstrap.py $PROJECT_ID
+    - bash -c "cd server; gcloud --project $PROJECT_ID app deploy --promote app.yaml"
+    - sed -i -e 's/{{TARGET}}/default/g' cron.yaml
+    - gcloud --project $PROJECT_ID app deploy --promote cron.yaml
