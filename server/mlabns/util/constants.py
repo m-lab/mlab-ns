@@ -73,3 +73,6 @@ PRIVACY_DOC_URL = 'https://github.com/m-lab/mlab-ns/blob/master/MLAB-NS_PRIVACY_
 # URL to the design doc. All requests to http://mlab-ns.appspot.com/docs will be
 # redirected to this URL.
 DESIGN_DOC_URL = 'https://github.com/m-lab/mlab-ns/blob/master/DESIGN_DOC.md'
+
+# Which projects are using v2 hostnames i.e., project-decorated/flat
+V2_HOSTNAME_PROJECTS = ['mlab-sandbox']

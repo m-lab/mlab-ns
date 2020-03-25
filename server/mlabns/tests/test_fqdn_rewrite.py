@@ -1,6 +1,7 @@
 import mock
 import unittest
 
+from google.appengine.api import app_identity
 from mlabns.util import fqdn_rewrite
 from mlabns.util import message
 

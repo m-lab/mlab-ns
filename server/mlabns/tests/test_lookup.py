@@ -18,13 +18,6 @@ class LookupTest(unittest2.TestCase):
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
 
-        get_application_id_patch = mock.patch.object(app_identity,
-                                                     'get_application_id',
-                                                     autospec=True)
-        self.addCleanup(get_application_id_patch.stop)
-        get_application_id_patch.start()
-        self.app_identity.get_application_id.return_value = 'mlab-oti'
-
     def tearDown(self):
         self.testbed.deactivate()
 

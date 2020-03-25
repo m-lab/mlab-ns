@@ -123,7 +123,7 @@ class IPUpdateHandlerTest(unittest2.TestCase):
     @mock.patch.object(urllib2, 'urlopen')
     @mock.patch.object(update.IPUpdateHandler, 'put_sliver_tool')
     def test_update(self, mock_put_sliver_tool, mock_urlopen):
-        app_identity.get_application_id.return_value = 'mlab-testing'
+        app_identity.get_application_id.return_value = 'mlab-oti'
         mock_urlopen.return_value = StringIO.StringIO("""[
 {
     "hostname": "ndt.iupui.mlab1.xyz01.measurement-lab.org",

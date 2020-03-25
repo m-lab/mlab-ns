@@ -2,7 +2,9 @@
 
 import logging
 
+from mlabns.util import constants
 from mlabns.util import message
+from mlabns.util import parse_fqdn
 
 from google.appengine.api import app_identity
 
@@ -15,9 +17,6 @@ FLAT_HOSTNAMES = [
     'ndt_ssl',
     'neubot',
 ]
-
-# Get the current GCP project.
-project = app_identity.get_application_id()
 
 
 def rewrite(fqdn, address_family, tool_id):
@@ -37,8 +36,9 @@ def rewrite(fqdn, address_family, tool_id):
         FQDN after rewriting to apply all modifications to the raw FQDN.
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
-    # If this Tool requires "flat" hostname, rewrite it.
-    if project == 'mlab-sandbox':
+    # If this Tool requires "flat" hostname, rewrite it, unless this host is in
+    # a project that is already using v2 "flat" hostname by default.
+    if app_identity.get_application_id() in constants.V2_HOSTNAME_PROJECTS:
         return rewritten_fqdn
     elif tool_id in FLAT_HOSTNAMES:
         rewritten_fqdn = _apply_flat_hostname(rewritten_fqdn)
@@ -72,10 +72,13 @@ def _apply_af_awareness(fqdn, address_family):
         logging.error('Unrecognized address family: %s', address_family)
         return fqdn
 
-    fqdn_parts = _split_fqdn(fqdn)
-    fqdn_parts[2] += fqdn_annotation
+    fqdn_parts = parse_fqdn.parse(fqdn)
+    if not fqdn_parts:
+        logging.error('Cannot parse FQDN: %s', fqdn)
+        return fqdn
+    decorated_machine = fqdn_parts['machine'] + fqdn_annotation
 
-    return '.'.join(fqdn_parts)
+    return fqdn.replace(fqdn_parts['machine'], decorated_machine)
 
 
 def _apply_flat_hostname(fqdn):
@@ -99,13 +102,9 @@ def _apply_flat_hostname(fqdn):
         FQDN with rewritten dashes if a rewrite was necessary, the original FQDN
         otherwise.
     """
-    fqdn_parts = _split_fqdn(fqdn)
+    fqdn_parts = fqdn.split('.')
 
     # Create subdomain like ndt-iupui-mlab1-lga06
     subdomain = '-'.join(fqdn_parts[:-2])
 
     return '.'.join((subdomain, fqdn_parts[-2], fqdn_parts[-1]))
-
-
-def _split_fqdn(fqdn):
-    return fqdn.split('.')
