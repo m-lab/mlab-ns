@@ -33,8 +33,10 @@ def is_production_slice(slice_fqdn):
     """Determines if the given FQDN matches the schema for a production slice
 
     Args:
-        slice_fqdn: Slice FQDN to check (e.g.
-          "ndt.iupui.mlab3.mad01.measurement-lab.org")
+        slice_fqdn: Slice FQDN to check e.g.,
+          "ndt.iupui.mlab3.mad01.measurement-lab.org"
+          "wehe.mlab2.mad01.measurement-lab.org"
+          "ndt-iupui-mlab2-mad01.mlab-oti.measurement-lab.org"
 
     Returns:
         True if the slice FQDN matches the schema of a production slice.
