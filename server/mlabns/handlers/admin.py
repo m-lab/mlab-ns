@@ -124,10 +124,12 @@ class AdminHandler(webapp.RequestHandler):
         data = self.get_sites_info(sliver_tools, address_family)
         json_data = simplejson.dumps(data)
         file_name = ''.join(['mlabns/templates/map_view.html'])
+        project = os.environ.get('PROJECT')
         values = {
             'cities': json_data,
             'tool_id': tool_id,
-            'server_regex': os.environ.get('SERVER_REGEX', '^mlab[123]$'),
+            'server_regex':
+            constants.PROJECT_PATTERNS[project]['machine_regex'],
             'address_family': address_family,
             'privacy_doc_url': constants.PRIVACY_DOC_URL,
             'design_doc_url': constants.DESIGN_DOC_URL

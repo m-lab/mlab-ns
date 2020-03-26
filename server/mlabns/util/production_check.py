@@ -1,7 +1,8 @@
+import logging
 import os
 import re
 
-from google.appengine.api import app_identity
+from mlabns.util import constants
 from mlabns.util import parse_fqdn
 
 
@@ -14,19 +15,9 @@ def is_production_site(site_name):
     Returns:
         True if the site name matches the schema of a production site.
     """
-    if app_identity.get_application_id() == 'mlab-sandbox':
-        # Matches sandbox sites, and returns them as "production", but only if
-        # the project is mlab-sandbox. This should make testing in sandbox
-        # easier, since otherwise no nodes will ever match in sandbox.
-        return re.match('^[a-z]{3}(\dt)$', site_name, re.IGNORECASE) != None
-    else:
-        # Regular platform site names match the pattern [a-z]{3}\d{2}, but we
-        # now have some cloud VMs that we use for special purposes on the
-        # platform, and these sites end with the letter "c" (for "cloud"), not
-        # unlike testing sites end in the letter "t". The following regex
-        # should match both regular platform nodes as well as cloud VMs.
-        return re.match('^[a-z]{3}(\d{2}|\dc)$', site_name,
-                        re.IGNORECASE) != None
+    project = os.environ.get('PROJECT')
+    site_regex = constants.PROJECT_PATTERNS[project]['site_regex']
+    return re.match(site_regex, site_name, re.IGNORECASE) != None
 
 
 def is_production_slice(slice_fqdn):
@@ -41,19 +32,22 @@ def is_production_slice(slice_fqdn):
     Returns:
         True if the slice FQDN matches the schema of a production slice.
     """
+    project = os.environ.get('PROJECT')
+    site_regex = constants.PROJECT_PATTERNS[project]['site_regex']
+    machine_regex = constants.PROJECT_PATTERNS[project]['machine_regex']
 
     fqdn_parts = parse_fqdn.parse(slice_fqdn)
     if not fqdn_parts:
+        logging.error("Failed to parse FQDN: %s" % slice_fqdn)
         return False
 
-    # If this is sandbox and the site name does not end in T, then return.
-    if app_identity.get_application_id() == 'mlab-sandbox':
-        if not fqdn_parts['site'].endswith('t'):
-            return False
+    # Makes usre that the machine ("server") and site both match the current
+    # patterns for production slices/sites.
+    if re.match(site_regex, fqdn_parts['site'], re.IGNORECASE) and re.match(
+            machine_regex, fqdn_parts['machine'], re.IGNORECASE):
+        return True
 
-    if is_production_site(fqdn_parts['site']):
-        return re.match(
-            os.environ.get('SERVER_REGEX', '^mlab[123]$'),
-            fqdn_parts['machine'], re.IGNORECASE) != None
-
+    logging.error(
+        "FQDN %s did not match site_regex (%s) AND/OR machine_regex (%s)" %
+        (slice_fqdn, site_regex, machine_regex))
     return False

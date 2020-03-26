@@ -54,3 +54,6 @@ libraries:
 
 includes:
 - mapreduce/include.yaml
+
+env_variables:
+  PROJECT: "mlab-ns"

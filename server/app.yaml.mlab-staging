@@ -61,7 +61,7 @@ includes:
 - mapreduce/include.yaml
 
 env_variables:
-  SERVER_REGEX: "^mlab4$"
+  PROJECT: "mlab-staging"
 
 inbound_services:
 - warmup

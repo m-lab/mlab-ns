@@ -3,7 +3,6 @@ import StringIO
 import unittest2
 import urllib2
 
-from google.appengine.api import app_identity
 from google.appengine.ext import db
 from mlabns.db import model
 from mlabns.handlers import update
@@ -21,12 +20,6 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.addCleanup(urlopen_patch.stop)
         urlopen_patch.start()
 
-        get_application_id_patch = mock.patch.object(app_identity,
-                                                     'get_application_id',
-                                                     autospec=True)
-        self.addCleanup(get_application_id_patch.stop)
-        get_application_id_patch.start()
-
         site_model_patch = mock.patch.object(model, 'Site', autospec=True)
         self.addCleanup(site_model_patch.stop)
         site_model_patch.start()
@@ -43,49 +36,53 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.addCleanup(util_patch.stop)
         util_patch.start()
 
+        environ_patch = mock.patch.dict('os.environ',
+                                        {'PROJECT': 'mlab-staging'})
+        self.addCleanup(environ_patch.stop)
+        environ_patch.start()
+
     @mock.patch.object(update.IPUpdateHandler, 'update')
     def testGetIgnoresTestSites(self, mock_update):
-        """Test sites should not be processed in the sites update."""
+        """Test sites should not be processed except in sandbox project."""
         urllib2.urlopen.return_value = StringIO.StringIO("""[
 {
-    "site": "xyz0t",
-    "metro": ["xyz0t", "xyz"],
+    "site": "abc0t",
+    "metro": ["abc0t", "abc"],
     "created": 1310048316,
-    "city": "Xyzville",
+    "city": "Abcville",
     "country": "AB",
     "latitude": null,
     "longitude": null,
     "roundrobin": false
 }
 ]""")
-        app_identity.get_application_id.return_value = 'mlab-testing'
-        db.Query.fetch.return_value = [mock.Mock(site_id='xyz01')]
+        db.Query.fetch.return_value = [mock.Mock(site_id='abc0t')]
         handler = update.SiteRegistrationHandler()
         handler.get()
 
         self.assertTrue(util.send_success.called)
         self.assertTrue(mock_update.called)
 
-        self.assertFalse(model.Site.called,
-                         'Test site should not be added to the datastore')
+        self.assertFalse(
+            model.Site.called,
+            'Test site should not be added to the staging datastore.')
 
     @mock.patch.object(update.IPUpdateHandler, 'update')
     def testUpdateExistingSites(self, mock_update):
         """Test updating an existing site."""
         urllib2.urlopen.return_value = StringIO.StringIO("""[
 {
-    "site": "xyz01",
-    "metro": ["xyz01", "xyz"],
+    "site": "def01",
+    "metro": ["def01", "def"],
     "created": 1310048316,
-    "city": "Xyzville",
-    "country": "AB",
+    "city": "Defville",
+    "country": "DE",
     "latitude": 123.456789,
     "longitude": 34.567890,
     "roundrobin": false
 }
 ]""")
-        app_identity.get_application_id.return_value = 'mlab-testing'
-        db.Query.fetch.return_value = [mock.Mock(site_id='xyz01')]
+        db.Query.fetch.return_value = [mock.Mock(site_id='def01')]
         handler = update.SiteRegistrationHandler()
         handler.get()
 
@@ -100,12 +97,6 @@ class IPUpdateHandlerTest(unittest2.TestCase):
 
     def setUp(self):
         # Patch out the APIs that IPUpdateHandler calls.
-        get_application_id_patch = mock.patch.object(app_identity,
-                                                     'get_application_id',
-                                                     autospec=True)
-        self.addCleanup(get_application_id_patch.stop)
-        get_application_id_patch.start()
-
         site_model_patch = mock.patch.object(model, 'Site', autospec=True)
         self.addCleanup(site_model_patch.stop)
         site_model_patch.start()
@@ -120,17 +111,22 @@ class IPUpdateHandlerTest(unittest2.TestCase):
         self.addCleanup(sliver_model_patch.stop)
         sliver_model_patch.start()
 
+        environ_patch = mock.patch.dict('os.environ',
+                                        {'PROJECT': 'mlab-staging'})
+        self.addCleanup(environ_patch.stop)
+        environ_patch.start()
+
     @mock.patch.object(urllib2, 'urlopen')
     @mock.patch.object(update.IPUpdateHandler, 'put_sliver_tool')
     def test_update(self, mock_put_sliver_tool, mock_urlopen):
-        app_identity.get_application_id.return_value = 'mlab-testing'
         mock_urlopen.return_value = StringIO.StringIO("""[
 {
-    "hostname": "ndt.iupui.mlab1.xyz01.measurement-lab.org",
+    "hostname": "ndt.iupui.mlab4.xyz01.measurement-lab.org",
     "ipv4": "192.168.0.1",
     "ipv6": "2002:AB:1234::1"
 }
 ]""")
+        #model.Site.all.return_value.fetch.return_value = [
         model.Site.all.return_value.fetch.return_value = [
             mock.Mock(site_id='xyz01')
         ]
@@ -140,7 +136,7 @@ class IPUpdateHandlerTest(unittest2.TestCase):
         model.SliverTool.all.return_value.fetch.return_value = [
             mock.Mock(slice_id='iupui_ndt',
                       tool_id='ndt',
-                      fqdn='ndt.iupui.mlab1.xyz0t.measurement-lab.org')
+                      fqdn='ndt.iupui.mlab4.xyz01.measurement-lab.org')
         ]
 
         handler = update.IPUpdateHandler()

@@ -1,12 +1,11 @@
 """Rewrites raw M-Lab FQDNs to apply post-processing or annotations."""
 
 import logging
+import os
 
 from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import parse_fqdn
-
-from google.appengine.api import app_identity
 
 # List of `tool_id`s that require FQDNs to be rewritten using "flattened" names
 # to accommodate the *.measurement-lab.org wildcard certificate.
@@ -38,7 +37,7 @@ def rewrite(fqdn, address_family, tool_id):
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
     # If this Tool requires "flat" hostname, rewrite it, unless this host is in
     # a project that is already using v2 "flat" hostname by default.
-    if app_identity.get_application_id() in constants.V2_HOSTNAME_PROJECTS:
+    if os.environ.get('PROJECT') in constants.V2_HOSTNAME_PROJECTS:
         return rewritten_fqdn
     elif tool_id in FLAT_HOSTNAMES:
         rewritten_fqdn = _apply_flat_hostname(rewritten_fqdn)

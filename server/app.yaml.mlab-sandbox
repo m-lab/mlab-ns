@@ -61,7 +61,7 @@ includes:
 - mapreduce/include.yaml
 
 env_variables:
-  SERVER_REGEX: "^mlab[1-4]$"
+  PROJECT: "mlab-sandbox"
 
 inbound_services:
 - warmup

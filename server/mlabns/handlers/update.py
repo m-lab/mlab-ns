@@ -1,9 +1,9 @@
 import json
 import logging
+import os
 import time
 import urllib2
 
-from google.appengine.api import app_identity
 from google.appengine.api import memcache
 from google.appengine.api import namespace_manager
 from google.appengine.ext import db
@@ -70,7 +70,7 @@ class SiteRegistrationHandler(webapp.RequestHandler):
         Checks if new sites were added to Nagios and registers them.
         """
         try:
-            project = app_identity.get_application_id()
+            project = os.environ.get('PROJECT')
             if project == 'mlab-ns':
                 # TODO: eliminate project translation.
                 json_file = self.DEFAULT_SITE_LIST_URL
@@ -176,7 +176,7 @@ class IPUpdateHandler():
         Updates sliver tool IP addresses.
         """
         try:
-            project = app_identity.get_application_id()
+            project = os.environ.get('PROJECT')
             if project == 'mlab-ns':
                 # TODO: eliminate project translation.
                 host_ips_url = self.DEFAULT_IP_LIST_URL
