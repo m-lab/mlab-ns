@@ -92,19 +92,15 @@ class FqdnRewriteTest(unittest.TestCase):
                                            message.ADDRESS_FAMILY_IPv6, 'ndt7')
         self.assertEqual(fqdn_expected, fqdn_actual)
 
-    # Sandbox tests.
-    os.environ['MACHINE_REGEX'] = '^mlab[1-4]$'
-    os.environ['SITE_REGEX'] = '^[a-z]{3}[0-9]t$'
-
     def testIPv4FlatName(self):
         """Do nothing since this name is already flattened."""
-        fqdn = 'ndt-iupui-mlab1-lga0t.mlab-sandbox.measurement-lab.org'
+        fqdn = 'ndt-iupui-mlab4-lga0t.mlab-sandbox.measurement-lab.org'
         self.assertEqual(fqdn, fqdn_rewrite.rewrite(fqdn, None, 'ndt'))
 
     def testIPv4WehePlaintextFqdnFlat(self):
         """Add a v4 annotation for v4-specific requests."""
-        fqdn_original = 'wehe-mlab1-lga0t.mlab-sandbox.measurement-lab.org'
-        fqdn_expected = 'wehe-mlab1v4-lga0t.mlab-sandbox.measurement-lab.org'
+        fqdn_original = 'wehe-mlab4-lga0t.mlab-sandbox.measurement-lab.org'
+        fqdn_expected = 'wehe-mlab4v4-lga0t.mlab-sandbox.measurement-lab.org'
         fqdn_actual = fqdn_rewrite.rewrite(fqdn_original,
                                            message.ADDRESS_FAMILY_IPv4, 'ndt')
         self.assertEqual(fqdn_expected, fqdn_actual)

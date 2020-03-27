@@ -38,7 +38,7 @@ def is_production_slice(slice_fqdn):
         logging.error("Failed to parse FQDN: %s" % slice_fqdn)
         return False
 
-    # Makes usre that the machine ("server") and site both match the current
+    # Makes sure that the machine ("server") and site both match the current
     # patterns for production slices/sites.
     if re.match(site_regex, fqdn_parts['site'], re.IGNORECASE) and re.match(
             machine_regex, fqdn_parts['machine'], re.IGNORECASE):
