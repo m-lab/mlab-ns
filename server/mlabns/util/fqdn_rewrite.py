@@ -1,10 +1,8 @@
 """Rewrites raw M-Lab FQDNs to apply post-processing or annotations."""
 
 import logging
-import os
 import re
 
-from mlabns.util import constants
 from mlabns.util import message
 from mlabns.util import parse_fqdn
 

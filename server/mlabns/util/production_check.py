@@ -2,7 +2,6 @@ import logging
 import os
 import re
 
-from mlabns.util import constants
 from mlabns.util import parse_fqdn
 
 
