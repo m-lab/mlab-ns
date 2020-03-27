@@ -126,7 +126,6 @@ class IPUpdateHandlerTest(unittest2.TestCase):
     "ipv6": "2002:AB:1234::1"
 }
 ]""")
-        #model.Site.all.return_value.fetch.return_value = [
         model.Site.all.return_value.fetch.return_value = [
             mock.Mock(site_id='xyz01')
         ]
