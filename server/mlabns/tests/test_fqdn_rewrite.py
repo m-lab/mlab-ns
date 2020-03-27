@@ -1,5 +1,4 @@
 import mock
-import os
 import unittest
 
 from mlabns.util import fqdn_rewrite
