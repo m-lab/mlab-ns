@@ -64,7 +64,7 @@ env_variables:
   PROJECT: "mlab-staging"
   MACHINE_REGEX: "^mlab4$"
   SITE_REGEX: "^[a-z]{3}[0-9c]{2}$"
-  LOCATIONS_URL: "https://siteinfo.mlab-staging.measurementlab.net/v2/sites/locations.json"
+  LOCATIONS_URL: "https://siteinfo.mlab-staging.measurementlab.net/v1/sites/locations.json"
   HOSTNAMES_URL: "https://siteinfo.mlab-staging.measurementlab.net/v2/sites/hostnames.json"
 
 inbound_services:
