@@ -1,5 +1,8 @@
-import re
+import logging
 import os
+import re
+
+from mlabns.util import parse_fqdn
 
 
 def is_production_site(site_name):
@@ -11,33 +14,37 @@ def is_production_site(site_name):
     Returns:
         True if the site name matches the schema of a production site.
     """
-    # Regular platform site names match the pattern [a-z]{3}\d{2}, but we now
-    # have some cloud VMs that we use for special purposes on the platform, and
-    # these sites end with the letter "c" (for "cloud"), not unlike testing
-    # sites end in the letter "t". The following regex should match both regular
-    # platform nodes as well as cloud VMs.
-    return re.match('^[a-z]{3}(\d{2}|\dc)$', site_name, re.IGNORECASE) != None
+    site_regex = os.environ.get('SITE_REGEX')
+    return re.match(site_regex, site_name, re.IGNORECASE) != None
 
 
 def is_production_slice(slice_fqdn):
     """Determines if the given FQDN matches the schema for a production slice
 
     Args:
-        slice_fqdn: Slice FQDN to check (e.g.
-          "ndt.iupui.mlab3.mad01.measurement-lab.org")
+        slice_fqdn: Slice FQDN to check e.g.,
+          "ndt.iupui.mlab3.mad01.measurement-lab.org"
+          "wehe.mlab2.mad01.measurement-lab.org"
+          "ndt-iupui-mlab2-mad01.mlab-oti.measurement-lab.org"
 
     Returns:
         True if the slice FQDN matches the schema of a production slice.
     """
-    fqdn_parts = slice_fqdn.split('.')
-    # Look for a production site name in the FQDN
-    for i in range(1, len(fqdn_parts)):
-        # If a production site name exists, the previous part of the FQDN will
-        # be the server ID. For example, in "mlab1.nuq02", nuq02 is the site
-        # name and mlab1 is the server ID.
-        if is_production_site(fqdn_parts[i]):
-            server_id = fqdn_parts[i - 1]
-            return re.match(
-                os.environ.get('SERVER_REGEX', '^mlab[123]$'), server_id,
-                re.IGNORECASE) != None
+    site_regex = os.environ.get('SITE_REGEX')
+    machine_regex = os.environ.get('MACHINE_REGEX')
+
+    fqdn_parts = parse_fqdn.parse(slice_fqdn)
+    if not fqdn_parts:
+        logging.error("Failed to parse FQDN: %s" % slice_fqdn)
+        return False
+
+    # Makes sure that the machine ("server") and site both match the current
+    # patterns for production slices/sites.
+    if re.match(site_regex, fqdn_parts['site'], re.IGNORECASE) and re.match(
+            machine_regex, fqdn_parts['machine'], re.IGNORECASE):
+        return True
+
+    logging.error(
+        "FQDN %s did not match site_regex (%s) AND/OR machine_regex (%s)" %
+        (slice_fqdn, site_regex, machine_regex))
     return False

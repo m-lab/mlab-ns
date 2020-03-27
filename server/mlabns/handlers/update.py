@@ -1,9 +1,9 @@
 import json
 import logging
+import os
 import time
 import urllib2
 
-from google.appengine.api import app_identity
 from google.appengine.api import memcache
 from google.appengine.api import namespace_manager
 from google.appengine.ext import db
@@ -37,8 +37,6 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 
     REQUIRED_FIELDS = [SITE_FIELD, METRO_FIELD, CITY_FIELD, COUNTRY_FIELD,
                        LAT_FIELD, LON_FIELD, ROUNDROBIN_FIELD]
-    DEFAULT_SITE_LIST_URL = 'https://siteinfo.mlab-oti.measurementlab.net/v1/sites/locations.json'
-    TEMPLATE_SITE_LIST_URL = 'https://siteinfo.{project}.measurementlab.net/v1/sites/locations.json'
 
     @classmethod
     def _is_valid_site(cls, site):
@@ -67,28 +65,18 @@ class SiteRegistrationHandler(webapp.RequestHandler):
     def get(self):
         """Triggers the registration handler.
 
-        Checks if new sites were added to Nagios and registers them.
+        Checks if new sites were added to siteinfo and registers them.
         """
         try:
-            project = app_identity.get_application_id()
-            if project == 'mlab-ns':
-                # TODO: eliminate project translation.
-                json_file = self.DEFAULT_SITE_LIST_URL
-            else:
-                json_file = self.TEMPLATE_SITE_LIST_URL.format(project=project)
-        except AttributeError:
-            logging.error('Cannot get project name.')
-            return util.send_not_found(self)
-
-        try:
-            sites_json = json.loads(urllib2.urlopen(json_file).read())
+            locations_url = os.environ.get('LOCATIONS_URL')
+            sites_json = json.loads(urllib2.urlopen(locations_url).read())
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', json_file)
+            logging.error('Cannot open %s.', locations_url)
             return util.send_not_found(self)
         except (TypeError, ValueError) as e:
-            logging.error('The json format of %s in not valid: %s', json_file,
-                          e)
+            logging.error('The json format of %s in not valid: %s',
+                          locations_url, e)
             return util.send_not_found(self)
 
         site_ids = set()
@@ -167,37 +155,24 @@ class SiteRegistrationHandler(webapp.RequestHandler):
 class IPUpdateHandler():
     """Updates SliverTools' IP addresses."""
 
-    DEFAULT_IP_LIST_URL = 'https://siteinfo.mlab-oti.measurementlab.net/v1/sites/hostnames.json'
-    TEMPLATE_IP_LIST_URL = 'https://siteinfo.{project}.measurementlab.net/v1/sites/hostnames.json'
-
     def update(self):
         """Triggers the update handler.
 
         Updates sliver tool IP addresses.
         """
         try:
-            project = app_identity.get_application_id()
-            if project == 'mlab-ns':
-                # TODO: eliminate project translation.
-                host_ips_url = self.DEFAULT_IP_LIST_URL
-            else:
-                host_ips_url = self.TEMPLATE_IP_LIST_URL.format(project=project)
-        except AttributeError:
-            logging.error('Cannot get project name.')
-            return util.send_not_found(self)
-
-        try:
-            raw_json = urllib2.urlopen(host_ips_url).read()
-            logging.info('Fetched hostnames.json from: %s', host_ips_url)
+            hostnames_url = os.environ.get('HOSTNAMES_URL')
+            raw_json = urllib2.urlopen(hostnames_url).read()
+            logging.info('Fetched hostnames.json from: %s', hostnames_url)
         except urllib2.HTTPError:
             # TODO(claudiu) Notify(email) when this happens.
-            logging.error('Cannot open %s.', host_ips_url)
+            logging.error('Cannot open %s.', hostnames_url)
             return util.send_not_found(self)
 
         try:
             rows = json.loads(raw_json)
         except (TypeError, ValueError) as e:
-            logging.error('Failed to parse raw json from %s: %s', host_ips_url,
+            logging.error('Failed to parse raw json from %s: %s', hostnames_url,
                           e)
             return util.send_not_found(self)
 

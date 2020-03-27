@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import textwrap
 import urllib
 import urllib2
@@ -213,10 +214,20 @@ def parse_sliver_tool_status(status):
         raise PrometheusStatusUnparseableError(
             'Prometheus status format unrecognized: %s' % status)
 
+    experiment = status['metric']['experiment']
+    machine = status['metric']['machine']
+    join_char = '.'
+
+    # If the machine/site part of the machine name appear to be a v2 hostname,
+    # then flatten the experiment field, and join with a dash instad of a dot.
+    if re.match('^mlab[1-4]-', machine):
+        experiment = experiment.replace('.', '-')
+        join_char = '-'
+
     # Joins the experiment name with the machine name to form the FQDN of the
     # experiment.
-    sliver_fqdn = status['metric']['experiment'] + '.' + status['metric'][
-        'machine']
+    sliver_fqdn = experiment + join_char + machine
+
     # 'status' is a list with two items. The first item ([0]) is a timestamp
     # marking the Prometheus evaluation time. The second, which is the one we
     # want, is the binary status value of the service.

@@ -1,8 +1,10 @@
 """Rewrites raw M-Lab FQDNs to apply post-processing or annotations."""
 
 import logging
+import re
 
 from mlabns.util import message
+from mlabns.util import parse_fqdn
 
 # List of `tool_id`s that require FQDNs to be rewritten using "flattened" names
 # to accommodate the *.measurement-lab.org wildcard certificate.
@@ -32,8 +34,11 @@ def rewrite(fqdn, address_family, tool_id):
         FQDN after rewriting to apply all modifications to the raw FQDN.
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
-    # If this Tool requires "flat" hostname, rewrite it.
-    if tool_id in FLAT_HOSTNAMES:
+    # If this Tool requires "flat" hostname, rewrite it, unless it appears that
+    # this is already a flat/v2 name.
+    if re.search('mlab[1-4]-', rewritten_fqdn):
+        return rewritten_fqdn
+    elif tool_id in FLAT_HOSTNAMES:
         rewritten_fqdn = _apply_flat_hostname(rewritten_fqdn)
     return rewritten_fqdn
 
@@ -65,10 +70,13 @@ def _apply_af_awareness(fqdn, address_family):
         logging.error('Unrecognized address family: %s', address_family)
         return fqdn
 
-    fqdn_parts = _split_fqdn(fqdn)
-    fqdn_parts[2] += fqdn_annotation
+    fqdn_parts = parse_fqdn.parse(fqdn)
+    if not fqdn_parts:
+        logging.error('Cannot parse FQDN: %s', fqdn)
+        return fqdn
+    decorated_machine = fqdn_parts['machine'] + fqdn_annotation
 
-    return '.'.join(fqdn_parts)
+    return fqdn.replace(fqdn_parts['machine'], decorated_machine)
 
 
 def _apply_flat_hostname(fqdn):
@@ -92,13 +100,9 @@ def _apply_flat_hostname(fqdn):
         FQDN with rewritten dashes if a rewrite was necessary, the original FQDN
         otherwise.
     """
-    fqdn_parts = _split_fqdn(fqdn)
+    fqdn_parts = fqdn.split('.')
 
     # Create subdomain like ndt-iupui-mlab1-lga06
     subdomain = '-'.join(fqdn_parts[:-2])
 
     return '.'.join((subdomain, fqdn_parts[-2], fqdn_parts[-1]))
-
-
-def _split_fqdn(fqdn):
-    return fqdn.split('.')

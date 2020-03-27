@@ -2,8 +2,8 @@ import copy
 import logging
 
 from google.appengine.ext import db
-
 from mlabns.util import constants
+from mlabns.util import parse_fqdn
 
 # The classes defined in this file are described in detail in
 # the design doc at http://goo.gl/48S22.
@@ -191,17 +191,16 @@ def get_fqdn(slice_id, server_id, site_id):
 
 
 def get_slice_site_server_ids(fqdn):
-    try:
-        slice_id_part1, slice_id_part2, server_id, site_id, unused = fqdn.split(
-            '.', 4)
-    except ValueError:
-        return None, None, None
-    if (slice_id_part1 is None or slice_id_part2 is None or server_id is None or
-            site_id is None):
+    p = parse_fqdn.parse(fqdn)
+    if not p:
         return None, None, None
 
-    slice_id = '_'.join([slice_id_part2, slice_id_part1])
-    return slice_id, site_id, server_id
+    if p['org']:
+        experiment = '%s_%s' % (p['org'], p['experiment'])
+    else:
+        experiment = p['experiment']
+
+    return experiment, p['site'], p['machine']
 
 
 def get_tool_from_tool_id(tool_id):

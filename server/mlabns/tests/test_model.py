@@ -24,6 +24,36 @@ class ModelTestCase(unittest2.TestCase):
             model.get_sliver_tool_id(tool_id, slice_id, server_id, site_id),
             'tool_id-slice_id-server_id-site_id')
 
+    def testGetSliceSiteServerIdsValidV1(self):
+        fqdn = 'neubot.mlab.mlab4.lga03.measurement-lab.org'
+        expect = ('mlab_neubot', 'lga03', 'mlab4')
+        actual = model.get_slice_site_server_ids(fqdn)
+        self.assertEqual(expect, actual)
+
+    def testGetSliceSiteServerIdsExperimentNoHyphen(self):
+        fqdn = 'wehe-mlab1-lga03.mlab-oti.measurement-lab.org'
+        expect = ('wehe', 'lga03', 'mlab1')
+        actual = model.get_slice_site_server_ids(fqdn)
+        self.assertEqual(expect, actual)
+
+    def testGetSliceSiteServerIdsExperimentHyphen(self):
+        fqdn = 'ndt-iupui-mlab2-lga03.mlab-oti.measurement-lab.org'
+        expect = ('iupui_ndt', 'lga03', 'mlab2')
+        actual = model.get_slice_site_server_ids(fqdn)
+        self.assertEqual(expect, actual)
+
+    def testGetSliceSiteServerIdsMissingExperiment(self):
+        fqdn = 'mlab2-lga03.mlab-oti.measurement-lab.org'
+        expect = (None, None, None)
+        actual = model.get_slice_site_server_ids(fqdn)
+        self.assertEqual(expect, actual)
+
+    def testGetSliceSiteServerIdsMissingMachine(self):
+        fqdn = 'ndt-iupui-lga03.mlab-oti.measurement-lab.org'
+        expect = (None, None, None)
+        actual = model.get_slice_site_server_ids(fqdn)
+        self.assertEqual(expect, actual)
+
 
 class GetAllToolIdsTest(unittest2.TestCase):
 

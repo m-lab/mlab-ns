@@ -61,7 +61,11 @@ includes:
 - mapreduce/include.yaml
 
 env_variables:
-  SERVER_REGEX: "^mlab4$"
+  PROJECT: "mlab-sandbox"
+  MACHINE_REGEX: "^mlab[1-4]$"
+  SITE_REGEX: "^[a-z]{3}[0-9]t$"
+  LOCATIONS_URL: "https://siteinfo.mlab-sandbox.measurementlab.net/v1/sites/locations.json"
+  HOSTNAMES_URL: "https://siteinfo.mlab-sandbox.measurementlab.net/v2/sites/hostnames.json"
 
 inbound_services:
 - warmup

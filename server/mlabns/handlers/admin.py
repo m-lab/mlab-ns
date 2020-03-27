@@ -127,7 +127,7 @@ class AdminHandler(webapp.RequestHandler):
         values = {
             'cities': json_data,
             'tool_id': tool_id,
-            'server_regex': os.environ.get('SERVER_REGEX', '^mlab[123]$'),
+            'server_regex': os.environ.get('MACHINE_REGEX'),
             'address_family': address_family,
             'privacy_doc_url': constants.PRIVACY_DOC_URL,
             'design_doc_url': constants.DESIGN_DOC_URL
