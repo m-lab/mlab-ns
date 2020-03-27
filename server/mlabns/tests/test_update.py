@@ -36,8 +36,11 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
         self.addCleanup(util_patch.stop)
         util_patch.start()
 
-        environ_patch = mock.patch.dict('os.environ',
-                                        {'PROJECT': 'mlab-staging'})
+        # Initialize the SITE_REGEX  and MACHINE_REGEX env variable.
+        environ_patch = mock.patch.dict('os.environ', {
+            'MACHINE_REGEX': '^mlab4$',
+            'SITE_REGEX': '^[a-z]{3}[0-9c]{2}$',
+        })
         self.addCleanup(environ_patch.stop)
         environ_patch.start()
 
@@ -111,8 +114,11 @@ class IPUpdateHandlerTest(unittest2.TestCase):
         self.addCleanup(sliver_model_patch.stop)
         sliver_model_patch.start()
 
-        environ_patch = mock.patch.dict('os.environ',
-                                        {'PROJECT': 'mlab-staging'})
+        # Initialize the SITE_REGEX  and MACHINE_REGEX env variable.
+        environ_patch = mock.patch.dict('os.environ', {
+            'MACHINE_REGEX': '^mlab4$',
+            'SITE_REGEX': '^[a-z]{3}[0-9c]{2}$',
+        })
         self.addCleanup(environ_patch.stop)
         environ_patch.start()
 

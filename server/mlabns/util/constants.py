@@ -73,22 +73,3 @@ PRIVACY_DOC_URL = 'https://github.com/m-lab/mlab-ns/blob/master/MLAB-NS_PRIVACY_
 # URL to the design doc. All requests to http://mlab-ns.appspot.com/docs will be
 # redirected to this URL.
 DESIGN_DOC_URL = 'https://github.com/m-lab/mlab-ns/blob/master/DESIGN_DOC.md'
-
-# Which projects are using v2 hostnames i.e., project-decorated/flat
-V2_HOSTNAME_PROJECTS = ['mlab-sandbox']
-
-# Machine and site regexp patterns for each project.
-PROJECT_PATTERNS = {
-    'mlab-sandbox': {
-        'site_regex': '^[a-z]{3}[0-9]t$',
-        'machine_regex': '^mlab[1-4]$',
-    },
-    'mlab-staging': {
-        'site_regex': '^[a-z]{3}[0-9c]{2}$',
-        'machine_regex': '^mlab4$',
-    },
-    'mlab-ns': {
-        'site_regex': '^[a-z]{3}[0-9c]{2}$',
-        'machine_regex': '^mlab[1-3]$',
-    },
-}

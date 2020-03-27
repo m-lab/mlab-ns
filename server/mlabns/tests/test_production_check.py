@@ -8,13 +8,17 @@ from mlabns.util import production_check as pc
 class CheckProductionTestCase(unittest.TestCase):
 
     def setUp(self):
-        environ_patch = mock.patch.dict('os.environ', {'PROJECT': 'mlab-ns'})
+        # Initialize the SITE_REGEX  and MACHINE_REGEX env variable.
+        environ_patch = mock.patch.dict('os.environ', {
+            'MACHINE_REGEX': '',
+            'SITE_REGEX': '',
+        })
         self.addCleanup(environ_patch.stop)
         environ_patch.start()
 
     def testIsProductionSite(self):
         # Production checks
-        os.environ['PROJECT'] = 'mlab-ns'
+        os.environ['SITE_REGEX'] = '^[a-z]{3}[0-9c]{2}$'
 
         self.assertTrue(pc.is_production_site('nuq01'))
         self.assertTrue(pc.is_production_site('nuq99'))
@@ -35,7 +39,7 @@ class CheckProductionTestCase(unittest.TestCase):
             'Sites with a t suffix are not production sites.')
 
         # Sandbox checks
-        os.environ['PROJECT'] = 'mlab-sandbox'
+        os.environ['SITE_REGEX'] = '^[a-z]{3}[0-9]t$'
 
         self.assertTrue(
             pc.is_production_site('lga0t'),
@@ -43,7 +47,8 @@ class CheckProductionTestCase(unittest.TestCase):
 
     def testIsProductionSlice(self):
         # Production checks
-        os.environ['PROJECT'] = 'mlab-ns'
+        os.environ['MACHINE_REGEX'] = '^mlab[1-3]$'
+        os.environ['SITE_REGEX'] = '^[a-z]{3}[0-9c]{2}$'
 
         self.assertTrue(pc.is_production_slice(
             'ndt.iupui.mlab3.mad01.measurement-lab.org'))
@@ -66,7 +71,8 @@ class CheckProductionTestCase(unittest.TestCase):
             'mlab4 servers are not production slices')
 
         # Staging checks
-        os.environ['PROJECT'] = 'mlab-staging'
+        os.environ['MACHINE_REGEX'] = '^mlab4$'
+        os.environ['SITE_REGEX'] = '^[a-z]{3}[0-9c]{2}$'
 
         self.assertTrue(pc.is_production_slice(
             'ndt.iupui.mlab4.mad01.measurement-lab.org'))
@@ -83,7 +89,8 @@ class CheckProductionTestCase(unittest.TestCase):
             'sites with t suffix do not have staging slices')
 
         # Sandbox checks
-        os.environ['PROJECT'] = 'mlab-sandbox'
+        os.environ['MACHINE_REGEX'] = '^mlab[1-4]$'
+        os.environ['SITE_REGEX'] = '^[a-z]{3}[0-9]t$'
 
         self.assertTrue(pc.is_production_slice(
             'ndt.iupui.mlab4.mad0t.measurement-lab.org'))

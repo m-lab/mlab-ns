@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 
 from mlabns.util import constants
 from mlabns.util import message
@@ -35,9 +36,9 @@ def rewrite(fqdn, address_family, tool_id):
         FQDN after rewriting to apply all modifications to the raw FQDN.
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
-    # If this Tool requires "flat" hostname, rewrite it, unless this host is in
-    # a project that is already using v2 "flat" hostname by default.
-    if os.environ.get('PROJECT') in constants.V2_HOSTNAME_PROJECTS:
+    # If this Tool requires "flat" hostname, rewrite it, unless it appears that
+    # this is already a flat/v2 name.
+    if re.search('mlab[1-4]-', rewritten_fqdn):
         return rewritten_fqdn
     elif tool_id in FLAT_HOSTNAMES:
         rewritten_fqdn = _apply_flat_hostname(rewritten_fqdn)

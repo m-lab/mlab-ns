@@ -15,8 +15,7 @@ def is_production_site(site_name):
     Returns:
         True if the site name matches the schema of a production site.
     """
-    project = os.environ.get('PROJECT')
-    site_regex = constants.PROJECT_PATTERNS[project]['site_regex']
+    site_regex = os.environ.get('SITE_REGEX')
     return re.match(site_regex, site_name, re.IGNORECASE) != None
 
 
@@ -32,9 +31,8 @@ def is_production_slice(slice_fqdn):
     Returns:
         True if the slice FQDN matches the schema of a production slice.
     """
-    project = os.environ.get('PROJECT')
-    site_regex = constants.PROJECT_PATTERNS[project]['site_regex']
-    machine_regex = constants.PROJECT_PATTERNS[project]['machine_regex']
+    site_regex = os.environ.get('SITE_REGEX')
+    machine_regex = os.environ.get('MACHINE_REGEX')
 
     fqdn_parts = parse_fqdn.parse(slice_fqdn)
     if not fqdn_parts:

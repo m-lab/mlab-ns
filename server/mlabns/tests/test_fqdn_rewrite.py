@@ -9,8 +9,11 @@ from mlabns.util import message
 class FqdnRewriteTest(unittest.TestCase):
 
     def setUp(self):
-        environ_patch = mock.patch.dict('os.environ',
-                                        {'PROJECT': 'mlab-staging'})
+        # Initialize the SITE_REGEX  and MACHINE_REGEX env variable.
+        environ_patch = mock.patch.dict('os.environ', {
+            'MACHINE_REGEX': '^mlab4$',
+            'SITE_REGEX': '^[a-z]{3}[0-9c]{2}$',
+        })
         self.addCleanup(environ_patch.stop)
         environ_patch.start()
 
@@ -89,7 +92,9 @@ class FqdnRewriteTest(unittest.TestCase):
                                            message.ADDRESS_FAMILY_IPv6, 'ndt7')
         self.assertEqual(fqdn_expected, fqdn_actual)
 
-    os.environ['PROJECT'] = 'mlab-sandbox'
+    # Sandbox tests.
+    os.environ['MACHINE_REGEX'] = '^mlab[1-4]$'
+    os.environ['SITE_REGEX'] = '^[a-z]{3}[0-9]t$'
 
     def testIPv4FlatName(self):
         """Do nothing since this name is already flattened."""
