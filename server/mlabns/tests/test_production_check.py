@@ -58,6 +58,14 @@ class CheckProductionTestCase(unittest.TestCase):
             'wehe.mlab.mlab1.dfw02.measurement-lab.org'))
         self.assertTrue(pc.is_production_slice(
             'ndt-iupui-mlab1-dfw03.mlab-oti.measurement-lab.org'))
+        self.assertTrue(pc.is_production_slice(
+            'mlab1-dfw03.mlab-oti.measurement-lab.org'))
+        self.assertTrue(pc.is_production_slice(
+            'mlab1.dfw03.mlab-oti.measurement-lab.org'))
+        self.assertTrue(pc.is_production_slice(
+            'mlab3.dfw02.measurement-lab.org'))
+        self.assertTrue(pc.is_production_slice(
+            'mlab3-dfw02.measurement-lab.org'))
 
         self.assertFalse(
             pc.is_production_slice('ndt.iupui.mlab4.prg01.measurement-lab.org'),
@@ -68,6 +76,10 @@ class CheckProductionTestCase(unittest.TestCase):
         self.assertFalse(
             pc.is_production_slice(
                 'ndt-iupui-mlab4-prg01.mlab-staging.measurement-lab.org'),
+            'mlab4 servers are not production slices')
+        self.assertFalse(
+            pc.is_production_slice(
+                'mlab4-abc01.mlab-staging.measurement-lab.org'),
             'mlab4 servers are not production slices')
 
         # Staging checks
@@ -80,7 +92,18 @@ class CheckProductionTestCase(unittest.TestCase):
             'neubot.mlab.mlab4.dfw0c.measurement-lab.org'))
         self.assertTrue(pc.is_production_slice(
             'wehe-mlab4-dfw02.mlab-staging.measurement-lab.org'))
+        self.assertTrue(pc.is_production_slice(
+            'mlab.mlab4.dfw0c.measurement-lab.org'))
+        self.assertTrue(pc.is_production_slice(
+            'mlab4-dfw02.mlab-staging.measurement-lab.org'))
 
+        self.assertFalse(
+            pc.is_production_slice('mlab3prg01.measurement-lab.org'),
+            'Missing separator between machine and site.')
+        self.assertFalse(
+            pc.is_production_slice(
+                'ndt-iupui-abc-mlab3.mlab-oti.prg01.measurement-lab.org'),
+            'Too many experiment-org parts.')
         self.assertFalse(
             pc.is_production_slice('ndt.iupui.mlab3.prg01.measurement-lab.org'),
             'mlab3 servers are not staging slices')
@@ -98,6 +121,10 @@ class CheckProductionTestCase(unittest.TestCase):
             'neubot.mlab.mlab1.dfw0t.measurement-lab.org'))
         self.assertTrue(pc.is_production_slice(
             'wehe-mlab4-dfw0t.mlab-staging.measurement-lab.org'))
+        self.assertTrue(pc.is_production_slice(
+            'mlab1.dfw0t.measurement-lab.org'))
+        self.assertTrue(pc.is_production_slice(
+            'mlab4-dfw0t.mlab-staging.measurement-lab.org'))
 
         self.assertFalse(
             pc.is_production_slice('ndt.iupui.mlab3.prg01.measurement-lab.org'),
