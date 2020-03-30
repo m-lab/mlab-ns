@@ -12,7 +12,7 @@ def parse(fqdn):
         dict representing the constituent parts.
     """
     # This regex *should* match all valid M-Lab domain names, for both nodes
-    # and experiments, for both v1 and v2 names. It makes use of non-capturging
+    # and experiments, for both v1 and v2 names. It makes use of non-capturing
     # groups denoted by '(?:)'. What is interesting is that you can specify
     # capturing groups inside of non-capturing groups.
     regex = '(?:([a-z]+)(?:[.-]([a-z]+))?[.-])?(mlab[1-4])[.-]([a-z]{3}[0-9ct]{2})(?:\.(mlab-[a-z]+))?\.(.*)$'
