@@ -195,6 +195,10 @@ def get_slice_site_server_ids(fqdn):
     if not p:
         return None, None, None
 
+    # If any one of these values is missing, then the whole thing fails.
+    if not p['experiment'] or not p['machine'] or not p['site']:
+        return None, None, None
+
     if p['org']:
         experiment = '%s_%s' % (p['org'], p['experiment'])
     else:
