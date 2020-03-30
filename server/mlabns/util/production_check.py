@@ -44,7 +44,7 @@ def is_production_slice(slice_fqdn):
             machine_regex, fqdn_parts['machine'], re.IGNORECASE):
         return True
 
-    logging.error(
+    logging.info(
         "FQDN %s did not match site_regex (%s) AND/OR machine_regex (%s)" %
         (slice_fqdn, site_regex, machine_regex))
     return False
