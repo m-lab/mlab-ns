@@ -18,7 +18,7 @@ retained below for reference.
 ### Testing environment
 
 To deploy to the standard mlab-ns testing environment
-(locate-dot-mlab-sandbox.appspot.com), follow the instructions below with no
+(mlab-sandbox.appspot.com), follow the instructions below with no
 modifications. To deploy to a different testing environment, you may need to
 edit `server/app.yaml.mlab-sandbox` to update the "service" field to work
 within your test environment's other App Engine services names.
@@ -77,7 +77,7 @@ into the files before running the `appcfg.py` commands below.
 
 ```
 # Replace URL with other project's URL if not populating mlab-sandbox.
-GAE_URL=http://locate-dot-mlab-sandbox.appspot.com
+GAE_URL=http://mlab-sandbox.appspot.com
 TOKEN=$( gcloud auth print-access-token )
 
 appcfg.py --url ${GAE_URL}/_ah/remote_api upload_data \
@@ -115,7 +115,7 @@ Run the following jobs from GCP under Compute > App Engine > Task queues > Cron 
 1. `/cron/check_status`
 
 If bootstrapping was successful, you should see a populated map at the root
-mlab-ns URL (e.g. mlab-nstesting.appspot.com) with M-Lab's sites properly
+mlab-ns URL (e.g. mlab-sandbox.appspot.com) with M-Lab's sites properly
 located.
 
 ## Gotchas
