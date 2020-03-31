@@ -2,7 +2,7 @@ cron:
 # Check for site status, run every minute.
 - description: Check sliver tools status
   url: /cron/check_status
-  target: {{TARGET}}
+  target: default
   schedule: every 1 minutes
 
 # Check for new sites, and for new and/or updated IP addresses, roundrobin information.
@@ -12,13 +12,13 @@ cron:
 # exist for the site before mlab-ns starts querying for it.
 - description: Check sites, update IP and roundrobin
   url: /cron/check_site
-  target: {{TARGET}}
+  target: default
   schedule: every day 15:05
 
 # Count client signatures found in memcache.
 - description: Count client signatures found in memcache.
   url: /cron/count_request_signatures
-  target: {{TARGET}}
+  target: default
   schedule: every 10 minutes
 
 # Update request signatures in memcache for mlab-ns.
