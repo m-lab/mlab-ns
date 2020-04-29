@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:18.04
 
 ENV PYTHONPATH $PYTHONPATH:/usr/local/google-cloud-sdk/platform/google_appengine
 # NOTE: the Cloud SDK component manager is disabled in this install, so
