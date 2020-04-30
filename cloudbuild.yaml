@@ -30,4 +30,5 @@ steps:
   args:
     - python environment_bootstrap.py $PROJECT_ID
     - bash -c "cd server; gcloud --project $PROJECT_ID app deploy --promote app.yaml"
-    - gcloud --project $PROJECT_ID app deploy --promote cron.yaml
+    - gcloud --project $PROJECT_ID app deploy dispatch.yaml
+    - gcloud --project $PROJECT_ID app deploy cron.yaml
