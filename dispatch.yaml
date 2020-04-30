@@ -5,5 +5,5 @@ dispatch:
 - service: locate
   url: "*/v2/*"
 # Route all other requests to the default service.
-- service: default
-  url: "*"
+#- service: default
+#  url: "*"
