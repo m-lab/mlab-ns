@@ -224,19 +224,14 @@ class IPUpdateHandler():
 
                 # If the sliver_tool already exists in the datastore, edit it.
                 # If not, add it to the datastore.
-                if len(slivertool) == 1:
+                if slivertool:
                     sliver_tool = slivertool[0]
-                elif len(slivertool) == 0:
+                else:
                     logging.info(
                         'For tool %s, fqdn %s is not in datastore.  Adding it.',
                         slice_tool.tool_id, fqdn)
                     sliver_tool = self.initialize_sliver_tool(slice_tool, site,
                                                               server_id, fqdn)
-                else:
-                    logging.error(
-                        'Error, or too many sliver_tools returned for {}:{}.'.format(
-                            slice_tool.tool_id, fqdn))
-                    continue
 
                 updated_sliver_tool = self.set_sliver_tool(
                     sliver_tool, ipv4, ipv6, site.roundrobin)
