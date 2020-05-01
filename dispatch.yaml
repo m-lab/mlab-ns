@@ -4,6 +4,4 @@ dispatch:
 # Route /v2/ requests to the locate service.
 - service: locate
   url: "*/v2/*"
-# Route all other requests to the default service.
-#- service: default
-#  url: "*"
+# All other requests are routed to their default target.
