@@ -179,7 +179,6 @@ class IPUpdateHandler():
         # Fetch all data that we are going to need from the datastore up front.
         sites = list(model.Site.all().fetch(limit=None))
         tools = list(model.Tool.all().fetch(limit=None))
-        slivertools = list(model.SliverTool.all().fetch(limit=None))
 
         for row in rows:
             # Expected keys: "hostname,ipv4,ipv6" (ipv6 can be an empty string).
@@ -225,7 +224,7 @@ class IPUpdateHandler():
                 # If the sliver_tool already exists in the datastore, edit it.
                 # If not, add it to the datastore.
                 if slivertool:
-                    sliver_tool = slivertool[0]
+                    sliver_tool = slivertool
                 else:
                     logging.info(
                         'For tool %s, fqdn %s is not in datastore.  Adding it.',
@@ -234,7 +233,7 @@ class IPUpdateHandler():
                                                               server_id, fqdn)
 
                 updated_sliver_tool = self.set_sliver_tool(
-                    sliver_tool, ipv4, ipv6, site.roundrobin)
+                    sliver_tool, ipv4, ipv6, site.roundrobin, fqdn)
 
                 # Update datastore if the SliverTool got updated.
                 if updated_sliver_tool:
@@ -243,7 +242,7 @@ class IPUpdateHandler():
 
         return
 
-    def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr):
+    def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr, fqdn):
         updated = False
         if not ipv4:
             ipv4 = message.NO_IP_ADDRESS
@@ -258,6 +257,9 @@ class IPUpdateHandler():
             updated = True
         if not sliver_tool.roundrobin == rr:
             sliver_tool.roundrobin = rr
+            updated = True
+        if not sliver_tool.fqdn == fqdn:
+            sliver_tool.fqdn = fqdn
             updated = True
 
         if updated:
