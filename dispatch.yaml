@@ -3,5 +3,7 @@
 dispatch:
 # Route /v2/ requests to the locate service.
 - service: locate
+  url: "*/v2beta1/*"
+- service: locate
   url: "*/v2/*"
 # All other requests are routed to their default target.
