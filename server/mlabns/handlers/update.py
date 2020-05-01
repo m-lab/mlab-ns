@@ -218,12 +218,12 @@ class IPUpdateHandler():
 
             for slice_tool in slice_tools:
                 # See if this sliver_tool already exists in the datastore.
-                slivertool = list(filter(
-                    lambda st: st.fqdn == fqdn and st.tool_id == slice_tool.tool_id,
-                    slivertools))
+                sliver_tool_id = model.get_sliver_tool_id(slice_tool.tool_id, slice_id,
+                                                          server_id, site_id)
+                slivertool = model.SliverTool.get_by_key_name(sliver_tool_id)
 
-                # Check to see if the sliver_tool already exists in the
-                # datastore. If not, add it to the datastore.
+                # If the sliver_tool already exists in the datastore, edit it.
+                # If not, add it to the datastore.
                 if len(slivertool) == 1:
                     sliver_tool = slivertool[0]
                 elif len(slivertool) == 0:
