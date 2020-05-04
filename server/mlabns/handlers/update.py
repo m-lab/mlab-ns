@@ -220,8 +220,8 @@ class IPUpdateHandler():
                 # See if this sliver_tool already exists in the datastore.
                 sliver_tool_id = model.get_sliver_tool_id(
                     slice_tool.tool_id, slice_id, server_id, site_id)
-                slivertool = list(
-                    filter(lambda st: st.key == sliver_tool_id, slivertools))
+                slivertool = list(filter(lambda st: st.key == sliver_tool_id,
+                                         slivertools))
 
                 # If the sliver_tool already exists in the datastore, edit it.
                 # If not, add it to the datastore.
@@ -231,12 +231,12 @@ class IPUpdateHandler():
                     logging.info(
                         'For tool %s,  %s is not in datastore.  Adding it.',
                         slice_tool.tool_id, sliver_tool_id)
-                    sliver_tool = self.initialize_sliver_tool(
-                        slice_tool, site, server_id, fqdn)
+                    sliver_tool = self.initialize_sliver_tool(slice_tool, site,
+                                                              server_id, fqdn)
                 else:
                     logging.error(
-                        'Error, or too many sliver_tools returned for {}:{}.'.
-                        format(slice_tool.tool_id, sliver_tool_id))
+                        'Error, or too many sliver_tools returned for {}:{}.'.format(
+                            slice_tool.tool_id, sliver_tool_id))
                     continue
 
                 updated_sliver_tool = self.set_sliver_tool(
