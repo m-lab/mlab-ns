@@ -179,6 +179,7 @@ class IPUpdateHandler():
         # Fetch all data that we are going to need from the datastore up front.
         sites = list(model.Site.all().fetch(limit=None))
         tools = list(model.Tool.all().fetch(limit=None))
+        slivertools = list(model.SliverTool.all().fetch(limit=None))
 
         for row in rows:
             # Expected keys: "hostname,ipv4,ipv6" (ipv6 can be an empty string).
@@ -219,18 +220,24 @@ class IPUpdateHandler():
                 # See if this sliver_tool already exists in the datastore.
                 sliver_tool_id = model.get_sliver_tool_id(
                     slice_tool.tool_id, slice_id, server_id, site_id)
-                slivertool = model.SliverTool.get_by_key_name(sliver_tool_id)
+                slivertool = list(
+                    filter(lambda st: st.key == sliver_tool_id, slivertools))
 
                 # If the sliver_tool already exists in the datastore, edit it.
                 # If not, add it to the datastore.
-                if slivertool:
-                    sliver_tool = slivertool
-                else:
+                if len(slivertool) == 1:
+                    sliver_tool = slivertool[0]
+                elif len(slivertool) == 0:
                     logging.info(
-                        'For tool %s, fqdn %s is not in datastore.  Adding it.',
-                        slice_tool.tool_id, fqdn)
-                    sliver_tool = self.initialize_sliver_tool(slice_tool, site,
-                                                              server_id, fqdn)
+                        'For tool %s,  %s is not in datastore.  Adding it.',
+                        slice_tool.tool_id, sliver_tool_id)
+                    sliver_tool = self.initialize_sliver_tool(
+                        slice_tool, site, server_id, fqdn)
+                else:
+                    logging.error(
+                        'Error, or too many sliver_tools returned for {}:{}.'.
+                        format(slice_tool.tool_id, sliver_tool_id))
+                    continue
 
                 updated_sliver_tool = self.set_sliver_tool(
                     sliver_tool, ipv4, ipv6, site.roundrobin, fqdn)
