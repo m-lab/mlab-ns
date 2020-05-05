@@ -218,28 +218,29 @@ class IPUpdateHandler():
 
             for slice_tool in slice_tools:
                 # See if this sliver_tool already exists in the datastore.
-                slivertool = list(filter(
-                    lambda st: st.fqdn == fqdn and st.tool_id == slice_tool.tool_id,
-                    slivertools))
+                sliver_tool_id = model.get_sliver_tool_id(
+                    slice_tool.tool_id, slice_id, server_id, site_id)
+                slivertool = list(filter(lambda st: st.key == sliver_tool_id,
+                                         slivertools))
 
-                # Check to see if the sliver_tool already exists in the
-                # datastore. If not, add it to the datastore.
+                # If the sliver_tool already exists in the datastore, edit it.
+                # If not, add it to the datastore.
                 if len(slivertool) == 1:
                     sliver_tool = slivertool[0]
                 elif len(slivertool) == 0:
                     logging.info(
-                        'For tool %s, fqdn %s is not in datastore.  Adding it.',
-                        slice_tool.tool_id, fqdn)
+                        'For tool %s,  %s is not in datastore.  Adding it.',
+                        slice_tool.tool_id, sliver_tool_id)
                     sliver_tool = self.initialize_sliver_tool(slice_tool, site,
                                                               server_id, fqdn)
                 else:
                     logging.error(
                         'Error, or too many sliver_tools returned for {}:{}.'.format(
-                            slice_tool.tool_id, fqdn))
+                            slice_tool.tool_id, sliver_tool_id))
                     continue
 
                 updated_sliver_tool = self.set_sliver_tool(
-                    sliver_tool, ipv4, ipv6, site.roundrobin)
+                    sliver_tool, ipv4, ipv6, site.roundrobin, fqdn)
 
                 # Update datastore if the SliverTool got updated.
                 if updated_sliver_tool:
@@ -248,7 +249,7 @@ class IPUpdateHandler():
 
         return
 
-    def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr):
+    def set_sliver_tool(self, sliver_tool, ipv4, ipv6, rr, fqdn):
         updated = False
         if not ipv4:
             ipv4 = message.NO_IP_ADDRESS
@@ -263,6 +264,9 @@ class IPUpdateHandler():
             updated = True
         if not sliver_tool.roundrobin == rr:
             sliver_tool.roundrobin = rr
+            updated = True
+        if not sliver_tool.fqdn == fqdn:
+            sliver_tool.fqdn = fqdn
             updated = True
 
         if updated:
