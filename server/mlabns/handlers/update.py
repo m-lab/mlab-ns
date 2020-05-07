@@ -220,7 +220,7 @@ class IPUpdateHandler():
                 # See if this sliver_tool already exists in the datastore.
                 sliver_tool_id = model.get_sliver_tool_id(
                     slice_tool.tool_id, slice_id, server_id, site_id)
-                slivertool = list(filter(lambda st: st.key == sliver_tool_id,
+                slivertool = list(filter(lambda st: st.key.name == sliver_tool_id,
                                          slivertools))
 
                 # If the sliver_tool already exists in the datastore, edit it.
