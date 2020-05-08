@@ -123,31 +123,104 @@ class IPUpdateHandlerTest(unittest2.TestCase):
         environ_patch.start()
 
     @mock.patch.object(urllib2, 'urlopen')
+    @mock.patch.object(update.IPUpdateHandler, 'initialize_sliver_tool')
     @mock.patch.object(update.IPUpdateHandler, 'put_sliver_tool')
-    def test_update(self, mock_put_sliver_tool, mock_urlopen):
+    def test_update(self, mock_put, mock_initialize, mock_urlopen):
         mock_urlopen.return_value = StringIO.StringIO("""[
 {
-    "hostname": "ndt.iupui.mlab4.xyz01.measurement-lab.org",
-    "ipv4": "192.168.0.1",
-    "ipv6": "2002:AB:1234::1"
+    "hostname": "ndt-iupui-mlab4-xyz01.mlab-staging.measurement-lab.org",
+    "ipv4": "192.168.0.99",
+    "ipv6": "2002:AB:1234::99"
 }
 ]""")
         model.Site.all.return_value.fetch.return_value = [
-            mock.Mock(site_id='xyz01')
+            mock.Mock(site_id='xyz01', roundrobin=True)
         ]
         model.Tool.all.return_value.fetch.return_value = [
             mock.Mock(slice_id='iupui_ndt', tool_id='ndt')
         ]
+
+        mock_slivertools = mock.Mock(slice_id='iupui_ndt',
+                                     tool_id='ndt',
+                                     fqdn='ndt.iupui.mlab4.xyz01.measurement-lab.org',
+                                     sliver_ipv4='192.168.0.1',
+                                     sliver_ipv6='2002:AB:1234::1',
+                                     roundrobin=True)
+        sliver_tool_id = model.get_sliver_tool_id('ndt', 'iupui_ndt', 'mlab4', 'xyz01')
+        mock_slivertools.key.return_value.name.return_value = sliver_tool_id
         model.SliverTool.all.return_value.fetch.return_value = [
-            mock.Mock(slice_id='iupui_ndt',
-                      tool_id='ndt',
-                      fqdn='ndt.iupui.mlab4.xyz01.measurement-lab.org')
+            mock_slivertools
         ]
 
         handler = update.IPUpdateHandler()
         handler.update()
 
-        self.assertTrue(mock_put_sliver_tool.called)
+        self.assertFalse(mock_initialize.called)
+        self.assertTrue(mock_put.called)
+
+    @mock.patch.object(urllib2, 'urlopen')
+    @mock.patch.object(update.IPUpdateHandler, 'initialize_sliver_tool')
+    @mock.patch.object(update.IPUpdateHandler, 'put_sliver_tool')
+    def test_initialize(self, mock_put, mock_initialize, mock_urlopen):
+        mock_urlopen.return_value = StringIO.StringIO("""[
+{
+    "hostname": "ndt-iupui-mlab4-abc02.mlab-staging.measurement-lab.org",
+    "ipv4": "192.168.0.1",
+    "ipv6": "2002:AB:1234::1"
+}
+]""")
+        model.Site.all.return_value.fetch.return_value = [
+            mock.Mock(site_id='abc02', roundrobin=True)
+        ]
+        model.Tool.all.return_value.fetch.return_value = [
+            mock.Mock(slice_id='iupui_ndt', tool_id='ndt')
+        ]
+        model.SliverTool.all.return_value.fetch.return_value = [
+            mock.Mock()
+        ]
+
+        handler = update.IPUpdateHandler()
+        handler.update()
+
+        self.assertTrue(mock_initialize.called)
+        self.assertTrue(mock_put.called)
+
+    @mock.patch.object(urllib2, 'urlopen')
+    @mock.patch.object(update.IPUpdateHandler, 'initialize_sliver_tool')
+    @mock.patch.object(update.IPUpdateHandler, 'put_sliver_tool')
+    def test_no_update(self, mock_put, mock_initialize, mock_urlopen):
+
+        mock_urlopen.return_value = StringIO.StringIO("""[
+{
+    "hostname": "ndt-iupui-mlab4-abc02.mlab-staging.measurement-lab.org",
+    "ipv4": "192.168.0.1",
+    "ipv6": "2002:AB:1234::1"
+}
+]""")
+        model.Site.all.return_value.fetch.return_value = [
+            mock.Mock(site_id='abc02', roundrobin=True)
+        ]
+        model.Tool.all.return_value.fetch.return_value = [
+            mock.Mock(slice_id='iupui_ndt', tool_id='ndt')
+        ]
+
+        mock_slivertools = mock.Mock(slice_id='iupui_ndt',
+                                     tool_id='ndt',
+                                     fqdn='ndt-iupui-mlab4-abc02.mlab-staging.measurement-lab.org',
+                                     sliver_ipv4='192.168.0.1',
+                                     sliver_ipv6='2002:AB:1234::1',
+                                     roundrobin=True)
+        sliver_tool_id = model.get_sliver_tool_id('ndt', 'iupui_ndt', 'mlab4', 'abc02')
+        mock_slivertools.key.return_value.name.return_value = sliver_tool_id
+        model.SliverTool.all.return_value.fetch.return_value = [
+            mock_slivertools
+        ]
+
+        handler = update.IPUpdateHandler()
+        handler.update()
+
+        self.assertFalse(mock_initialize.called)
+        self.assertFalse(mock_put.called)
 
 
 if __name__ == '__main__':
