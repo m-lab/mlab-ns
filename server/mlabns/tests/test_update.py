@@ -140,13 +140,15 @@ class IPUpdateHandlerTest(unittest2.TestCase):
             mock.Mock(slice_id='iupui_ndt', tool_id='ndt')
         ]
 
-        mock_slivertools = mock.Mock(slice_id='iupui_ndt',
-                                     tool_id='ndt',
-                                     fqdn='ndt.iupui.mlab4.xyz01.measurement-lab.org',
-                                     sliver_ipv4='192.168.0.1',
-                                     sliver_ipv6='2002:AB:1234::1',
-                                     roundrobin=True)
-        sliver_tool_id = model.get_sliver_tool_id('ndt', 'iupui_ndt', 'mlab4', 'xyz01')
+        mock_slivertools = mock.Mock(
+            slice_id='iupui_ndt',
+            tool_id='ndt',
+            fqdn='ndt.iupui.mlab4.xyz01.measurement-lab.org',
+            sliver_ipv4='192.168.0.1',
+            sliver_ipv6='2002:AB:1234::1',
+            roundrobin=True)
+        sliver_tool_id = model.get_sliver_tool_id('ndt', 'iupui_ndt', 'mlab4',
+                                                  'xyz01')
         mock_slivertools.key.return_value.name.return_value = sliver_tool_id
         model.SliverTool.all.return_value.fetch.return_value = [
             mock_slivertools
@@ -175,9 +177,7 @@ class IPUpdateHandlerTest(unittest2.TestCase):
         model.Tool.all.return_value.fetch.return_value = [
             mock.Mock(slice_id='iupui_ndt', tool_id='ndt')
         ]
-        model.SliverTool.all.return_value.fetch.return_value = [
-            mock.Mock()
-        ]
+        model.SliverTool.all.return_value.fetch.return_value = [mock.Mock()]
 
         handler = update.IPUpdateHandler()
         handler.update()
@@ -204,13 +204,15 @@ class IPUpdateHandlerTest(unittest2.TestCase):
             mock.Mock(slice_id='iupui_ndt', tool_id='ndt')
         ]
 
-        mock_slivertools = mock.Mock(slice_id='iupui_ndt',
-                                     tool_id='ndt',
-                                     fqdn='ndt-iupui-mlab4-abc02.mlab-staging.measurement-lab.org',
-                                     sliver_ipv4='192.168.0.1',
-                                     sliver_ipv6='2002:AB:1234::1',
-                                     roundrobin=True)
-        sliver_tool_id = model.get_sliver_tool_id('ndt', 'iupui_ndt', 'mlab4', 'abc02')
+        mock_slivertools = mock.Mock(
+            slice_id='iupui_ndt',
+            tool_id='ndt',
+            fqdn='ndt-iupui-mlab4-abc02.mlab-staging.measurement-lab.org',
+            sliver_ipv4='192.168.0.1',
+            sliver_ipv6='2002:AB:1234::1',
+            roundrobin=True)
+        sliver_tool_id = model.get_sliver_tool_id('ndt', 'iupui_ndt', 'mlab4',
+                                                  'abc02')
         mock_slivertools.key.return_value.name.return_value = sliver_tool_id
         model.SliverTool.all.return_value.fetch.return_value = [
             mock_slivertools
