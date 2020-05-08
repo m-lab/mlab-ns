@@ -220,8 +220,8 @@ class IPUpdateHandler():
                 # See if this sliver_tool already exists in the datastore.
                 sliver_tool_id = model.get_sliver_tool_id(
                     slice_tool.tool_id, slice_id, server_id, site_id)
-                slivertool = list(filter(lambda st: st.key == sliver_tool_id,
-                                         slivertools))
+                slivertool = list(filter(
+                    lambda st: st.key().name() == sliver_tool_id, slivertools))
 
                 # If the sliver_tool already exists in the datastore, edit it.
                 # If not, add it to the datastore.
@@ -253,7 +253,7 @@ class IPUpdateHandler():
         updated = False
         if not ipv4:
             ipv4 = message.NO_IP_ADDRESS
-        if not ipv4:
+        if not ipv6:
             ipv6 = message.NO_IP_ADDRESS
 
         if not sliver_tool.sliver_ipv4 == ipv4:
