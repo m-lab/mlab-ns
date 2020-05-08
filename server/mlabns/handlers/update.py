@@ -253,7 +253,7 @@ class IPUpdateHandler():
         updated = False
         if not ipv4:
             ipv4 = message.NO_IP_ADDRESS
-        if not ipv4:
+        if not ipv6:
             ipv6 = message.NO_IP_ADDRESS
 
         if not sliver_tool.sliver_ipv4 == ipv4:
