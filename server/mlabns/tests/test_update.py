@@ -177,7 +177,7 @@ class IPUpdateHandlerTest(unittest2.TestCase):
         model.Tool.all.return_value.fetch.return_value = [
             mock.Mock(slice_id='iupui_ndt', tool_id='ndt')
         ]
-        model.SliverTool.all.return_value.fetch.return_value = [mock.Mock()]
+        model.SliverTool.all.return_value.fetch.return_value = []
 
         handler = update.IPUpdateHandler()
         handler.update()
