@@ -30,7 +30,7 @@ QUERIES = {
     'ndt': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt_raw"} OR
-            script_success{service="ndt_e2e"} OR
+            script_success{service="ndt5_client"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
               node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
@@ -44,7 +44,7 @@ QUERIES = {
     'ndt_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt_raw_ipv6"} OR
-            script_success{service="ndt_e2e"} OR
+            script_success{service="ndt5_client"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
               node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
@@ -58,7 +58,7 @@ QUERIES = {
     'ndt_ssl': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt_ssl"} OR
-            script_success{service="ndt_e2e"} OR
+            script_success{service="ndt5_client"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
               node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
@@ -72,7 +72,7 @@ QUERIES = {
     'ndt_ssl_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt_ssl_ipv6"} OR
-            script_success{service="ndt_e2e"} OR
+            script_success{service="ndt5_client"} OR
             label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
               node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
                 node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
