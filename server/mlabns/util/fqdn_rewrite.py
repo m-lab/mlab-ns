@@ -1,20 +1,9 @@
 """Rewrites raw M-Lab FQDNs to apply post-processing or annotations."""
 
 import logging
-import re
 
 from mlabns.util import message
 from mlabns.util import parse_fqdn
-
-# List of `tool_id`s that require FQDNs to be rewritten using "flattened" names
-# to accommodate the *.measurement-lab.org wildcard certificate.
-# TODO (nkinkade): This would be more cleanly implemented as a property of the
-# Tool in GCD.
-FLAT_HOSTNAMES = [
-    'ndt7',
-    'ndt_ssl',
-    'neubot',
-]
 
 
 def rewrite(fqdn, address_family, tool_id):
@@ -34,12 +23,6 @@ def rewrite(fqdn, address_family, tool_id):
         FQDN after rewriting to apply all modifications to the raw FQDN.
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
-    # If this Tool requires "flat" hostname, rewrite it, unless it appears that
-    # this is already a flat/v2 name.
-    if re.search('mlab[1-4]-', rewritten_fqdn):
-        return rewritten_fqdn
-    elif tool_id in FLAT_HOSTNAMES:
-        rewritten_fqdn = _apply_flat_hostname(rewritten_fqdn)
     return rewritten_fqdn
 
 
@@ -77,32 +60,3 @@ def _apply_af_awareness(fqdn, address_family):
     decorated_machine = fqdn_parts['machine'] + fqdn_annotation
 
     return fqdn.replace(fqdn_parts['machine'], decorated_machine)
-
-
-def _apply_flat_hostname(fqdn):
-    """Rewrites FQDNs to use dash separators for subdomains.
-
-    For example, instead of:
-
-        ndt.iupui.mlab1.lga06.measurement-lab.org
-
-    TLS endpoints use:
-
-        ndt-iupui-mlab1-lga06.measurement-lab.org
-
-    We rewrite the dotted FQDNs to use dashes so that FQDNs work
-    properly with the *.measurement-lab.org wildcard certificate.
-
-    Args:
-        fqdn: An FQDN in dotted notation.
-
-    Returns:
-        FQDN with rewritten dashes if a rewrite was necessary, the original FQDN
-        otherwise.
-    """
-    fqdn_parts = fqdn.split('.')
-
-    # Create subdomain like ndt-iupui-mlab1-lga06
-    subdomain = '-'.join(fqdn_parts[:-2])
-
-    return '.'.join((subdomain, fqdn_parts[-2], fqdn_parts[-1]))
