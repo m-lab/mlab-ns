@@ -14,12 +14,13 @@ class ParseSliverToolStatusTest(unittest2.TestCase):
         status = {
             "metric": {
                 "experiment": "ndt.iupui",
-                "machine": "mlab1.abc01.measurement-lab.org"
+                "machine": "mlab1-abc01.mlab-oti.measurement-lab.org"
             },
             "value": [1522782427.81, "1"]
         }
-        expected_parsed_status = ('ndt.iupui.mlab1.abc01.measurement-lab.org',
-                                  '1', constants.PROMETHEUS_TOOL_EXTRA)
+        expected_parsed_status = (
+            'ndt-iupui-mlab1-abc01.mlab-oti.measurement-lab.org', '1',
+            constants.PROMETHEUS_TOOL_EXTRA)
         actual_parsed_status = prometheus_status.parse_sliver_tool_status(
             status)
 
@@ -113,12 +114,12 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
                 "result": [
                     { "metric": {
                           "experiment": "mock",
-                          "machine": "mlab1.xyz01.measurement-lab.org" },
+                          "machine": "mlab1-xyz01.mlab-oti.measurement-lab.org" },
                       "value": [1522782427.81, "1"]
                     },
                     { "metric": {
                           "experiment": "mock",
-                          "machine": "mlab2.xyz01.measurement-lab.org" },
+                          "machine": "mlab2-xyz01.mlab-oti.measurement-lab.org" },
                       "value": [1522773427.51, "0"]
                     }
                 ]
@@ -127,18 +128,18 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
         mock_open.return_value = self.mock_response
 
         mock_parse_sliver_tool_status.side_effect = [
-            ('mock.mlab1.xyz01.measurement-lab.org', '1',
+            ('mock-mlab1-xyz01.mlab-oti.measurement-lab.org', '1',
              constants.PROMETHEUS_TOOL_EXTRA),
-            ('mock.mlab2.xyz01.measurement-lab.org', '0',
+            ('mock-mlab2-xyz01.mlab-oti.measurement-lab.org', '0',
              constants.PROMETHEUS_TOOL_EXTRA)
         ]
 
         expected_status = {
-            'mock.mlab1.xyz01.measurement-lab.org': {
+            'mock-mlab1-xyz01.mlab-oti.measurement-lab.org': {
                 'status': message.STATUS_ONLINE,
                 'tool_extra': constants.PROMETHEUS_TOOL_EXTRA
             },
-            'mock.mlab2.xyz01.measurement-lab.org': {
+            'mock-mlab2-xyz01.mlab-oti.measurement-lab.org': {
                 'status': message.STATUS_OFFLINE,
                 'tool_extra': constants.PROMETHEUS_TOOL_EXTRA
             }
