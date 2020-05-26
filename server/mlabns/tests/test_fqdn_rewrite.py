@@ -16,12 +16,12 @@ class FqdnRewriteTest(unittest.TestCase):
         self.addCleanup(environ_patch.stop)
         environ_patch.start()
 
-    def testAfAgnosticNdtPlaintextFqdn(self):
+    def testAfAgnosticNdtFqdn(self):
         """When there is no AF and tool is not NDT-SSL, don't rewrite."""
         fqdn = 'ndt-iupui-mlab4-lga06.mlab-staging.measurement-lab.org'
         self.assertEqual(fqdn, fqdn_rewrite.rewrite(fqdn, None, 'ndt'))
 
-    def testIPv4NdtPlaintextFqdn(self):
+    def testIPv4NdtFqdn(self):
         """Add a v4 annotation for v4-specific requests."""
         fqdn_original = 'ndt-iupui-mlab4-lga06.mlab-staging.measurement-lab.org'
         fqdn_expected = 'ndt-iupui-mlab4v4-lga06.mlab-staging.measurement-lab.org'
@@ -29,7 +29,7 @@ class FqdnRewriteTest(unittest.TestCase):
                                            message.ADDRESS_FAMILY_IPv4, 'ndt')
         self.assertEqual(fqdn_expected, fqdn_actual)
 
-    def testIPv4WehePlaintextFqdn(self):
+    def testIPv4WeheFqdn(self):
         """Add a v4 annotation for v4-specific requests."""
         fqdn_original = 'wehe-mlab4-lga06.mlab-staging.measurement-lab.org'
         fqdn_expected = 'wehe-mlab4v4-lga06.mlab-staging.measurement-lab.org'
@@ -37,7 +37,7 @@ class FqdnRewriteTest(unittest.TestCase):
                                            message.ADDRESS_FAMILY_IPv4, 'ndt')
         self.assertEqual(fqdn_expected, fqdn_actual)
 
-    def testIPv6NdtPlaintextFqdn(self):
+    def testIPv6NdtFqdn(self):
         """Add a v6 annotation for v6-specific requests."""
         fqdn_original = 'ndt-iupui-mlab4-lga06.mlab-staging.measurement-lab.org'
         fqdn_expected = 'ndt-iupui-mlab4v6-lga06.mlab-staging.measurement-lab.org'
@@ -45,7 +45,7 @@ class FqdnRewriteTest(unittest.TestCase):
                                            message.ADDRESS_FAMILY_IPv6, 'ndt')
         self.assertEqual(fqdn_expected, fqdn_actual)
 
-    def testIPv4WehePlaintextFqdnFlat(self):
+    def testIPv4WeheFqdnFlat(self):
         """Add a v4 annotation for v4-specific requests."""
         fqdn_original = 'wehe-mlab4-lga0t.mlab-sandbox.measurement-lab.org'
         fqdn_expected = 'wehe-mlab4v4-lga0t.mlab-sandbox.measurement-lab.org'
