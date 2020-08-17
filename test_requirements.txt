@@ -1,5 +1,6 @@
 coverage
 geoip2
+maxminddb==1.5.4
 GoogleAppEngineCloudStorageClient
 jinja2
 mock==2.0.0
