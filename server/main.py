@@ -17,7 +17,6 @@ app = webapp.WSGIApplication(
     (r'/reload_maxminddb', update.ReloadMaxmindDb),
     (r'/privacy', privacy.PrivacyHandler),
     (r'/docs', docs.DocsHandler),
-    (r'/_ah/warmup', update.WarmupHandler),
     # (r'/cron/process_logs', log2bq.Log2BigQueryHandler),
     (r'/.*', lookup.LookupHandler)],
     debug=True )

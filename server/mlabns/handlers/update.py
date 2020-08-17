@@ -517,13 +517,3 @@ class CountRequestSignaturesHandler(webapp.RequestHandler):
 
         logging.info(('Client signatures from datastore; '
                       'found_in: %d missing_from: %d memcache'), found, missing)
-
-
-class WarmupHandler(webapp.RequestHandler):
-    """Loads expensive queries into memory before starting service."""
-
-    def get(self):
-        """Handles warmup request."""
-        logging.info('Running warmup handlers for: redirect, maxmind')
-        reverse_proxy.get_reverse_proxy()
-        maxmind.get_geo_reader()
