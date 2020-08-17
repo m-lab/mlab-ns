@@ -19,7 +19,6 @@ from mlabns.util import message
 from mlabns.util import nagios_status
 from mlabns.util import prometheus_status
 from mlabns.util import production_check
-from mlabns.util import reverse_proxy
 from mlabns.util import util
 
 
