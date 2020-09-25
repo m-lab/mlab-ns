@@ -58,7 +58,7 @@ class AllResolver(ResolverBase):
 # selecting this site. The default value is 1.0.
 site_keep_probability = {
     'bom01': 0.5,
-    'hnd01': 0.2,  # 0.2
+    'hnd01': 0.1,  # 0.1
     'lga1t': 0.5,
     'lis01': 0.5,
     'lju01': 0.5,
