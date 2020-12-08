@@ -16,6 +16,6 @@ RUN gcloud components install app-engine-python app-engine-python-extras
 
 COPY test_requirements.txt /
 RUN pip install -r /test_requirements.txt
-RUN pip install coveralls
+RUN pip install coveralls pyopenssl==19.1.0
 RUN pip install django==1.2 jinja2==2.6
 COPY . /workspace
