@@ -1,18 +1,73 @@
 language: python
+
 python:
   - "2.7"
+
+
 env:
   - PYTHONPATH=$PYTHONPATH:$HOME/google-cloud-sdk/platform/google_appengine
+cache:
+  directories:
+    - "$HOME/google-cloud-sdk/"
+before_install:
+- travis/decrypt.sh "$encrypted_a33ffc2cc437_key" "$encrypted_a33ffc2cc437_iv"
+  keys/service-accounts.tar.enc /tmp/service-accounts.tar /tmp
+
+# Install GO
+- eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.9 bash)"
+
+# Load basic go libraries
+- go get cloud.google.com/go/datastore
+- go get google.golang.org/appengine
+- go get google.golang.org/appengine/aetest
+- go get google.golang.org/appengine/memcache
+
+  # Coverage tools for GO
+- go get github.com/mattn/goveralls
+- go get github.com/wadey/gocovmerge
+
+- echo Branch is ${TRAVIS_BRANCH} and Tag is $TRAVIS_TAG
 
 install:
+  # NOTE that this is different from gcloud install in ETL.  Should we reconcile these?
   - $TRAVIS_BUILD_DIR/travis/install_gcloud.sh app-engine-python
   - $HOME/google-cloud-sdk/install.sh
-
+  - pip install -r test_requirements.txt
+  - pip install coveralls
 script:
-  - docker build -t mlabns-testing .
-  - docker run
-    -e TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
-    -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID
-    -e TRAVIS=true
-    -e COVERALLS_SERVICE_NAME=travis-ci
-    -w /workdir -v $TRAVIS_BUILD_DIR:/workdir -t mlabns-testing bash -c "./build && coveralls"
+  #- ./build
+  - go test -v ./... -tags=integration -bench=.
+
+after_success:
+    coveralls
+
+deploy:
+# Testing: deploy to ns-sandbox for testing purpose.
+- provider: script
+  script:
+    python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
+    && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting
+    SERVICE_ACCOUNT_mlab_nstesting $TRAVIS_BUILD_DIR/flex/rate_table rate_table.yaml
+
+  skip_cleanup: true
+  on:
+    repo: m-lab/mlab-ns
+    all_branches: true
+    condition: $TRAVIS_BRANCH == sandbox-* && $TRAVIS_EVENT_TYPE == push
+
+# Testing: deploy to mlab-nstesting
+- provider: script
+  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
+  skip_cleanup: true
+  on:
+    repo: m-lab/mlab-nsgo
+    all_branches: true
+    condition: $TRAVIS_BRANCH == master && $TRAVIS_EVENT_TYPE == push
+
+# Production: deploy to mlab-ns
+- provider: script
+  script: python environment_bootstrap.py live && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns /tmp/mlab-ns.json . server/app.yaml
+  skip_cleanup: true
+  on:
+    repo: m-lab/mlab-ns
+    tags: true
