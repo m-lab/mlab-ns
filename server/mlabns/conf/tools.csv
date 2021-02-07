@@ -1,5 +1,5 @@
 tool_id,slice_id,http_port,show_tool_extra,status_source
-ndt,iupui_ndt,7123,False,prometheus
+ndt,iupui_ndt,80,False,prometheus
 ndt_ssl,iupui_ndt,,False,prometheus
 ndt7,iupui_ndt,,False,prometheus
 mobiperf,michigan_1,,False,prometheus
