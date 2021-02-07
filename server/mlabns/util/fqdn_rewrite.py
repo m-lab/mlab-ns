@@ -3,6 +3,7 @@
 import logging
 
 from mlabns.util import message
+from mlabns.util import parse_fqdn
 
 
 def rewrite(fqdn, address_family, tool_id):
@@ -10,7 +11,7 @@ def rewrite(fqdn, address_family, tool_id):
 
     Performs the following rewrites on an FQDN:
     * Adds a v4/v6 annotation if the client requested an explicit address family
-    * Applies a workaround to fix FQDNs for NDT-SSL queries.
+    * Applies a workaround to fix FQDNs for NDT-SSL and ndt7 queries.
 
     Args:
         fqdn: A tool FQDN with no address family specific annotation.
@@ -22,9 +23,6 @@ def rewrite(fqdn, address_family, tool_id):
         FQDN after rewriting to apply all modifications to the raw FQDN.
     """
     rewritten_fqdn = _apply_af_awareness(fqdn, address_family)
-    # If this is ndt_ssl, apply the special case workaround.
-    if tool_id == 'ndt_ssl':
-        rewritten_fqdn = _apply_ndt_ssl_workaround(rewritten_fqdn)
     return rewritten_fqdn
 
 
@@ -32,9 +30,9 @@ def _apply_af_awareness(fqdn, address_family):
     """Adds the v4/v6 only annotation to the fqdn.
 
     Example:
-        fqdn:       'npad.iupui.mlab3.ath01.measurement-lab.org'
-        ipv4 only:  'npad.iupui.mlab3v4.ath01.measurement-lab.org'
-        ipv6 only:  'npad.iupui.mlab3v6.ath01.measurement-lab.org'
+        fqdn:       'ndt.iupui.mlab3.ath01.measurement-lab.org'
+        ipv4 only:  'ndt.iupui.mlab3v4.ath01.measurement-lab.org'
+        ipv6 only:  'ndt.iupui.mlab3v6.ath01.measurement-lab.org'
 
     Args:
         fqdn: A tool FQDN with no address family specific annotation.
@@ -55,47 +53,10 @@ def _apply_af_awareness(fqdn, address_family):
         logging.error('Unrecognized address family: %s', address_family)
         return fqdn
 
-    fqdn_parts = _split_fqdn(fqdn)
-    fqdn_parts[2] += fqdn_annotation
+    fqdn_parts = parse_fqdn.parse(fqdn)
+    if not fqdn_parts:
+        logging.error('Cannot parse FQDN: %s', fqdn)
+        return fqdn
+    decorated_machine = fqdn_parts['machine'] + fqdn_annotation
 
-    return '.'.join(fqdn_parts)
-
-
-def _apply_ndt_ssl_workaround(fqdn):
-    """Rewrites ndt_ssl FQDNs to use dash separators for subdomains.
-
-    The NDT-SSL test uses dashes instead of dots as separators in the subdomain,
-    but Nagios currently reports the FQDNs as using dots.
-
-    For example, instead of:
-
-        ndt.iupui.mlab1.lga06.measurement-lab.org
-
-    NDT-SSL uses:
-
-        ndt-iupui-mlab1-lga06.measurement-lab.org
-
-    We rewrite the dotted FQDNs to use dashes so that NDT-SSL works properly.
-    This is intended to be a temporary workaround until we can find a solution
-    that does not require NDT-SSL to be a special case from mlab-ns's
-    perspective.
-
-    See https://github.com/m-lab/mlab-ns/issues/48 for more information.
-
-    Args:
-        fqdn: An NDT-SSL FQDN in dotted notation.
-
-    Returns:
-        FQDN with rewritten dashes if a rewrite was necessary, the original FQDN
-        otherwise.
-    """
-    fqdn_parts = _split_fqdn(fqdn)
-
-    # Create subdomain like ndt-iupui-mlab1-lga06
-    subdomain = '-'.join(fqdn_parts[:-2])
-
-    return '.'.join((subdomain, fqdn_parts[-2], fqdn_parts[-1]))
-
-
-def _split_fqdn(fqdn):
-    return fqdn.split('.')
+    return fqdn.replace(fqdn_parts['machine'], decorated_machine)

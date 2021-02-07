@@ -10,12 +10,18 @@ from mlabns.util import message
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
+from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
 
 class SliverToolFetcherTestCase(unittest.TestCase):
 
     def setUp(self):
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_all_stubs()
+        ndb.get_context().clear_cache()
+
         sliver_tool_fetcher_datastore_patch = mock.patch.object(
             sliver_tool_fetcher,
             'SliverToolFetcherDatastore',
@@ -31,6 +37,9 @@ class SliverToolFetcherTestCase(unittest.TestCase):
         sliver_tool_fetcher_memcache_patch.start()
 
         self.fetcher = sliver_tool_fetcher.SliverToolFetcher()
+
+    def tearDown(self):
+        self.testbed.deactivate()
 
     def testFetchDoesNotHitDatastoreIfMemcacheHasRequiredData(self):
         # The mock response is just ints here for simplicity, though the real
@@ -72,7 +81,9 @@ class ToolFetcherCommonTests(object):
                          latitude=None,
                          longitude=None,
                          country=None,
-                         fqdn=''):
+                         fqdn='',
+                         server_id='',
+                         roundrobin=False):
         tool = model.SliverTool()
         tool.tool_id = tool_id
         tool.site_id = site_id
@@ -82,6 +93,8 @@ class ToolFetcherCommonTests(object):
         tool.longitude = longitude
         tool.country = country
         tool.fqdn = fqdn
+        tool.server_id = server_id
+        tool.roundrobin = roundrobin
         self.created_tools.append(tool)
 
     def insertCreatedTools(self):
@@ -155,6 +168,53 @@ class ToolFetcherCommonTests(object):
             status_ipv6=message.STATUS_OFFLINE,
             fqdn='mock_tool_c.mlab1.abc03.measurement-lab.org')
         self.insertCreatedTools()
+
+    def initToolSetForRoundRobin(self):
+        self.createSliverTool(tool_id='rr_tool',
+                              site_id='yyz01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE,
+                              fqdn='rr_tool.mlab1.yyz01.measurement-lab.org',
+                              server_id='mlab1',
+                              roundrobin=True)
+        self.createSliverTool(tool_id='rr_tool',
+                              site_id='yyz01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE,
+                              fqdn='rr_tool.mlab2.yyz01.measurement-lab.org',
+                              server_id='mlab2',
+                              roundrobin=True)
+        self.createSliverTool(tool_id='rr_tool',
+                              site_id='yyz01',
+                              country='CountryA',
+                              status_ipv4=message.STATUS_ONLINE,
+                              status_ipv6=message.STATUS_ONLINE,
+                              fqdn='rr_tool.mlab3.yyz01.measurement-lab.org',
+                              server_id='mlab3',
+                              roundrobin=True)
+        self.insertCreatedTools()
+
+    def testRoundRobin(self):
+        self.initToolSetForRoundRobin()
+        tool_properties = sliver_tool_fetcher.ToolProperties(tool_id='rr_tool')
+        rr_counter = [0, 0, 0]
+        for i in range(1, 10000):
+            tool = self.fetcher.fetch(tool_properties)
+            self.assertEqual(1, len(tool))
+            if tool[0].server_id == "mlab1":
+                rr_counter[0] += 1
+            if tool[0].server_id == "mlab2":
+                rr_counter[1] += 1
+            if tool[0].server_id == "mlab3":
+                rr_counter[2] += 1
+        # Ideally each server should have count around 3333.
+        # The bar of the test was set for 10% to allow for variation
+        # caused by randomness of site selection.
+        self.assertGreater(rr_counter[0], 3000)
+        self.assertGreater(rr_counter[1], 3000)
+        self.assertGreater(rr_counter[2], 3000)
 
     def testOnlyReturnMlab1(self):
         self.initToolIdSiteGroup()

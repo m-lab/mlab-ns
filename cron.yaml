@@ -1,0 +1,32 @@
+cron:
+# Check for site status, run every minute.
+- description: Check sliver tools status
+  url: /cron/check_status
+  target: default
+  schedule: every 1 minutes
+
+# Check for new sites, and for new and/or updated IP addresses, roundrobin information.
+# run every 24 hours, starting at 15:05. 15:05 is 5 minutes after the
+# script_exporter updates its traffic control filters for the ndt_e2e test.
+# Running at this time ensures that for new sites the ndt_e2e metrics will
+# exist for the site before mlab-ns starts querying for it.
+- description: Check sites, update IP and roundrobin
+  url: /cron/check_site
+  target: default
+  schedule: every day 15:05
+
+# Count client signatures found in memcache.
+- description: Count client signatures found in memcache.
+  url: /cron/count_request_signatures
+  target: default
+  schedule: every 10 minutes
+
+# Update request signatures in memcache for mlab-ns.
+#
+# NOTE: Memcache is an independent service. One instance of the mlab-ns service
+# handles this cron job and updates memcache. All memcache records are
+# immediately available to all other mlab-ns instances.
+- description: Update request signatures in memcache for mlab-ns.
+  url: /update_request_signatures
+  target: rate-limiter
+  schedule: every 30 minutes

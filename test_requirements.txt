@@ -1,6 +1,10 @@
 coverage
+geoip2
+maxminddb==1.5.4
+GoogleAppEngineCloudStorageClient
 jinja2
 mock==2.0.0
+pillow
 pyflakes==1.2.3
 pylint==1.5.6
 pyyaml

@@ -56,6 +56,7 @@ class LookupQueryTestCase(unittest2.TestCase):
                                                     self.mock_gae_longitude),
             message.HEADER_CITY: self.mock_gae_city,
             message.HEADER_COUNTRY: self.mock_gae_country,
+            message.USER_AGENT: 'fake user agent'
         }
 
     def testDefaultConstructor(self):
@@ -392,7 +393,6 @@ class LookupQueryTestCase(unittest2.TestCase):
 
     def testInitializeUsesMaxmindWhenUserDefinedIpv4Exists(self):
         user_defined_ip = '5.6.7.8'
-        user_defined_ip_family = message.ADDRESS_FAMILY_IPv4
         self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ip
 
         maxmind_city = 'maxmind_city'
@@ -410,8 +410,8 @@ class LookupQueryTestCase(unittest2.TestCase):
         query.initialize_from_http_request(self.mock_request)
 
         # Make sure we looked up the user-defined IP, not the request IP.
-        maxmind.get_ip_geolocation.assert_called_with(user_defined_ip,
-                                                      user_defined_ip_family)
+        maxmind.get_ip_geolocation.assert_called_with(user_defined_ip)
+
         self.assertEqual(message.POLICY_GEO, query.policy)
         self.assertEqual(maxmind_city, query.city)
         self.assertEqual(maxmind_country, query.country)
@@ -439,7 +439,6 @@ class LookupQueryTestCase(unittest2.TestCase):
 
     def testInitializeUsesMaxmindWhenUserDefinedIpv6Exists(self):
         user_defined_ip = '1:2:3::4'
-        user_defined_ip_family = message.ADDRESS_FAMILY_IPv6
         self.mock_query_params[message.REMOTE_ADDRESS] = user_defined_ip
 
         maxmind_city = 'maxmind_city'
@@ -457,8 +456,7 @@ class LookupQueryTestCase(unittest2.TestCase):
         query.initialize_from_http_request(self.mock_request)
 
         # Make sure we looked up the user-defined IP, not the request IP.
-        maxmind.get_ip_geolocation.assert_called_with(user_defined_ip,
-                                                      user_defined_ip_family)
+        maxmind.get_ip_geolocation.assert_called_with(user_defined_ip)
         self.assertEqual(message.POLICY_GEO, query.policy)
         self.assertEqual(maxmind_city, query.city)
         self.assertEqual(maxmind_country, query.country)
@@ -515,6 +513,14 @@ class LookupQueryTestCase(unittest2.TestCase):
 
         self.assertEqual(message.POLICY_METRO, query.policy)
         self.assertEqual('lax', query.metro)
+
+    def testGenerateClientSignature(self):
+        self.mock_request.path_qs = '/ndt'
+
+        query = lookup_query.LookupQuery()
+        query.initialize_from_http_request(self.mock_request)
+        self.assertEqual('1.2.3.4#fake user agent#/ndt',
+                         query.calculate_client_signature())
 
 
 if __name__ == '__main__':

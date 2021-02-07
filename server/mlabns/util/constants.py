@@ -2,6 +2,16 @@
 # configuration.
 DEFAULT_NAGIOS_ENTRY = 'default'
 
+# Name of the entry in the Prometheus table, containing the default
+# configuration.
+DEFAULT_PROMETHEUS_ENTRY = 'prometheus_default'
+
+# String that the code will insert into SliverTool.tool_extra when the status
+# source in Prometheus. For Nagios, tool_extra comes from the Nagios plugin that
+# runs the check. This string for Prometheus is arbitrary and mostly used to
+# signal that the current status was set from Prometheus data.
+PROMETHEUS_TOOL_EXTRA = 'Prometheus was here \o/.'
+
 # Earth radius in km.
 EARTH_RADIUS = 6371
 
@@ -10,14 +20,27 @@ GEOLOCATION_APP_ENGINE = 'app_engine'
 GEOLOCATION_MAXMIND = 'maxmind'
 GEOLOCATION_USER_DEFINED = 'user_defined'
 
-GEOLOCATION_MAXMIND_CITY_FILE_IPv4 = 'mlabns/third_party/maxmind/latest_v4'
-GEOLOCATION_MAXMIND_CITY_FILE_IPv6 = 'mlabns/third_party/maxmind/latest_v6'
+# To find out which GCP project owns the bucket, you can run:
+# $ gsutil iam get gs://<bucket name>
+GEOLOCATION_MAXMIND_GCS_BUCKET = 'mlab-ns.appspot.com'
+GEOLOCATION_MAXMIND_BUCKET_PATH = 'maxmind/current'
+GEOLOCATION_MAXMIND_CITY_FILE = 'GeoLite2-City.mmdb'
 
 # Maximum number of entities fetched from datastore in a single query.
-MAX_FETCHED_RESULTS = 500
+#
+# https://cloud.google.com/appengine/docs/standard/python/datastore/gqlqueryclass:
+# "Maximum number of results to return. If set to None, all available results
+# will be retrieved."
+MAX_FETCHED_RESULTS = None
 
 # Memcache namespace for map: tool_id -> list of sliver_tools.
 MEMCACHE_NAMESPACE_TOOLS = 'memcache_tools'
+
+# Memcache namespace for map: client_signature -> property of blacklisted clients
+MEMCACHE_NAMESPACE_REQUESTS = 'memcache_requests'
+
+# Memcache namespace for reverse_proxy: default -> ReverseProxyProbability object.
+MEMCACHE_NAMESPACE_REVERSE_PROXY = 'memcache_reverse_proxy'
 
 # Service state status values from Nagios:
 # OK            0
@@ -25,6 +48,11 @@ MEMCACHE_NAMESPACE_TOOLS = 'memcache_tools'
 # CRITICAL      2
 # UNKNOWN       3
 NAGIOS_SERVICE_STATUS_OK = '0'
+
+# Service state status values from Prometheus:
+# OK            1
+# CRITICAL      0
+PROMETHEUS_SERVICE_STATUS_OK = '1'
 
 # Maximum number of entities fetched from datastore in a single query.
 GQL_BATCH_SIZE = 1000

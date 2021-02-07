@@ -1,7 +1,6 @@
-tool_id,slice_id,http_port,show_tool_extra
-ndt,iupui_ndt,7123,False
-ndt_ssl,iupui_ndt,,False
-mobiperf,michigan_1,,False
-npad,iupui_npad,8000,False
-ooni,mlab_ooni,,True
-neubot,mlab_neubot,8080,False
+tool_id,slice_id,http_port,show_tool_extra,status_source
+ndt,iupui_ndt,7123,False,prometheus
+ndt_ssl,iupui_ndt,,False,prometheus
+ndt7,iupui_ndt,,False,prometheus
+mobiperf,michigan_1,,False,prometheus
+neubot,mlab_neubot,80,False,prometheus

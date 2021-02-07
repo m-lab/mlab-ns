@@ -39,3 +39,5 @@ STATUS_IPv6 = 'status_ipv6'
 STATUS_OFFLINE = 'offline'
 STATUS_ONLINE = 'online'
 URL = 'url'
+
+USER_AGENT = 'User-Agent'

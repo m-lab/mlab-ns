@@ -50,6 +50,8 @@ class LookupQuery:
         self.longitude = None
         self.distance = None
         self._ip_is_explicit = False
+        self.user_agent = None
+        self.path_qs = None
         #TODO(mtlynch): We are using two country fields to store the same type
         # of information, but using user_defined_country in some cases and
         # country in others. We should consolidate them into a single field.
@@ -76,9 +78,12 @@ class LookupQuery:
             request: An instance of google.appengine.webapp.Request.
         """
         self.tool_id = request.path.strip('/').split('/')[0]
+        self.path = request.path
         self._set_response_format(request)
         self._set_ip_address(request)
         self._set_tool_address_family(request)
+        self._set_user_agent(request)
+        self._set_path_qs(request)
         self._set_geolocation(request)
         self.metro = request.get(message.METRO, default_value=None)
         self._set_policy(request)
@@ -103,6 +108,15 @@ class LookupQuery:
         else:
             self.ip_address = request.remote_addr
             self._ip_is_explicit = False
+
+    def _set_user_agent(self, request):
+        self.user_agent = ''
+        if message.USER_AGENT in request.headers:
+            self.user_agent = request.headers[message.USER_AGENT]
+
+    def _set_path_qs(self, request):
+        # URI path including the query string, e.g., '/ndt_ssl?policy=geo_options'
+        self.path_qs = request.path_qs
 
     def _set_tool_address_family(self, request):
         tool_address_family = request.get(message.ADDRESS_FAMILY,
@@ -207,15 +221,19 @@ class LookupQuery:
         if ip_address is not None:
             logging.debug('Getting maxmind info for ip %s in family %s',
                           ip_address, address_family)
-            geo_record = maxmind.get_ip_geolocation(ip_address, address_family)
+            geo_record = maxmind.get_ip_geolocation(ip_address)
         elif city is not None and country is not None:
             geo_record = maxmind.get_city_geolocation(city, country)
         elif country is not None:
             geo_record = maxmind.get_country_geolocation(country)
+
         self._maxmind_city = geo_record.city
         self._maxmind_country = geo_record.country
         self._maxmind_latitude = geo_record.latitude
         self._maxmind_longitude = geo_record.longitude
+
+        return (geo_record.latitude is not None and
+                geo_record.longitude is not None)
 
     def _set_appengine_geolocation(self, request):
         """Adds geolocation info using the data provided by AppEngine.
@@ -295,3 +313,41 @@ class LookupQuery:
         if self.latitude is not None and self.longitude is not None:
             return message.POLICY_GEO
         return message.POLICY_RANDOM
+
+    def calculate_client_signature(self):
+        """Uses ip_address, user_agent, tool_id, and policy to create a client signature.
+
+        The generated client signature cannot be longer than 250 characters so
+        it can be used as a Memcache key.
+
+        Returns:
+            A client signature if the request has ip_address, user_agent, tool_id
+            and policy. Otherwise, returns an empty string.
+        """
+        # NB: do not check for self.user_agent, because it can be empty.
+        if self.ip_address and self.path_qs:
+            resource = self.path_qs
+            user_agent = self.user_agent
+            key_max_size = 250
+
+            # At least 40 characters are allocated to the resource part.
+            res_min_size = 40
+            res_max_size = key_max_size - len(self.ip_address) - len(
+                resource) - 2
+
+            if res_max_size < res_min_size:
+                res_max_size = res_min_size
+
+            if len(resource) > res_max_size:
+                resource = resource[:res_max_size]
+
+            # The remaining length is available for the User Agent part
+            ua_max_size = (
+                key_max_size - len(self.ip_address) - len(resource) - 2)
+            if len(user_agent) > ua_max_size:
+                user_agent = user_agent[:ua_max_size]
+
+            key = "%s#%s#%s" % (self.ip_address, user_agent, resource)
+
+            return key
+        return ''

@@ -13,7 +13,7 @@ When the request arrives to mlab-ns, the geolocation of the user is automaticall
 ## M-Lab Entities
 ![M-Lab Entities Chart](https://raw.githubusercontent.com/wiki/m-lab/mlab-ns/assets/images/mlab_ns-entities_chart.png)
 
-A single slice can run more than one Tool (e.g., gt_partha contains both pathload2 and shaperprobe).
+A single slice can run more than one Tool (e.g., gt\_partha contains both pathload2 and shaperprobe).
 A SliverTool is an instance of a specific tool running in a specific Sliver. 
 A SliverTool can have 2 states
 * Online, if it can serve traffic.
@@ -31,56 +31,64 @@ See the schema of both the tables in the [data model](https://github.com/m-lab/m
 Google AppEngine uses a storage model (Google Cloud Datastore) that allows to easily change the database schema by adding or deleting attributes. As a consequence, it is possible to extend the schema later to add additional relevant fields (e.g. RTT, ISP).
 
 For a complete snapshot of the current DB see: 
-* http://mlab-ns.appspot.com/admin/sliver_tools
+* http://mlab-ns.appspot.com/admin/sliver\_tools
 * http://mlab-ns.appspot.com/admin/sites
 
 ## Detecting New Sites 
 
-mlab-ns detects new sites through a cron job that runs once daily. It causes mlab-ns to query Nagios via the following URL:
+mlab-ns detects new sites through a cron job that runs once daily. It causes mlab-ns to query a current site list at the following URL:
 
-* http://nagios.measurementlab.net/mlab-site-stats.json
+* https://siteinfo.mlab-oti.measurementlab.net/v1/sites/locations.json
 
-mlab-ns then compares this if any new sites appear in this list, and if so, registers the new sites in the data store.
+mlab-ns then compares checks if any new sites appear in this list, and if so, registers the new sites in the data store.
 
 ## Detecting Slice Availability Changes
 
-mlab-ns is integrated with Nagios, M-Lab’s monitoring system, to check which slivers are available. In particular, mlab-ns queries Nagios every minute and updates the status of the slivers accordingly. 
-
-Below is an example of a query along with the answer:
-
-    GET http://nagios.measurementlab.net/baseList?show_state=1&slice_name=npad_iupui
-    
-    mlab1.ams01.measurement-lab.org 0 1
-    mlab2.ams01.measurement-lab.org 0 1
-    mlab3.ams01.measurement-lab.org 0 1
-    mlab1.ams02.measurement-lab.org 0 1
-    mlab2.ams02.measurement-lab.org 0 1
-    mlab3.ams02.measurement-lab.org 0 1
-    mlab1.arn01.measurement-lab.org 0 1
-    mlab2.arn01.measurement-lab.org 0 1
-    mlab3.arn01.measurement-lab.org 0 1
-
-Each line describes the status of a sliver:
-* **Server FQDN**
-* **STATE**: 0 means OK, the sliver is running.
-* **STATE_TYPE**:  1 means it's a nagios "hard" state, meaning it's been this way for a while; the previous state, whether OK or not, has been that way consistently for the last several checks.
+mlab-ns is integrated with Prometheus, M-Lab’s monitoring system, to check which slivers are available. In particular, mlab-ns queries Prometheus every minute and updates the status of the slivers accordingly. The queries that mlab-ns issues to Prometheus can be [found in the code in the file prometheus\_status.py](https://github.com/m-lab/mlab-ns/blob/master/server/mlabns/util/prometheus\_status.py#L40).
 
 ## Detecting IP Address Changes
 
-mlab-ns detects changes to M-Lab site IP addresses via a cron job that runs once daily. It checks Nagios via the following URL:
+mlab-ns detects changes to M-Lab site IP addresses via a cron job that runs once daily. It fetches the file hostnames.json via the following URL:
 
-* http://eb.measurementlab.net/mlab-host-ips.txt
+* https://siteinfo.mlab-oti.measurementlab.net/v1/sites/hostnames.json
 
-This API returns slice IP information in the following format:
+The file format is JSON, in the following format:
 
-> [slice FQDN],[IPv4],[IPv6]
+```
+[
+  {
+    "hostname": [slice FQDN],
+	"ipv4": [IPv4],
+	"ipv6": [IPv6]
+  },
+  ...
+]
+```
 
-Where each field is separated by commas. An example of partial results from this API is shown below.
+Where each field is a separate object in the array. An example of partial results from this file is shown below.
 
-    broadband.mpisws.mlab4.sea04.measurement-lab.org,4.71.157.180,
-    bismark.gt.mlab4.sea04.measurement-lab.org,4.71.157.185,
-    utility.mlab.mlab4.sea04.measurement-lab.org,4.71.157.188,2001:1900:2100:16::188
-    ispmon.samknows.mlab4.sea04.measurement-lab.org,4.71.157.184,2001:1900:2100:16::184
+```
+{
+   "hostname": "ndt.iupui.mlab2.ams03.measurement-lab.org",
+   "ipv4": "80.239.169.24",
+   "ipv6": "2001:2030:32::24"
+},
+{
+   "hostname": "geoloc4.uw.mlab2.ams03.measurement-lab.org",
+   "ipv4": "80.239.169.28",
+   "ipv6": "2001:2030:32::28"
+},
+{
+   "hostname": "ispmon.samknows.mlab2.ams03.measurement-lab.org",
+   "ipv4": "80.239.169.30",
+   "ipv6": "2001:2030:32::30"
+},
+{
+   "hostname": "bismark.gt.mlab2.ams03.measurement-lab.org",
+   "ipv4": "80.239.169.31",
+   "ipv6": "2001:2030:32::31"
+},
+```
 
 Using this information, mlab-ns adds sliver information to its data store (for previously unknown slivers) or updates the existing sliver entries in the data store (for previously added slivers).
 
@@ -129,9 +137,10 @@ By default, mlab-ns selects a SliverTool using the ‘closest-node’ policy, wh
 Sometimes Google AppEngine does not provide geolocation info for an incoming request. 
 Nevertheless, mlab-ns still needs to provide an answer in such cases.
 
-To address this issue, mlab-ns uses
-MaxMind, a free geolocation DB (http://www.maxmind.com/app/geolite).
-ISO 3166 country codes DB
+To address this issue, mlab-ns uses MaxMind's free GeoLite2 databases:
+https://dev.maxmind.com/geoip/geoip2/geolite2/
+
+Also, ISO 3166 country codes DB:
 (from https://www.cia.gov/library/publications/the-world-factbook/fields/2011.html)
 
 Namely, when latitude/longitude are missing from the Google AppEngine header:

@@ -12,10 +12,12 @@ app = webapp.WSGIApplication(
     [(r'/', admin.AdminHandler),
     (r'/admin.*', admin.AdminHandler),
     (r'/cron/check_status', update.StatusUpdateHandler),
-    (r'/cron/check_ip', update.IPUpdateHandler),
     (r'/cron/check_site', update.SiteRegistrationHandler),
+    (r'/cron/count_request_signatures', update.CountRequestSignaturesHandler),
+    (r'/reload_maxminddb', update.ReloadMaxmindDb),
     (r'/privacy', privacy.PrivacyHandler),
     (r'/docs', docs.DocsHandler),
+    (r'/_ah/warmup', update.WarmupHandler),
     # (r'/cron/process_logs', log2bq.Log2BigQueryHandler),
     (r'/.*', lookup.LookupHandler)],
     debug=True )

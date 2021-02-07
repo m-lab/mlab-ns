@@ -1,0 +1,70 @@
+runtime: python27
+api_version: 1
+threadsafe: false
+instance_class: F4_1G
+
+handlers:
+
+- url: /images
+  static_dir: mlabns/images
+
+- url: /stylesheets
+  static_dir: mlabns/stylesheets
+
+- url: /favicon.ico
+  static_files: mlabns/images/favicon.ico
+  upload: mlabns/images/favicon.ico
+
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+
+- url: /(admin|map).*
+  script: main.app
+  #login: required
+
+- url: /oauth2callback
+  script: oauth2client/appengine.py
+
+- url: /cron
+  script: main.app
+  login: admin
+
+- url: /reload_maxminddb
+  script: main.app
+  login: admin
+
+- url: /.*
+  script: main.app
+
+- url: /_ah/warmup
+  script: main.py
+  login: admin
+
+builtins:
+- appstats: on
+- deferred: on
+- remote_api: on
+
+libraries:
+- name: django
+  version: "1.2"
+
+- name: webapp2
+  version: 2.5.1
+
+- name: jinja2
+  version: 2.6
+
+includes:
+- mapreduce/include.yaml
+
+env_variables:
+  PROJECT: "mlab-staging"
+  MACHINE_REGEX: "^mlab4$"
+  SITE_REGEX: "^[a-z]{3}[0-9c]{2}$"
+  LOCATIONS_URL: "https://siteinfo.mlab-staging.measurementlab.net/v1/sites/locations.json"
+  HOSTNAMES_URL: "https://siteinfo.mlab-staging.measurementlab.net/v2/sites/hostnames.json"
+
+inbound_services:
+- warmup

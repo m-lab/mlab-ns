@@ -95,6 +95,26 @@ transformers:
       external_name: url
 
 
+- kind: Prometheus
+  connector: csv
+  connector_options:
+      encoding: utf-8
+  property_map:
+    - property: __key__
+      external_name: index
+      import_transform: "lambda x: 'prometheus_default'"
+      export_transform: transform.key_id_or_name_as_string
+
+    - property: username
+      external_name: username
+
+    - property: password
+      external_name: password
+
+    - property: url
+      external_name: url
+
+
 - kind: Site
   connector: csv
   connector_options:
@@ -131,6 +151,9 @@ transformers:
       external_name: registration_timestamp
       import_transform: transform.none_if_empty(int)
       export_transform: str
+
+    - property: roundrobin
+      external_name: roundrobin
 
     - property: when
       external_name: when
@@ -225,6 +248,25 @@ transformers:
     - property: http_port
       external_name: http_port
 
+    - property: status_source
+      external_name: status_source
+
     - property: show_tool_extra
       external_name: show_tool_extra
       import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+
+- kind: RedirectProbability
+  connector: csv
+  connector_options:
+      encoding: utf-8
+  property_map:
+    - property: __key__
+      external_name: name
+      export_transform: transform.key_id_or_name_as_string
+
+    - property: probability
+      external_name: probability
+
+    - property: url
+      external_name: url

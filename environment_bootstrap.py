@@ -38,8 +38,8 @@ def create_environment_symlink(link_name, environment_type):
 
 
 def setup_environment(environment_type):
-  create_environment_symlink('server/config.py',
-                             environment_type)
+  create_environment_symlink('server/config.py', environment_type)
+  create_environment_symlink('server/app.yaml', environment_type)
 
 
 def main(args):
@@ -50,7 +50,7 @@ if __name__ == '__main__':
       prog='mlab-ns Environment Bootstrapper',
       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument('environment_type',
-                      choices=['testing', 'live'],
+                      choices=['mlab-sandbox', 'mlab-staging', 'mlab-ns'],
                       help='The type of environment to configure.')
   main(parser.parse_args())
 

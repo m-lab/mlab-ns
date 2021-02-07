@@ -1,11 +1,16 @@
+import datetime
 import json
 import logging
 import time
+import urllib2
 
 from mlabns.db import model
+from mlabns.util import constants
+from mlabns.util import distance
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
+from mlabns.util import reverse_proxy
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -46,12 +51,32 @@ class LookupHandler(webapp.RequestHandler):
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
 
+        # Check right away whether we should proxy this request.
+        url = reverse_proxy.try_reverse_proxy_url(query)
+        if url:
+            # NB: if sending the proxy url is unsuccessful, then fall through to
+            # regular request handling.
+            success = self.send_proxy_response(url)
+            if success:
+                experiment = query.path.strip('/')
+                logging.info('[reverse_proxy],true,%s,%s', url, experiment)
+                return
+
         logging.info('Policy is %s', query.policy)
-        lookup_resolver = resolver.new_resolver(query.policy)
+
+        client_signature = query.calculate_client_signature()
+        lookup_resolver = resolver.new_resolver(query.policy, client_signature)
         sliver_tools = lookup_resolver.answer_query(query)
 
         if sliver_tools is None:
-            return util.send_not_found(self, query.response_format)
+            # NOTE: at this point, we know that either the query is invalid
+            # (e.g. bad tool_id) or that a valid query has no capacity.
+            if model.is_valid_tool(query.tool_id):
+                # A.K.A. "no capacity".
+                return util.send_no_content(self)
+            else:
+                # Invalid tool, so report "404 Not Found".
+                return util.send_not_found(self, query.response_format)
 
         if query.response_format == message.FORMAT_JSON:
             self.send_json_response(sliver_tools, query)
@@ -67,8 +92,13 @@ class LookupHandler(webapp.RequestHandler):
         else:
             # TODO (claudiu) Discuss what should be the default behaviour.
             # I think json it's OK since is valid for all tools, while
-            # redirect only applies to web-based tools (e.g., npad)
+            # redirect only applies to web-based tools.
+
             self.send_json_response(sliver_tools, query)
+
+        # At this point, the client has received a response but the server has
+        # not closed the connection.
+        self.log_location(query, sliver_tools)
 
         # TODO (claudiu) Add a FORMAT_TYPE column in the BigQuery schema.
         self.log_request(query, sliver_tools)
@@ -114,13 +144,14 @@ class LookupHandler(webapp.RequestHandler):
                 tool selected for this lookup request.
             query: A LookupQuery instance representing the user lookup request.
         """
-        array_response = False
-        if len(sliver_tools) > 1:
-            array_response = True
-
         if type(sliver_tools) is not list:
             logging.error("Problem: sliver_tools is not a list.")
             return
+
+        # We will respond with HTTP status 204 if len(sliver_tools) == 0
+        array_response = False
+        if len(sliver_tools) > 1:
+            array_response = True
 
         tool = None
         json_data = ""
@@ -164,9 +195,12 @@ class LookupHandler(webapp.RequestHandler):
 
         if array_response:
             json_data = "[" + json_data + "]"
-        self.response.headers['Access-Control-Allow-Origin'] = '*'
-        self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(json_data)
+        if json_data:
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(json_data)
+        else:
+            util.send_no_content(self)
 
     def send_html_response(self, sliver_tools, query):
         """Sends the response to the lookup request in html format.
@@ -201,10 +235,6 @@ class LookupHandler(webapp.RequestHandler):
 
         sliver_tool = sliver_tools[0]
 
-        # npad uses a constant port of 8000
-        if sliver_tool.tool_id == 'npad' and not sliver_tool.http_port:
-            sliver_tool.http_port = '8000'
-
         if sliver_tool.http_port:
             fqdn = fqdn_rewrite.rewrite(sliver_tool.fqdn,
                                         query.tool_address_family,
@@ -214,6 +244,26 @@ class LookupHandler(webapp.RequestHandler):
             return self.redirect(url)
 
         return util.send_not_found(self, 'html')
+
+    def send_proxy_response(self, url):
+        """Sends result of requesting the given URL.
+
+        Args:
+          url: str, proxy URL content to client.
+        """
+        try:
+            resp = urllib2.urlopen(url)
+            body = resp.read()
+            self.response.headers['Cache-Control'] = 'no-cache'
+            self.response.headers['Access-Control-Allow-Origin'] = '*'
+            self.response.headers['Connection'] = 'close'
+            self.response.headers['Content-Type'] = (
+                resp.info().getheader('Content-Type'))
+            self.response.out.write(body)
+            return True
+        except urllib2.URLError:
+            logging.exception('[reverse_proxy],failure,%s', url)
+            return False
 
     def send_map_response(self, sliver_tool, query, candidates):
         """Shows the result of the query in a map.
@@ -342,3 +392,50 @@ class LookupHandler(webapp.RequestHandler):
                      str(time.time()),
                      # Calculated information about the lookup:
                      str(query.distance))
+
+    def log_location(self, query, sliver_tools):
+        """Logs the client Country and compares Maxmind to AppEngine distance"""
+        if query.tool_id != 'ndt_ssl':
+            # We only want to look at ndt_ssl clients for now.
+            return
+
+        if type(sliver_tools) != list or not sliver_tools:
+            logging.info('unexpected sliver_tools type: %s', len(sliver_tools))
+            return
+
+        if query._geolocation_type != constants.GEOLOCATION_APP_ENGINE:
+            # We cannot compare AppEngine location to Maxmind in this case.
+            return
+
+        t0 = datetime.datetime.now()
+
+        # Log client country to display geomap summaries of client origins.
+        logging.info('[client.country],%s', query.country)
+
+        # Log only the first (closest) site.
+        sliver_tool = sliver_tools[0]
+
+        # Lookup the maxmind information, if it doesn't exist, then just
+        # return.
+        if not query._set_maxmind_geolocation(query.ip_address, None, None):
+            return
+
+        # Calculate the difference between the two systems.
+        difference = distance.distance(
+            query._gae_latitude, query._gae_longitude, query._maxmind_latitude,
+            query._maxmind_longitude)
+
+        logging.info((
+            '[server.distance],{scheme},{tool_id},{site_id},{country},'
+            '{city},{same_country},{difference}').format(
+                scheme=self.request.scheme,
+                tool_id=query.tool_id,
+                site_id=sliver_tool.site_id,
+                country=sliver_tool.country,
+                city=sliver_tool.city,
+                same_country=(query._gae_country == query._maxmind_country),
+                difference=difference))
+
+        t1 = datetime.datetime.now()
+        logging.info('[log_location.delay],{delay}'.format(delay=str((
+            t1 - t0).total_seconds())))

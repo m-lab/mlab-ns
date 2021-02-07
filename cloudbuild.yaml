@@ -1,0 +1,34 @@
+# Timeout for complete build. Default is 10m.
+timeout: 1800s
+
+options:
+  env:
+  - PROJECT_ID=$PROJECT_ID
+
+############################################################################
+# Deployment
+############################################################################
+
+steps:
+# Create the image for testing mlab-ns.
+- name: gcr.io/cloud-builders/docker
+  args: [
+    'build', '-t', 'mlabns-tester', '.'
+  ]
+
+# Run unit tests for environment.
+- name: mlabns-tester
+  # "build" runs all unit tests.
+  args:
+   - ./build
+
+# Perform deployment in sandbox & staging & mlab-ns.
+- name: gcr.io/$PROJECT_ID/gcloud-jsonnet-cbif
+  env:
+    # Use cbif condition: only run these steps in one of these projects.
+    - PROJECT_IN=mlab-sandbox,mlab-staging,mlab-ns
+  args:
+    - python environment_bootstrap.py $PROJECT_ID
+    - bash -c "cd server; gcloud --project $PROJECT_ID app deploy --promote app.yaml"
+    - gcloud --project $PROJECT_ID app deploy dispatch.yaml
+    - gcloud --project $PROJECT_ID app deploy cron.yaml

@@ -18,6 +18,12 @@ def _get_jinja_template(template_filename):
     return _get_jinja_environment().get_template(template_filename)
 
 
+def send_no_content(request):
+    request.response.headers['Access-Control-Allow-Origin'] = '*'
+    request.response.headers['Content-Type'] = 'application/json'
+    request.response.set_status(204)
+
+
 def send_not_found(request, output_type=message.FORMAT_HTML):
     request.error(404)
     if output_type == message.FORMAT_JSON:

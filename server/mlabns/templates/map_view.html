@@ -34,7 +34,7 @@
       var errorMarkersArray = [];
 
       function isProductionServer(serverName) {
-        return /^mlab[0-3]$/.test(serverName);
+        return /{{server_regex}}/.test(serverName);
       }
 
       function initialize() {
@@ -230,7 +230,7 @@
         </li>
         -->
 
-        {% with 'all mobiperf ndt neubot npad' as tool_list %} 
+        {% with 'all mobiperf ndt neubot' as tool_list %} 
         <li>
           {% ifequal address_family "ipv6" %}
             <a href="/admin/map/ipv4" class="header">Map IPv4</a>

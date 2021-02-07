@@ -1,16 +1,11 @@
-import os
-import sys
-import unittest2
 import mock
-import socket
+import unittest2
+import urllib2
 
 from mlabns.util import constants
 from mlabns.util import maxmind
-from mlabns.util import message
 
-sys.path.insert(1, os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '../third_party/pygeoip')))
-import pygeoip
+from google.appengine.ext import testbed
 
 
 class GeoRecordTestCase(unittest2.TestCase):
@@ -47,6 +42,28 @@ class GeoRecordTestCase(unittest2.TestCase):
 
 class MaxmindTestClass(unittest2.TestCase):
 
+    def setUp(self):
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_all_stubs()
+
+    def tearDown(self):
+        self.testbed.deactivate()
+
+    # The GAE app uses the GoogleAppEngineCloudStorageClient python module to
+    # fetch the MaxMind database file from GCS. However, that module doesn't,
+    # apparently, work in a non-GAE environment, like Travis-CI. So this
+    # functions is used to mock fetching the database file, but using the
+    # public GCS link instead.
+    def get_database_file(self):
+        base_url = 'https://storage.googleapis.com'
+        bucket = base_url + '/' + constants.GEOLOCATION_MAXMIND_GCS_BUCKET
+        path = bucket + '/' + constants.GEOLOCATION_MAXMIND_BUCKET_PATH
+        database_url = path + '/' + constants.GEOLOCATION_MAXMIND_CITY_FILE
+        db_file = urllib2.urlopen(database_url)
+        db_file.name = constants.GEOLOCATION_MAXMIND_CITY_FILE
+        return db_file
+
     class GqlMockup:
 
         def __init__(self, result=None):
@@ -55,6 +72,14 @@ class MaxmindTestClass(unittest2.TestCase):
         def get(self):
             return self.result
 
+    # NOTE: Below, we are intentionally not testing for a valid entry in the
+    # MaxMind database. The database is (currently) around 55MB, takes too long
+    # to download, changes frequently, and a local copy cannot be added to this
+    # codebase because it exceeds the maximum size for a static file in GAE.
+    # TODO: MaxMind maintains a Github repo which, among other things, contains 
+    # sample databases that they use for unit testing. We should pull in one of
+    # those databases for testing:
+    # https://github.com/maxmind/MaxMind-DB/tree/master/test-data
     class ModelMockup:
 
         def __init__(self, gql_obj=None, location=None):
@@ -79,65 +104,18 @@ class MaxmindTestClass(unittest2.TestCase):
         self.assertIsNone(geo_record.latitude)
         self.assertIsNone(geo_record.longitude)
 
-    def setUp(self):
-        geoip_patch = mock.patch('pygeoip.GeoIP')
-        self.addCleanup(geoip_patch.stop)
-        geoip_patch.start()
-
-        mock_geoip = mock.Mock()
-        pygeoip.GeoIP.return_value = mock_geoip
-        self.mock_record_by_addr = mock_geoip.record_by_addr
-
-    def testGetGeolocationNotValidAddress(self):
+    @mock.patch.object(maxmind, 'get_database_file')
+    def testGetGeolocationNotValidAddress(self, mock_database_file):
+        mock_database_file.side_effect = self.get_database_file
         ip_addr = 'abc'
-        address_family = None
-        self.mock_record_by_addr.side_effect = socket.error
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
-                                                            address_family))
-        self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(None, flags=pygeoip.const.STANDARD)
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
 
-    def testGetGeolocationNoneAddress(self):
-        ip_addr = None
-        address_family = None
-        self.mock_record_by_addr.side_effect = TypeError
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
-                                                            address_family))
-        self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(None, flags=pygeoip.const.STANDARD)
-
-    def testGetGeolocationNoRecordForIp(self):
-        ip_addr = '1.2.3.4'
-        address_family = message.ADDRESS_FAMILY_IPv4
-        self.mock_record_by_addr.return_value = None
-        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr,
-                                                            address_family))
-        self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4,
-            flags=pygeoip.const.STANDARD)
-
-    def testGetGeolocationValidLocation(self):
-        ip_addr = '1.2.3.4'
-        address_family = message.ADDRESS_FAMILY_IPv4
-        mock_record = {
-            'city': 'Greenwich, London',
-            'country_code': 'UK',
-            'latitude': '51.4800',
-            'longitude': '0.0000'
-        }
-        expected_record = maxmind.GeoRecord(city=mock_record['city'],
-                                            country=mock_record['country_code'],
-                                            latitude=mock_record['latitude'],
-                                            longitude=mock_record['longitude'])
-
-        self.mock_record_by_addr.return_value = mock_record
-        self.assertEqual(expected_record,
-                         maxmind.get_ip_geolocation(ip_addr, address_family))
-        self.mock_record_by_addr.assert_called_with(ip_addr)
-        pygeoip.GeoIP.assert_called_with(
-            constants.GEOLOCATION_MAXMIND_CITY_FILE_IPv4,
-            flags=pygeoip.const.STANDARD)
+    @mock.patch.object(maxmind, 'get_database_file')
+    def testGetGeolocationNoRecordForIp(self, mock_database_file):
+        mock_database_file.side_effect = self.get_database_file
+        # ip_addr can be any invalid IP that looks like an IP.
+        ip_addr = '0.1.2.3'
+        self.assertNoneGeoRecord(maxmind.get_ip_geolocation(ip_addr))
 
     def testGetCountryGeolocationNoCountry(self):
         self.assertNoneGeoRecord(maxmind.get_country_geolocation(

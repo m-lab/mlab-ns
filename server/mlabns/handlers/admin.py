@@ -1,11 +1,13 @@
-from django.utils import simplejson
+import os
 
+from django.utils import simplejson
 from google.appengine.api import memcache
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 from mlabns.db import model
 from mlabns.util import constants
+from mlabns.util import production_check
 from mlabns.util import util
 
 
@@ -30,14 +32,12 @@ class AdminHandler(webapp.RequestHandler):
             lambda: self.map_view('mobiperf', 'ipv4'),
             '/admin/map/ipv4/neubot': lambda: self.map_view('neubot', 'ipv4'),
             '/admin/map/ipv4/ndt': lambda: self.map_view('ndt', 'ipv4'),
-            '/admin/map/ipv4/npad': lambda: self.map_view('npad', 'ipv4'),
             '/admin/map/ipv6': lambda: self.map_view('all', 'ipv6'),
             '/admin/map/ipv6/all': lambda: self.map_view('all', 'ipv6'),
             '/admin/map/ipv6/mobiperf':
             lambda: self.map_view('mobiperf', 'ipv6'),
             '/admin/map/ipv6/neubot': lambda: self.map_view('neubot', 'ipv6'),
             '/admin/map/ipv6/ndt': lambda: self.map_view('ndt', 'ipv6'),
-            '/admin/map/ipv6/npad': lambda: self.map_view('npad', 'ipv6')
         }
 
         path = self.request.path.rstrip('/')
@@ -102,7 +102,7 @@ class AdminHandler(webapp.RequestHandler):
         """Displays a per tool map with the status of the slivers.
 
         Args:
-            tool_id: A string representing the tool id (e.g., npad, ndt).
+            tool_id: A string representing the tool id (e.g., neubot, ndt).
             address_family: A string specifying the address family (ipv4,ipv6).
         """
         sliver_tools = None
@@ -127,6 +127,7 @@ class AdminHandler(webapp.RequestHandler):
         values = {
             'cities': json_data,
             'tool_id': tool_id,
+            'server_regex': os.environ.get('MACHINE_REGEX'),
             'address_family': address_family,
             'privacy_doc_url': constants.PRIVACY_DOC_URL,
             'design_doc_url': constants.DESIGN_DOC_URL
@@ -172,6 +173,8 @@ class AdminHandler(webapp.RequestHandler):
 
         # Add sliver tools info to the sites.
         for sliver_tool in sliver_tools:
+            if not production_check.is_production_slice(sliver_tool.fqdn):
+                continue
             sliver_tool_info = {}
             sliver_tool_info['slice_id'] = sliver_tool.slice_id
             sliver_tool_info['tool_id'] = sliver_tool.tool_id

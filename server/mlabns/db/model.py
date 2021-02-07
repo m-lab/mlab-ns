@@ -1,11 +1,19 @@
+import copy
 import logging
 
 from google.appengine.ext import db
-
 from mlabns.util import constants
+from mlabns.util import parse_fqdn
 
 # The classes defined in this file are described in detail in
 # the design doc at http://goo.gl/48S22.
+
+
+# Data format of this class is defined in
+# https://github.com/m-lab/mlab-ns-rate-limit/blob/master/endpoint/endpoint.go
+class Requests(db.Model):
+    probability = db.FloatProperty()
+    requests_per_day = db.IntegerProperty()
 
 
 class SliverTool(db.Model):
@@ -38,6 +46,7 @@ class SliverTool(db.Model):
     longitude = db.FloatProperty()
     city = db.StringProperty()
     country = db.StringProperty()
+    roundrobin = db.BooleanProperty(required=False, default=False)
 
     # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
@@ -66,7 +75,7 @@ class Site(db.Model):
 
     # List of sites and metros, e.g., [ath, ath01].
     # It allows to select a server from a specific subset of sites.
-    # For instance, a request for http://mlabns.appspot.com/npad?metro=ath
+    # For instance, a request for http://mlabns.appspot.com/ndt?metro=ath
     # will only consider sliver tools from the 'ath' sites
     # (currently ath01 and ath02).
     metro = db.StringListProperty(default=None)
@@ -74,6 +83,9 @@ class Site(db.Model):
     # Date representing the registration time (the first time a new site
     # is added to mlab-ns).
     registration_timestamp = db.IntegerProperty(default=0)
+
+    # Whether do round robin for this site. Default value is false.
+    roundrobin = db.BooleanProperty(required=False, default=False)
 
     # Date representing the last modification time of this entity.
     when = db.DateTimeProperty(auto_now=True)
@@ -120,6 +132,7 @@ class Tool(db.Model):
     # redirected to: http://fqdn[ipv4|ipv6]:http_port
     http_port = db.StringProperty()
     show_tool_extra = db.BooleanProperty()
+    status_source = db.StringProperty()
 
 
 class Nagios(db.Model):
@@ -127,6 +140,24 @@ class Nagios(db.Model):
     username = db.StringProperty()
     password = db.StringProperty()
     url = db.StringProperty()
+
+
+class Prometheus(db.Model):
+    key_id = db.StringProperty()
+    username = db.StringProperty()
+    password = db.StringProperty()
+    url = db.StringProperty()
+
+
+class ReverseProxyProbability(db.Model):
+    name = db.StringProperty()
+    probability = db.FloatProperty()
+    url = db.StringProperty()
+
+    def with_name(self, name):
+        prob = copy.copy(self)
+        prob.name = name
+        return prob
 
 
 def get_sliver_tool_id(tool_id, slice_id, server_id, site_id):
@@ -160,17 +191,20 @@ def get_fqdn(slice_id, server_id, site_id):
 
 
 def get_slice_site_server_ids(fqdn):
-    try:
-        slice_id_part1, slice_id_part2, server_id, site_id, unused = fqdn.split(
-            '.', 4)
-    except ValueError:
-        return None, None, None
-    if (slice_id_part1 is None or slice_id_part2 is None or server_id is None or
-            site_id is None):
+    p = parse_fqdn.parse(fqdn)
+    if not p:
         return None, None, None
 
-    slice_id = '_'.join([slice_id_part2, slice_id_part1])
-    return slice_id, site_id, server_id
+    # If any one of these values is missing, then the whole thing fails.
+    if not p['experiment'] or not p['machine'] or not p['site']:
+        return None, None, None
+
+    if p['org']:
+        experiment = '%s_%s' % (p['org'], p['experiment'])
+    else:
+        experiment = p['experiment']
+
+    return experiment, p['site'], p['machine']
 
 
 def get_tool_from_tool_id(tool_id):
@@ -191,3 +225,26 @@ def get_all_tool_ids():
     for tool in Tool.all().run(batch_size=constants.GQL_BATCH_SIZE):
         tool_ids.append(tool.tool_id)
     return tool_ids
+
+
+def get_status_source_deps(source):
+    """Gets all Tools that rely on the given status source.
+
+    Args:
+        source: str, status source, either 'nagios or 'prometheus'.
+
+    Returns:
+        list, Tools that depend on `source`.
+    """
+    tools = []
+    tools_gql = Tool.gql("WHERE status_source = :source", source=source)
+    for tool in tools_gql.run():
+        tools.append(tool)
+    if not tools:
+        logging.info('No tools get their status from %s.', source)
+    return tools
+
+
+def is_valid_tool(tool_id):
+    """Indicates whether the given tool_id is valid and known in datastore."""
+    return tool_id in get_all_tool_ids()

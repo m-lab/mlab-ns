@@ -3,36 +3,16 @@ python:
   - "2.7"
 env:
   - PYTHONPATH=$PYTHONPATH:$HOME/google-cloud-sdk/platform/google_appengine
-cache:
-  directories:
-    - "$HOME/google-cloud-sdk/"
-before_install:
-  - travis/decrypt.sh "$encrypted_a33ffc2cc437_key" "$encrypted_a33ffc2cc437_iv"
-    keys/service-accounts.tar.enc /tmp/service-accounts.tar /tmp
+
 install:
   - $TRAVIS_BUILD_DIR/travis/install_gcloud.sh app-engine-python
   - $HOME/google-cloud-sdk/install.sh
-  - pip install -r test_requirements.txt
-  - pip install coveralls
+
 script:
-  - ./build
-after_success:
-    coveralls
-
-deploy:
-# Testing: deploy to mlab-nstesting
-- provider: script
-  script: python environment_bootstrap.py testing && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-nstesting /tmp/mlab-nstesting.json . server/app.yaml
-  skip_cleanup: true
-  on:
-    repo: m-lab/mlab-ns
-    all_branches: true
-    condition: $TRAVIS_BRANCH == master && $TRAVIS_EVENT_TYPE == push
-
-# Production: deploy to mlab-ns
-- provider: script
-  script: python environment_bootstrap.py live && $TRAVIS_BUILD_DIR/travis/deploy_app.sh mlab-ns /tmp/mlab-ns.json . server/app.yaml
-  skip_cleanup: true
-  on:
-    repo: m-lab/mlab-ns
-    tags: true
+  - docker build -t mlabns-testing .
+  - docker run
+    -e TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
+    -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID
+    -e TRAVIS=true
+    -e COVERALLS_SERVICE_NAME=travis-ci
+    -w /workdir -v $TRAVIS_BUILD_DIR:/workdir -t mlabns-testing bash -c "./build && coveralls"
