@@ -372,6 +372,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
                             if not self.is_slice_status_okay(
                                     slice_status, slice_info.tool_id,
                                     slice_info.address_family):
+                                logging.error(
+                                    'Ignorning monitoring data for: %s',
+                                    slice_info.tool_id)
                                 continue
                     else:
                         logging.error(
@@ -520,6 +523,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
         percentage_online = online_slivers / len(slice_status)
 
         if percentage_online < threshold:
+            logging.error('Too few slivers online: %f', percentage_online)
             return False
         else:
             return True
