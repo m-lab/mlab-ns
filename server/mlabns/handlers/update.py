@@ -369,9 +369,9 @@ class StatusUpdateHandler(webapp.RequestHandler):
                         # datastore. This prevents a monitoring bug/issue from
                         # causing all sliver tools to be marked as down.
                         if slice_info.tool_id.startswith('ndt'):
-                            if not self.is_slice_status_okay(slice_status,
-                                                             slice_info.tool_id,
-                                                             slice_info.address_family):
+                            if not self.is_slice_status_okay(
+                                    slice_status, slice_info.tool_id,
+                                    slice_info.address_family):
                                 continue
                     else:
                         logging.error(
