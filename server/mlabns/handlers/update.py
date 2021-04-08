@@ -372,7 +372,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
                             if not self.is_slice_status_okay(slice_status,
                                                              slice_info.tool_id,
                                                              slice_info.address_family):
-                            continue
+                                continue
                     else:
                         logging.error(
                             'Prometheus config unavailable. Skipping %s%s',
