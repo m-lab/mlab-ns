@@ -517,7 +517,7 @@ class StatusUpdateHandler(webapp.RequestHandler):
 
         online_slivers = 0
         for sliver_tool in slice_status:
-            if sliver_tool.status == message.STATUS_ONLINE:
+            if slice_status[sliver_tool]['status'] == message.STATUS_ONLINE:
                 online_slivers = online_slivers + 1
 
         percentage_online = online_slivers / len(slice_status)
