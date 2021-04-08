@@ -516,14 +516,18 @@ class StatusUpdateHandler(webapp.RequestHandler):
             threshold = 0.75
 
         online_slivers = 0
+        logging.info('STATUS: len(slice_status): %d', len(slice_status))
         for sliver_tool in slice_status:
             if slice_status[sliver_tool]['status'] == message.STATUS_ONLINE:
+                loggging.info('STATUS: %s = %s', sliver_tool,
+                              slice_status[sliver_tool]['status'])
                 online_slivers = online_slivers + 1
 
         percentage_online = online_slivers / len(slice_status)
 
         if percentage_online < threshold:
-            logging.error('Too few slivers online: %f', percentage_online)
+            logging.error('Too few %s slivers online. Threshold %f. Actual %f',
+                          tool_id, threshold, percentage_online)
             return False
         else:
             return True
