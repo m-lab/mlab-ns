@@ -516,13 +516,14 @@ class StatusUpdateHandler(webapp.RequestHandler):
             threshold = 0.75
 
         online_slivers = 0
-        logging.info('STATUS: len(slice_status): %d', len(slice_status))
         for sliver_tool in slice_status:
-            logging.info('STATUS: %s = %s', sliver_tool,
-                         slice_status[sliver_tool]['status'])
             if slice_status[sliver_tool]['status'] == message.STATUS_ONLINE:
                 online_slivers = online_slivers + 1
+                logging.info('STATUS: incrementing online_slivers: %d',
+                             online_slivers)
 
+        logging.info('STATUS: online_slivers: %d, len(slice_status): %d',
+                     online_slivers, len(slice_status))
         percentage_online = online_slivers / len(slice_status)
 
         if percentage_online < threshold:
