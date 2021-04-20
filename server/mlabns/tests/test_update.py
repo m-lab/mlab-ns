@@ -5,7 +5,10 @@ import urllib2
 
 from google.appengine.ext import db
 from mlabns.db import model
+from mlabns.db import nagios_config_wrapper
+from mlabns.db import prometheus_config_wrapper
 from mlabns.handlers import update
+from mlabns.util import prometheus_status
 from mlabns.util import util
 
 
@@ -94,6 +97,113 @@ class SiteRegistrationHandlerTest(unittest2.TestCase):
 
         self.assertTrue(model.Site.called,
                         'Update an existing site to the datastore')
+
+
+class StatusUpdateHandlerTest(unittest2.TestCase):
+
+    def setUp(self):
+        tool_all_patch = mock.patch.object(model,
+                                           'get_all_tool_ids',
+                                           autospec=True)
+        self.addCleanup(tool_all_patch.stop)
+        tool_all_patch.start()
+
+        tool_id_patch = mock.patch.object(model,
+                                          'get_tool_from_tool_id',
+                                          autospec=True)
+        self.addCleanup(tool_id_patch.stop)
+        tool_id_patch.start()
+
+        tool_deps_patch = mock.patch.object(model,
+                                            'get_status_source_deps',
+                                            autospec=True)
+        self.addCleanup(tool_deps_patch.stop)
+        tool_deps_patch.start()
+
+        prom_config_wrapper_patch = mock.patch.object(prometheus_config_wrapper,
+                                                      'get_prometheus_config',
+                                                      autospec=True)
+        self.addCleanup(prom_config_wrapper_patch.stop)
+        prom_config_wrapper_patch.start()
+
+        prom_authenticate_patch = mock.patch.object(prometheus_status,
+                                                    'authenticate_prometheus',
+                                                    autospec=True)
+        self.addCleanup(prom_authenticate_patch.stop)
+        prom_authenticate_patch.start()
+
+        nagios_config_wrapper_patch = mock.patch.object(nagios_config_wrapper,
+                                                        'get_nagios_config',
+                                                        autospec=True)
+        self.addCleanup(nagios_config_wrapper_patch.stop)
+        nagios_config_wrapper_patch.start()
+
+        util_send_success_patch = mock.patch.object(util,
+                                                    'send_success',
+                                                    autospec=True)
+        self.addCleanup(util_send_success_patch.stop)
+        util_send_success_patch.start()
+
+        self.mock_slice_status_ipv4_okay = {
+            'ndt.mlab1-abc01.mlab-sandbox.measurement-lab.org': {
+                'status': 'online',
+            },
+            'ndt.mlab2-abc01.mlab-sandbox.measurement-lab.org': {
+                'status': 'online',
+            },
+            'ndt.mlab3-abc01.mlab-sandbox.measurement-lab.org': {
+                'status': 'online',
+            },
+            'ndt.mlab4-abc01.mlab-sandbox.measurement-lab.org': {
+                'status': 'online',
+            },
+        }
+
+        self.mock_slice_status_ipv4_bad = {
+            'ndt.mlab1-abc01.mlab-sandbox.measurement-lab.org': {
+                'status': 'online',
+            },
+            'ndt.mlab2-abc01.mlab-sandbox.measurement-lab.org': {
+                'status': 'offline',
+            },
+            'ndt.mlab3-abc01.mlab-sandbox.measurement-lab.org': {
+                'status': 'online',
+            },
+            'ndt.mlab4-abc01.mlab-sandbox.measurement-lab.org': {
+                'status': 'offline',
+            },
+        }
+
+    @mock.patch.object(prometheus_status, 'get_slice_status')
+    @mock.patch.object(update.StatusUpdateHandler, 'update_sliver_tools_status')
+    def test_get(self, mock_update, mock_get_status):
+
+        model.get_all_tool_ids.return_value = ['ndt']
+
+        model.get_tool_from_tool_id.return_value = (mock.Mock(
+            slice_id='iupui_ndt',
+            status_source='prometheus',
+            tool_id='ndt'))
+        model.get_status_source_deps.return_value = [
+            mock.Mock(slice_id='iupui_ndt',
+                      status_source='prometheus',
+                      tool_id='ndt')
+        ]
+        prometheus_config_wrapper.get_prometheus_config.return_value = (
+            mock.Mock(url='fake://url'))
+        prometheus_status.authenticate_prometheus.return_value = "testing"
+        nagios_config_wrapper.get_nagios_config.return_value = None
+
+        handler = update.StatusUpdateHandler()
+
+        mock_get_status.return_value = self.mock_slice_status_ipv4_okay
+        handler.get()
+        self.assertTrue(mock_update.called)
+        self.assertTrue(util.send_success.called)
+
+        mock_get_status.return_value = self.mock_slice_status_ipv4_bad
+        handler.get()
+        self.assertTrue(mock_update.called)
 
 
 class IPUpdateHandlerTest(unittest2.TestCase):
