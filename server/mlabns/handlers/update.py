@@ -363,6 +363,17 @@ class StatusUpdateHandler(webapp.RequestHandler):
                             continue
                         slice_status = prometheus_status.get_slice_status(
                             slice_info.slice_url, prometheus_opener)
+                        # If too large a percentage of sliver tools are down,
+                        # then we assume that there is some sort of monitoring
+                        # error and we refuse to update the datastore. This
+                        # prevents a monitoring bug/issue from causing all
+                        # sliver tools to be marked as down.
+                        if not self.is_slice_status_okay(
+                                slice_status, slice_info.tool_id,
+                                slice_info.address_family):
+                            logging.error('Ignorning monitoring data for: %s',
+                                          slice_info.tool_id)
+                            continue
                     else:
                         logging.error(
                             'Prometheus config unavailable. Skipping %s%s',
@@ -483,6 +494,38 @@ class StatusUpdateHandler(webapp.RequestHandler):
                                 updated_sliver_tools,
                                 namespace=constants.MEMCACHE_NAMESPACE_TOOLS):
                 logging.error('Failed to update sliver status in memcache.')
+
+    def is_slice_status_okay(self, slice_status, tool_id, family):
+        """Determines if percentage of online sliver tools is too low
+
+        Args:
+            slice_status: A dict that contains the status of the
+                slivers in the slice {key=fqdn, status:online|offline}
+            tool_id: A string representing the fqdn that resolves
+                to an IP address.
+            family: Address family to update.
+
+        Returns:
+            bool: whether slice status is below minimum threshold
+        """
+        if family == '_ipv6':
+            threshold = 0.5
+        else:
+            threshold = 0.75
+
+        online_slivers = 0
+        for sliver_tool in slice_status:
+            if slice_status[sliver_tool]['status'] == message.STATUS_ONLINE:
+                online_slivers = online_slivers + 1
+
+        percentage_online = float(online_slivers) / len(slice_status)
+
+        if percentage_online < threshold:
+            logging.error('Too few %s slivers online. Threshold %f. Actual %f',
+                          tool_id, threshold, percentage_online)
+            return False
+        else:
+            return True
 
 
 class ReloadMaxmindDb(webapp.RequestHandler):
