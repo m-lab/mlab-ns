@@ -144,7 +144,7 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
         self.addCleanup(util_send_success_patch.stop)
         util_send_success_patch.start()
 
-        self.mock_slice_status_ipv4_okay = {
+        self.mock_slice_status_okay = {
             'ndt.mlab1-abc01.mlab-sandbox.measurement-lab.org': {
                 'status': 'online',
             },
@@ -159,7 +159,7 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
             },
         }
 
-        self.mock_slice_status_ipv4_bad = {
+        self.mock_slice_status_bad = {
             'ndt.mlab1-abc01.mlab-sandbox.measurement-lab.org': {
                 'status': 'online',
             },
@@ -167,7 +167,7 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
                 'status': 'offline',
             },
             'ndt.mlab3-abc01.mlab-sandbox.measurement-lab.org': {
-                'status': 'online',
+                'status': 'offline',
             },
             'ndt.mlab4-abc01.mlab-sandbox.measurement-lab.org': {
                 'status': 'offline',
@@ -196,14 +196,24 @@ class StatusUpdateHandlerTest(unittest2.TestCase):
 
         handler = update.StatusUpdateHandler()
 
-        mock_get_status.return_value = self.mock_slice_status_ipv4_okay
-        handler.get()
-        self.assertTrue(mock_update.called)
-        self.assertTrue(util.send_success.called)
+        # get_slice_status() is called twice for each tool, once for IPv4 and
+        # once for IPv6. In this test we use a single tool (ndt), and call
+        # get() twice for a total of four calls to get_slice_status()
+        mock_get_status.side_effect = [
+            self.mock_slice_status_okay,
+            self.mock_slice_status_okay,
+            self.mock_slice_status_bad,
+            self.mock_slice_status_bad,
+        ]
 
-        mock_get_status.return_value = self.mock_slice_status_ipv4_bad
         handler.get()
         self.assertTrue(mock_update.called)
+        self.assertEqual(mock_update.call_count, 2)
+
+        # Asserts that the call_count for mock_update did not increment for our
+        # two "bad" cases.
+        handler.get()
+        self.assertEqual(mock_update.call_count, 2)
 
 
 class IPUpdateHandlerTest(unittest2.TestCase):
