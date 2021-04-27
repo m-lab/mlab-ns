@@ -126,6 +126,14 @@ QUERIES = {
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
         )
         """),
+    'wehe': textwrap.dedent("""\
+        min by (experiment, machine) (
+            script_success{service="wehe_client"} OR
+            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+              "experiment", "wehe", "", "") != bool 1 OR
+            label_replace(gmx_machine_maintenance, "experiment", "wehe", "", "") != bool 1
+        )
+        """),
 }
 
 
