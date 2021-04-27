@@ -4,3 +4,4 @@ ndt_ssl,iupui_ndt,,False,prometheus
 ndt7,iupui_ndt,,False,prometheus
 mobiperf,michigan_1,,False,prometheus
 neubot,mlab_neubot,80,False,prometheus
+wehe,wehe,,False,prometheus
