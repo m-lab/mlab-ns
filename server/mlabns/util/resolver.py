@@ -62,7 +62,6 @@ site_keep_probability = {
     'lga1t': 0.5,
     'lis01': 0.5,
     'lju01': 0.5,
-    'tnr01': 0.5,
     'tun01': 0.5,
     'vie01': 0.5,
     'yqm01': 0.5,
