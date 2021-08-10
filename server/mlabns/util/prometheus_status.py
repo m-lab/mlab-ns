@@ -30,13 +30,13 @@ QUERIES = {
         min by (experiment, machine) (
             probe_success{service="ndt_raw"} OR
             script_success{service="ndt5_client"} OR
-            label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
-                node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
+            label_replace(((node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"} -
+              node_filesystem_avail_bytes{cluster="platform", mountpoint="/cache/data"}) /
+                node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
+            lame_duck_experiment{cluster="platform"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -44,13 +44,13 @@ QUERIES = {
         min by (experiment, machine) (
             probe_success{service="ndt_raw_ipv6"} OR
             script_success{service="ndt5_client"} OR
-            label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
-                node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
+            label_replace(((node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"} -
+              node_filesystem_avail_bytes{cluster="platform", mountpoint="/cache/data"}) /
+                node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
+            lame_duck_experiment{cluster="platform"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -58,13 +58,13 @@ QUERIES = {
         min by (experiment, machine) (
             probe_success{service="ndt_ssl"} OR
             script_success{service="ndt5_client"} OR
-            label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
-                node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
+            label_replace(((node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"} -
+              node_filesystem_avail_bytes{cluster="platform", mountpoint="/cache/data"}) /
+                node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
+            lame_duck_experiment{cluster="platform"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -72,39 +72,39 @@ QUERIES = {
         min by (experiment, machine) (
             probe_success{service="ndt_ssl_ipv6"} OR
             script_success{service="ndt5_client"} OR
-            label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
-                node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
+            label_replace(((node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"} -
+              node_filesystem_avail_bytes{cluster="platform", mountpoint="/cache/data"}) /
+                node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
+            lame_duck_experiment{cluster="platform"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
     'ndt7': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt7"} OR
-            label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
-                node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
+            label_replace(((node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"} -
+              node_filesystem_avail_bytes{cluster="platform", mountpoint="/cache/data"}) /
+                node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
+            lame_duck_experiment{cluster="platform"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
     'ndt7_ipv6': textwrap.dedent("""\
         min by (experiment, machine) (
             probe_success{service="ndt7_ipv6"} OR
-            label_replace(((node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"} -
-              node_filesystem_avail_bytes{cluster="platform-cluster", mountpoint="/cache/data"}) /
-                node_filesystem_size_bytes{cluster="platform-cluster", mountpoint="/cache/data"}),
+            label_replace(((node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"} -
+              node_filesystem_avail_bytes{cluster="platform", mountpoint="/cache/data"}) /
+                node_filesystem_size_bytes{cluster="platform", mountpoint="/cache/data"}),
                 "experiment", "ndt.iupui", "", "") < bool 0.95 OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "ndt.iupui", "", "") != bool 1 OR
-            lame_duck_experiment{cluster="platform-cluster"} != bool 1 OR
+            lame_duck_experiment{cluster="platform"} != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "ndt.iupui", "", "") != bool 1
         )
         """),
@@ -112,7 +112,7 @@ QUERIES = {
         min by (experiment, machine) (
             probe_success{service="neubot"} OR
             probe_success{service="neubot_tls"} OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "neubot.mlab", "", "") != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
         )
@@ -121,7 +121,7 @@ QUERIES = {
         min by (experiment, machine) (
             probe_success{service="neubot_ipv6"} OR
             probe_success{service="neubot_tls_ipv6"} OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "neubot.mlab", "", "") != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "neubot.mlab", "", "") != bool 1
         )
@@ -129,7 +129,7 @@ QUERIES = {
     'wehe': textwrap.dedent("""\
         min by (experiment, machine) (
             script_success{service="wehe_client"} OR
-            label_replace(kube_node_spec_taint{cluster="platform-cluster", key="lame-duck"},
+            label_replace(kube_node_spec_taint{cluster="platform", key="lame-duck"},
               "experiment", "wehe", "", "") != bool 1 OR
             label_replace(gmx_machine_maintenance, "experiment", "wehe", "", "") != bool 1
         )
