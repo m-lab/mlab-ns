@@ -37,6 +37,10 @@ handlers:
 - url: /.*
   script: main.app
 
+- url: /_ah/warmup
+  script: main.py
+  login: admin
+
 builtins:
 - appstats: on
 - deferred: on
@@ -61,3 +65,7 @@ env_variables:
   SITE_REGEX: "^[a-z]{3}[0-9c]{2}$"
   LOCATIONS_URL: "https://siteinfo.mlab-oti.measurementlab.net/v1/sites/locations.json"
   HOSTNAMES_URL: "https://siteinfo.mlab-oti.measurementlab.net/v2/sites/hostnames.json"
+
+inbound_services:
+- warmup
+
