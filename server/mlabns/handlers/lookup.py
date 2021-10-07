@@ -10,7 +10,6 @@ from mlabns.util import distance
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
-from mlabns.util import reverse_proxy
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -233,26 +232,6 @@ class LookupHandler(webapp.RequestHandler):
             return self.redirect(url)
 
         return util.send_not_found(self, 'html')
-
-    def send_proxy_response(self, url):
-        """Sends result of requesting the given URL.
-
-        Args:
-          url: str, proxy URL content to client.
-        """
-        try:
-            resp = urllib2.urlopen(url)
-            body = resp.read()
-            self.response.headers['Cache-Control'] = 'no-cache'
-            self.response.headers['Access-Control-Allow-Origin'] = '*'
-            self.response.headers['Connection'] = 'close'
-            self.response.headers['Content-Type'] = (
-                resp.info().getheader('Content-Type'))
-            self.response.out.write(body)
-            return True
-        except urllib2.URLError:
-            logging.exception('[reverse_proxy],failure,%s', url)
-            return False
 
     def send_map_response(self, sliver_tool, query, candidates):
         """Shows the result of the query in a map.
