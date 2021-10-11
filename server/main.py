@@ -1,5 +1,5 @@
 from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
+#from google.appengine.ext.webapp.util import run_wsgi_app
 
 from mlabns.handlers import admin
 from mlabns.handlers import docs
@@ -22,8 +22,8 @@ app = webapp.WSGIApplication(
     (r'/.*', lookup.LookupHandler)],
     debug=True )
 
-def main():
-    run_wsgi_app(app)
+#def main():
+#    run_wsgi_app(app)
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
