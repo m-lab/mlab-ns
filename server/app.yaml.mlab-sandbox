@@ -34,12 +34,12 @@ handlers:
   script: main.app
   login: admin
 
-- url: /.*
-  script: main.app
-
 - url: /_ah/warmup
   script: main.py
   login: admin
+
+- url: /.*
+  script: main.app
 
 builtins:
 - deferred: on
