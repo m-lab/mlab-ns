@@ -2,7 +2,6 @@ import datetime
 import json
 import logging
 import time
-import urllib2
 
 from mlabns.db import model
 from mlabns.util import constants

@@ -1,6 +1,5 @@
 import mock
 import unittest2
-import urllib2
 
 from mlabns.db import model
 from mlabns.handlers import lookup
