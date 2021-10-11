@@ -42,7 +42,6 @@ handlers:
   login: admin
 
 builtins:
-- appstats: on
 - deferred: on
 - remote_api: on
 

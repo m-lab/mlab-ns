@@ -42,7 +42,6 @@ handlers:
   login: admin
 
 builtins:
-- appstats: on
 - deferred: on
 - remote_api: on
 
@@ -68,4 +67,3 @@ env_variables:
 
 inbound_services:
 - warmup
-
