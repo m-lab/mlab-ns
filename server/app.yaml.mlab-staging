@@ -35,7 +35,7 @@ handlers:
   login: admin
 
 - url: /_ah/warmup
-  script: main.py
+  script: main.app
   login: admin
 
 - url: /.*
