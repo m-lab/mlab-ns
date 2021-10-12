@@ -2,7 +2,6 @@ import datetime
 import json
 import logging
 import time
-import urllib2
 
 from mlabns.db import model
 from mlabns.util import constants
@@ -10,7 +9,6 @@ from mlabns.util import distance
 from mlabns.util import fqdn_rewrite
 from mlabns.util import lookup_query
 from mlabns.util import message
-from mlabns.util import reverse_proxy
 from mlabns.util import resolver
 from mlabns.util import util
 
@@ -50,17 +48,6 @@ class LookupHandler(webapp.RequestHandler):
         """
         query = lookup_query.LookupQuery()
         query.initialize_from_http_request(self.request)
-
-        # Check right away whether we should proxy this request.
-        url = reverse_proxy.try_reverse_proxy_url(query)
-        if url:
-            # NB: if sending the proxy url is unsuccessful, then fall through to
-            # regular request handling.
-            success = self.send_proxy_response(url)
-            if success:
-                experiment = query.path.strip('/')
-                logging.info('[reverse_proxy],true,%s,%s', url, experiment)
-                return
 
         logging.info('Policy is %s', query.policy)
 
@@ -153,13 +140,9 @@ class LookupHandler(webapp.RequestHandler):
         if len(sliver_tools) > 1:
             array_response = True
 
-        tool = None
         json_data = ""
         for sliver_tool in sliver_tools:
             data = {}
-
-            if tool == None:
-                tool = model.get_tool_from_tool_id(sliver_tool.tool_id)
 
             if query.tool_address_family == message.ADDRESS_FAMILY_IPv4:
                 ips = [sliver_tool.sliver_ipv4]
@@ -185,9 +168,6 @@ class LookupHandler(webapp.RequestHandler):
             data['site'] = sliver_tool.site_id
             data['city'] = sliver_tool.city
             data['country'] = sliver_tool.country
-
-            if sliver_tool.tool_extra and tool.show_tool_extra:
-                data['tool_extra'] = sliver_tool.tool_extra
 
             if json_data != "":
                 json_data += ","
@@ -244,26 +224,6 @@ class LookupHandler(webapp.RequestHandler):
             return self.redirect(url)
 
         return util.send_not_found(self, 'html')
-
-    def send_proxy_response(self, url):
-        """Sends result of requesting the given URL.
-
-        Args:
-          url: str, proxy URL content to client.
-        """
-        try:
-            resp = urllib2.urlopen(url)
-            body = resp.read()
-            self.response.headers['Cache-Control'] = 'no-cache'
-            self.response.headers['Access-Control-Allow-Origin'] = '*'
-            self.response.headers['Connection'] = 'close'
-            self.response.headers['Content-Type'] = (
-                resp.info().getheader('Content-Type'))
-            self.response.out.write(body)
-            return True
-        except urllib2.URLError:
-            logging.exception('[reverse_proxy],failure,%s', url)
-            return False
 
     def send_map_response(self, sliver_tool, query, candidates):
         """Shows the result of the query in a map.

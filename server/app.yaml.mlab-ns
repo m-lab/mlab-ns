@@ -34,17 +34,12 @@ handlers:
   script: main.app
   login: admin
 
-- url: /.*
-  script: main.app
-
 - url: /_ah/warmup
-  script: main.py
+  script: main.app
   login: admin
 
-builtins:
-- appstats: on
-- deferred: on
-- remote_api: on
+- url: /.*
+  script: main.app
 
 libraries:
 - name: django
@@ -68,4 +63,3 @@ env_variables:
 
 inbound_services:
 - warmup
-

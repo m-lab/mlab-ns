@@ -1,11 +1,9 @@
 import mock
 import unittest2
-import urllib2
 
 from mlabns.db import model
 from mlabns.handlers import lookup
 from mlabns.util import constants
-from mlabns.util import reverse_proxy
 
 from google.appengine.ext import testbed
 
@@ -80,33 +78,11 @@ class LookupTest(unittest2.TestCase):
         def read(self):
             return self.content
 
-    @mock.patch.object(urllib2, 'urlopen')
-    @mock.patch.object(reverse_proxy, 'try_reverse_proxy_url')
-    def test_get_with_reverse_proxy(self, mock_try_reverse_proxy_url,
-                                    mock_urlopen):
-        mock_try_reverse_proxy_url.return_value = (
-            'https://new-mlab-ns.appspot.com')
-        h = lookup.LookupHandler()
-        h.request = LookupTest.RequestMockup(url='https://mlab-ns.appspot.com',
-                                             path='/ndt_ssl?policy=geo_options')
-        h.response = LookupTest.ResponseMockup()
-        mock_urlopen.return_value = LookupTest.URLLibResponseMockup(
-            'any-fake-data', {'content-type': 'application/json'})
-
-        h.get()
-
-        # Check response headers, and fake content.
-        self.assertEqual(h.response.out.msg, 'any-fake-data')
-        self.assertEqual(h.response.headers['Content-Type'], 'application/json')
-
-    @mock.patch.object(reverse_proxy, 'try_reverse_proxy_url')
-    def test_get_with_no_content(self, mock_try_reverse_proxy_url):
+    def test_get_with_no_content(self):
         tool_a = model.Tool(tool_id='tool_a')
         tool_b = model.Tool(tool_id='tool_b')
         tool_a.put()
         tool_b.put()
-        # Skip reverse proxy.
-        mock_try_reverse_proxy_url.return_value = ''
 
         sliver_a = model.SliverTool(
             tool_id='tool_a',
@@ -128,11 +104,7 @@ class LookupTest(unittest2.TestCase):
         self.assertEqual(h.response.out.msg, '')
         self.assertEqual(h.response.code, 204)
 
-    @mock.patch.object(reverse_proxy, 'try_reverse_proxy_url')
-    def test_get_with_not_found(self, mock_try_reverse_proxy_url):
-        # Skip reverse proxy.
-        mock_try_reverse_proxy_url.return_value = ''
-
+    def test_get_with_not_found(self):
         h = lookup.LookupHandler()
         h.request = LookupTest.RequestMockup(url='https://mlab-ns.appspot.com',
                                              path='/FAKE_TOOL_ID',
