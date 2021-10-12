@@ -140,13 +140,9 @@ class LookupHandler(webapp.RequestHandler):
         if len(sliver_tools) > 1:
             array_response = True
 
-        tool = None
         json_data = ""
         for sliver_tool in sliver_tools:
             data = {}
-
-            if tool == None:
-                tool = model.get_tool_from_tool_id(sliver_tool.tool_id)
 
             if query.tool_address_family == message.ADDRESS_FAMILY_IPv4:
                 ips = [sliver_tool.sliver_ipv4]
@@ -172,9 +168,6 @@ class LookupHandler(webapp.RequestHandler):
             data['site'] = sliver_tool.site_id
             data['city'] = sliver_tool.city
             data['country'] = sliver_tool.country
-
-            if sliver_tool.tool_extra and tool.show_tool_extra:
-                data['tool_extra'] = sliver_tool.tool_extra
 
             if json_data != "":
                 json_data += ","
