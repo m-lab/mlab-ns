@@ -8,6 +8,7 @@ pillow
 pyflakes==1.2.3
 pylint==1.5.6
 pyyaml
+setuptools-scm==5.0.2
 unittest2
 webob
 yapf==0.10.0
