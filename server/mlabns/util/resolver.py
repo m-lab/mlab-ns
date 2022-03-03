@@ -58,20 +58,20 @@ class AllResolver(ResolverBase):
 # selecting this site. The default value is 1.0.
 site_keep_probability = {
     'bom01': 0.5,
-    'bru06': 0.01, # virtual site
-    'cgk01': 0.01, # virtual site
-    'fra07': 0.01, # virtual site
+    'bru06': 0.01,  # virtual site
+    'cgk01': 0.01,  # virtual site
+    'fra07': 0.01,  # virtual site
     'hnd01': 0.05,  # 0.05
-    'iad07': 0.01, # virtual site
-    'lax07': 0.01, # virtual site
+    'iad07': 0.01,  # virtual site
+    'lax07': 0.01,  # virtual site
     'lga1t': 0.5,
-    'lhr09': 0.01, # virtual site
+    'lhr09': 0.01,  # virtual site
     'lis01': 0.5,
     'lju01': 0.5,
-    'ord07': 0.01, # virtual site
-    'sea09': 0.01, # virtual site
-    'sin02': 0.01, # virtual site
-    'tpe02': 0.01, # virtual site
+    'ord07': 0.01,  # virtual site
+    'sea09': 0.01,  # virtual site
+    'sin02': 0.01,  # virtual site
+    'tpe02': 0.01,  # virtual site
     'tun01': 0.5,
     'vie01': 0.5,
     'yqm01': 0.5,
