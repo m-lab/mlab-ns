@@ -4,8 +4,6 @@ dispatch:
 # Route /v2/ requests to the locate service.
 - service: locate
   url: "*/v2beta1/*"
-- service: locate-platform
-  url: "*/v2/platform/*"
 - service: locate
   url: "*/v2/*"
 # All other requests are routed to their default target.
