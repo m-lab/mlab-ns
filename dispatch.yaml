@@ -5,5 +5,7 @@ dispatch:
 - service: locate
   url: "*/v2beta1/*"
 - service: locate
+  url: "*/v2beta2/*"
+- service: locate
   url: "*/v2/*"
 # All other requests are routed to their default target.
