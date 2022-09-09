@@ -55,29 +55,53 @@ class AllResolver(ResolverBase):
 # handle the current number of requests. Each value is the probability of
 # selecting this site. The default value is 1.0.
 site_keep_probability = {
+    'ams10': 0.1,  # virtual site
     'bom01': 0.5,
+    'bom03': 0.1,  # virtual site
     'bru06': 0.1,  # virtual site
     'cgk01': 0.1,  # virtual site
+    'chs01': 0.1,  # virtual site
+    'cmh01': 0.1,  # virtual site
+    'del03': 0.1,  # virtual site
+    'dfw09': 0.1,  # virtual site
     'fra07': 0.1,  # virtual site
+    'gru05': 0.1,  # virtual site
+    'hel01': 0.1,  # virtual site
+    'hkg04': 0.1,  # virtual site
     'hnd01': 0.05,  # 0.05
+    'hnd06': 0.1,  # virtual site
     'iad07': 0.1,  # virtual site
+    'icn01': 0.1,  # virtual site
+    'kix01': 0.1,  # virtual site
+    'las01': 0.1,  # virtual site
     'lax07': 0.1,  # virtual site
     'lga1t': 0.5,
     'lhr09': 0.1,  # virtual site
     'lis01': 0.5,
     'lju01': 0.5,
+    'mad07': 0.1,  # virtual site
+    'mel01': 0.1,  # virtual site
+    'mil08': 0.1,  # virtual site
     'ord07': 0.1,  # virtual site
+    'par08': 0.1,  # virtual site
+    'scl05': 0.1,  # virtual site
     'sea09': 0.1,  # virtual site
     'sin02': 0.1,  # virtual site
+    'slc01': 0.1,  # virtual site
+    'syd07': 0.1,  # virtual site
     'tpe02': 0.1,  # virtual site
     'tun01': 0.5,
     'vie01': 0.5,
+    'waw01': 0.1,  # virtual site
     'yqm01': 0.5,
     'yul02': 0.2,  # 0.2
+    'yul07': 0.1,  # virtual site
     'yvr01': 0.1,  # 0.1
     'ywg01': 0.5,
     'yyc02': 0.5,
     'yyz02': 0.2,  # 0.2
+    'yyz07': 0.1,  # virtual site
+    'zrh01': 0.1,  # virtual site
 }
 
 
