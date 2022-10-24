@@ -81,8 +81,10 @@ site_keep_probability = {
     'mad07': 0.1,  # virtual site
     'mel01': 0.1,  # virtual site
     'mil08': 0.1,  # virtual site
+    'oma01': 0.1,  # virtual site
     'ord07': 0.1,  # virtual site
     'par08': 0.1,  # virtual site
+    'pdx01': 0.1,  # virtual site
     'scl05': 0.1,  # virtual site
     'sea09': 0.1,  # virtual site
     'sin02': 0.1,  # virtual site
