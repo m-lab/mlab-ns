@@ -57,6 +57,7 @@ class AllResolver(ResolverBase):
 site_keep_probability = {
     'ams10': 0.1,  # virtual site
     'bom01': 0.5,
+    'bom02': 0.5,
     'bru06': 0.1,  # virtual site
     'cgk01': 0.1,  # virtual site
     'chs01': 0.1,  # virtual site
