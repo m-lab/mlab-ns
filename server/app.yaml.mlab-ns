@@ -58,7 +58,7 @@ env_variables:
   PROJECT: "mlab-ns"
   MACHINE_REGEX: "^mlab[1-3]$"
   SITE_REGEX: "^[a-z]{3}[0-9c]{2}$"
-  LOCATIONS_URL: "https://siteinfo.mlab-oti.measurementlab.net/v1/sites/locations.json"
+  LOCATIONS_URL: "https://siteinfo.mlab-oti.measurementlab.net/v2/sites/locations-physical.json"
   HOSTNAMES_URL: "https://siteinfo.mlab-oti.measurementlab.net/v2/sites/hostnames.json"
 
 inbound_services:
