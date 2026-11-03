@@ -7,7 +7,7 @@ lazy-object-proxy==1.6.0
 mock==2.0.0
 pillow
 pyflakes==1.2.3
-pylint==1.5.6
+pylint==4.0.9
 pyyaml
 unittest2
 webob
